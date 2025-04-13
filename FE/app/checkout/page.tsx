@@ -19,12 +19,18 @@ export default function Checkout() {
   const router = useRouter();
 
   const cartIdRequest = cartId;
+
+  //voucher
   const [voucherCode, setVoucherCode] = useState<string[]>([]);
   const [voucherCodeApply, setVoucherCodeApply] = useState<string[] | null>(null);
   const [discountedTotal, setDiscountedTotal] = useState<number | null>(null);
   const [voucherError, setVoucherError] = useState<string | null>(null);
+  const [voucherTotal, setVoucherTotal] = useState<number | null>(null);
+
+  //show voucher
   const [vouchers, setVouchers] = useState<any[]>([]);
   const [voucherFetchError, setVoucherFetchError] = useState<string | null>(null);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderDetails, setOrderDetails] = useState<any>(null);
 
@@ -98,8 +104,10 @@ export default function Checkout() {
       }
 
       const newTotal = response.data.data.newTotalPrice;
+      const voucherApplyPrice = response.data.data.discountPrice;
       setDiscountedTotal(newTotal);
       setVoucherCodeApply(codes);
+      setVoucherTotal(voucherApplyPrice)
       setVoucherCode(codes);
       toast.success(`Đã áp dụng voucher!`);
     } catch (err) {
@@ -119,6 +127,7 @@ export default function Checkout() {
     setDiscountedTotal(null);
     setVoucherCode([]);
     setVoucherError(null);
+    setVoucherTotal(null);
     toast.success('Đã xóa mã khuyến mãi!');
   };
 
@@ -318,9 +327,15 @@ export default function Checkout() {
               <span>{totalPrice.toLocaleString()} đ</span>
             </div>
             <div className="flex justify-between text-sm text-gray-600 mb-1">
-              <span>Phí ứng dụng <span className="text-blue-500 cursor-pointer">ⓘ</span></span>
+              <span>Phí vận chuyển <span className="text-blue-500 cursor-pointer">ⓘ</span></span>
               <span>{deliveryFee.toLocaleString()} đ</span>
             </div>
+            {voucherTotal && (
+              <div className="flex justify-between text-sm text-gray-600 mb-1">
+                <span>Giảm giá <span className="text-blue-500 cursor-pointer"></span></span>
+                <span>- {voucherTotal.toLocaleString()} đ</span>
+              </div>
+            )}
           </div>
         </div>
 
