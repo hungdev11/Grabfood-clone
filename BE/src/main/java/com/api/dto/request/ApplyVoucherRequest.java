@@ -13,4 +13,5 @@ import java.util.List;
 public class ApplyVoucherRequest {
     private List<String> listCode;
     private BigDecimal totalPrice;
+    private BigDecimal shippingFee;
 }

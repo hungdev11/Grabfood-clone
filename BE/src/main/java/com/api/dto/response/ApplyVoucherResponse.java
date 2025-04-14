@@ -10,6 +10,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Builder
 public class ApplyVoucherResponse {
-    private BigDecimal newTotalPrice;
-    private BigDecimal discountPrice;
+    private BigDecimal newOrderPrice;
+    private BigDecimal newShippingFee;
+    private BigDecimal discountShippingPrice;
+    private BigDecimal discountOrderPrice;
+
 }

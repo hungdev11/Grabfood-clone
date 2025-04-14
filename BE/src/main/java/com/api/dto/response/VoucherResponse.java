@@ -1,5 +1,6 @@
 package com.api.dto.response;
 
+import com.api.utils.VoucherApplyType;
 import com.api.utils.VoucherStatus;
 import com.api.utils.VoucherType;
 import lombok.*;
@@ -18,13 +19,13 @@ public class VoucherResponse {
 
     private String description;
 
-    private int quantity;
-
     private BigDecimal minRequire;
 
     private VoucherType type;
 
     private BigDecimal value;
+
+    private VoucherApplyType applyType;
 
     private String endTime;
 

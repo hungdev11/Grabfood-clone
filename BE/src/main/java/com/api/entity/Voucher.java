@@ -1,6 +1,7 @@
 package com.api.entity;
 
 import com.api.entity.BaseEntity;
+import com.api.utils.VoucherApplyType;
 import com.api.utils.VoucherStatus;
 import com.api.utils.VoucherType;
 import jakarta.persistence.*;
@@ -24,9 +25,6 @@ public class Voucher extends BaseEntity {
 
     private String description;
 
-    @Column(nullable = false)
-    private int quantity;
-
     private BigDecimal minRequire;
 
     @Column(nullable = false)
@@ -34,6 +32,10 @@ public class Voucher extends BaseEntity {
     private VoucherType type;
 
     private BigDecimal value;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private VoucherApplyType applyType;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
