@@ -21,6 +21,11 @@ export default function Checkout() {
   const cartIdRequest = cartId;
 
   //voucher
+  const [voucherCodeShipping, setVoucherCodeShipping] = useState<string>('');
+  const [voucherCodeShippingApply, setVoucherCodeShippingApply] = useState<string | null>(null);
+  const [voucherCodeOrder, setVoucherCodeOrder] = useState<string>('');
+  const [voucherCodeOrderApply, setVoucherCodeOrderApply] = useState<string | null>(null);
+  
   const [voucherCode, setVoucherCode] = useState<string[]>([]);
   const [voucherCodeApply, setVoucherCodeApply] = useState<string[] | null>(null);
   const [discountedTotal, setDiscountedTotal] = useState<number | null>(null);
