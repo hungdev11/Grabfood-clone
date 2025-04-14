@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
-import PopupFood from "@/components/PopupFood"; // Nếu bạn có PopupFood component
-
+import PopupFood from "@/components/PopupFood"; 
+import { Food } from "./types/Types";
 interface CartProps {
   isOpen: boolean;
   onClose: () => void;
@@ -37,11 +37,16 @@ export default function Cart({ isOpen, onClose, onCartChange }: CartProps) {
       price: cartItem.price,
       image: cartItem.image,
       note: cartItem.note ?? "",
-      additionFoods: cartItem.additionFoods ?? [], // Giữ nguyên nếu có
+      quantity: cartItem.quantity,
+      cartDetailId: cartItem.cartDetailId,
+      additionalFoods: cartItem.additionalFoods,
     };
+  
+    console.log("Food selected for popup:", food);  // Debugging log
     setSelectedFood(food);
     setPopupVisible(true);
   };
+  
   
 
   const closePopup = () => {
@@ -131,7 +136,7 @@ export default function Cart({ isOpen, onClose, onCartChange }: CartProps) {
                   <div className="flex-1">
                     <h4 className="text-sm font-medium text-gray-800">{item.foodName}</h4>
                     <div className="text-xs text-gray-600">
-                      {item.additionFoods.map((food) => (
+                      {item.additionalFoods.map((food) => (
                         <p key={food.id}>+ {food.name}</p>
                       ))}
                     </div>
@@ -160,7 +165,7 @@ export default function Cart({ isOpen, onClose, onCartChange }: CartProps) {
                   </div>
                   <p className="text-sm font-semibold text-gray-800">
                     {(
-                      (item.price + item.additionFoods.reduce((sum, add) => sum + add.price, 0)) *
+                      (item.price + item.additionalFoods.reduce((sum, add) => sum + add.price, 0)) *
                       item.quantity
                     ).toLocaleString()} đ
                   </p>
