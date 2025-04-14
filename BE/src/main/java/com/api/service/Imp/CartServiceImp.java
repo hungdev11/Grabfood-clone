@@ -21,10 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -53,10 +50,18 @@ public class CartServiceImp implements CartService {
     }
 
     private boolean compareTwoList(List<Long> list1, List<Long> list2) {
-        list1.sort(Long::compareTo);
-        list2.sort(Long::compareTo);
-        return list1.equals(list2);
+        log.debug("🔎 Comparing lists -> list1: {}, list2: {}", list1, list2);
+        if (list1 == null || list2 == null) return false;
+        if (list1.size() != list2.size()) return false;
+        List<Long> copy1 = new ArrayList<>(list1);
+        List<Long> copy2 = new ArrayList<>(list2);
+        Collections.sort(copy1);
+        Collections.sort(copy2);
+        boolean isEqual = copy1.equals(copy2);
+        log.debug("✅ Compare result: {}", isEqual);
+        return isEqual;
     }
+
 
     @Override
     public void createCart(Long userId) {
@@ -182,52 +187,68 @@ public class CartServiceImp implements CartService {
         // Tìm giỏ hàng
         Cart cart = cartRepository.findByUserId(request.getUserId())
                 .orElseThrow(() -> {
-                    log.error("Cart not found for user id: {}", request.getUserId());
+                    log.error("❌ Cart not found for userId: {}", request.getUserId());
                     return new AppException(ErrorCode.CART_NOT_FOUND);
                 });
-        log.info("Updating cart with cartId: {}", cart.getId());
-        // Tìm món hàng trong giỏ
-        CartDetail cartDetail = cartDetailRepository.findById(request.getCartDetailId())
-                .orElseThrow(() -> new AppException(ErrorCode.CART_ITEM_NOT_FOUND));
+        log.info("🔄 Updating cartId: {} for userId: {}", cart.getId(), request.getUserId());
 
-        // Kiểm tra nếu món hàng không có trong giỏ
+        // Tìm cart item cũ
+        CartDetail cartDetail = cartDetailRepository.findById(request.getCartDetailId())
+                .orElseThrow(() -> {
+                    log.error("❌ Cart item not found with id: {}", request.getCartDetailId());
+                    return new AppException(ErrorCode.CART_ITEM_NOT_FOUND);
+                });
+
+        // Kiểm tra món có trong cart không
         if (!cart.getCartDetails().contains(cartDetail)) {
+            log.warn("⚠️ Cart item with id: {} is not part of cartId: {}", request.getCartDetailId(), cart.getId());
             throw new AppException(ErrorCode.CART_ITEM_NOT_FOUND);
         }
-        log.info("Get cart items from cartId: {}", cart.getId());
-        // Lấy tất cả các món trong giỏ (chưa có order)
+
+        // Lấy các món hiện tại trong giỏ chưa order
         List<CartDetail> currentItems = cartDetailRepository.findByCartIdAndOrderIsNull(cart.getId());
 
-        // Tìm món hàng đã tồn tại trong giỏ
+        log.info("🛒 Current cart items for cartId {}: {}", cart.getId(), currentItems.size());
+
+        // Tìm món tương tự (same food + addition items)
         CartDetail existingCartDetail = currentItems.stream()
                 .filter(item -> item.getFood().getId().equals(request.getFoodId())
                         && compareTwoList(item.getIds(), request.getAdditionFoodIds()))
                 .findFirst()
                 .orElse(null);
 
-        // Nếu món đã tồn tại và không phải là chính món đang cập nhật, gộp chúng lại
+        if (existingCartDetail != null) {
+            log.info("🔍 Found existing cart item with id: {}", existingCartDetail.getId());
+        } else {
+            log.info("➕ No existing similar item found. Will update current cartDetail.");
+        }
+
+        // Nếu khác id → gộp số lượng
         if (existingCartDetail != null && !existingCartDetail.getId().equals(request.getCartDetailId())) {
-            log.info("Found diff item with cartId: {}", cart.getId());
-            // Cập nhật số lượng của món tìm thấy
             int newQuantity = existingCartDetail.getQuantity() + request.getNewQuantity();
             existingCartDetail.setQuantity(newQuantity);
 
-            // Xóa món trong giỏ hàng
-            cart.getCartDetails().removeIf(i -> i.getId().equals(request.getCartDetailId()));
+            log.info("🔁 Merging cartDetailId: {} into existingCartDetailId: {}, new quantity: {}",
+                    request.getCartDetailId(), existingCartDetail.getId(), newQuantity);
 
-            // Lưu lại thay đổi
+            cart.getCartDetails().removeIf(i -> i.getId().equals(request.getCartDetailId()));
             cartDetailRepository.save(existingCartDetail);
+
+            log.info("✅ Merged and saved item with id: {}", existingCartDetail.getId());
             return;
         }
 
-        // Nếu món đã tồn tại, cập nhật số lượng
-        if (existingCartDetail != null) {
-            log.info("Found similar item with cartId: {}", cart.getId());
-            existingCartDetail.setQuantity(request.getNewQuantity());
-            cartDetailRepository.save(existingCartDetail);
-            log.info("Updated quantity for foodId: {} in cartId: {} to {}", request.getFoodId(), cart.getId(), request.getNewQuantity());
-        }
+        // Nếu update chính nó
+        cartDetail.setQuantity(request.getNewQuantity());
+        cartDetail.setIds(request.getAdditionFoodIds());
+        //cartDetail.setNote(request.get);
+
+        cartDetailRepository.save(cartDetail);
+
+        log.info("✅ Updated cartDetailId: {} with new quantity: {}, additionFoodIds: {}",
+                cartDetail.getId(), request.getNewQuantity(), request.getAdditionFoodIds());
     }
+
 
     @Override
     public void updateCartDetailQuantity(CartUpdateRequest request) {

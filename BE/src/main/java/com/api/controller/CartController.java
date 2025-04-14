@@ -59,9 +59,14 @@ public class CartController {
                 .build();
     }
 
+    @PutMapping("/update-quantity")
+    public void updateQuantity(@RequestBody CartUpdateRequest request) {
+        cartService.updateCartDetailQuantity(request);
+    }
+
     @PutMapping("/update")
     public void update(@RequestBody CartUpdateRequest request) {
-        cartService.updateCartDetailQuantity(request);
+        cartService.updateCart(request);
     }
 
     @DeleteMapping("/delete")

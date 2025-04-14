@@ -30,17 +30,22 @@ export interface ApiResponse<T> {
     rating: number;
   }
   
+  export interface AdditionalFood {
+    id: number;
+    name: string;
+    price: number;
+  }
+
   export interface Food {
     id: number;
     name: string;
     price: number;
-    image?: string;
+    image: string;
     description?: string;
     rating?: number;
-    additionalFoods?: {
-      id: number;
-      name: string;
-      price: number;
-    }[];
+    quantity?: number;
+    cartDetailId?: number;
+    additionalFoods?: AdditionalFood[];
+    note?: string;
   }
   

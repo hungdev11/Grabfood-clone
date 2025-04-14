@@ -13,5 +13,5 @@ public class CartUpdateRequest {
     long cartDetailId;
     long foodId;
     int newQuantity;
-    List<Long> AdditionFoodIds;
+    List<Long> additionFoodIds;
 }
