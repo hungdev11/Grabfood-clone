@@ -13,6 +13,7 @@ import com.api.repository.*;
 import com.api.service.CartService;
 import com.api.service.OrderService;
 import com.api.utils.OrderStatus;
+import com.api.utils.VoucherApplyType;
 import com.api.utils.VoucherStatus;
 import com.api.utils.VoucherType;
 import lombok.extern.slf4j.Slf4j;
@@ -125,27 +126,52 @@ public class OrderServiceImp implements OrderService {
     public ApplyVoucherResponse applyVoucherToOrder(ApplyVoucherRequest request) {
         if(request.getListCode().isEmpty()) {
             return ApplyVoucherResponse.builder()
-                    .discountPrice(BigDecimal.ZERO)
-                    .newTotalPrice(request.getTotalPrice())
+                    .discountShippingPrice(BigDecimal.ZERO)
+                    .discountOrderPrice(BigDecimal.ZERO)
+                    .newOrderPrice(request.getTotalPrice())
+                    .newShippingFee(request.getShippingFee())
                     .build();
         }
-        BigDecimal discountPrice = BigDecimal.ZERO;
-        BigDecimal totalPrice = request.getTotalPrice();
+        BigDecimal discountShippingFee = BigDecimal.ZERO;
+        BigDecimal discountOrderPrice = BigDecimal.ZERO;
+        BigDecimal orderPrice = request.getTotalPrice();
+        BigDecimal shippingFee = request.getShippingFee();
         for (String code: request.getListCode()) {
             Voucher voucher = voucherRepository.findByCodeAndStatus(code, VoucherStatus.ACTIVE).orElseThrow(() -> new AppException(ErrorCode.VOUCHER_NOT_FOUND));
             log.info("Voucher: "+ voucher.getId().toString());
             checkApplyVoucher(voucher, request.getTotalPrice());
             if(voucher.getType().equals(VoucherType.PERCENTAGE)) {
-                discountPrice = discountPrice.add(discountPrice.multiply(voucher.getValue()).divide(new BigDecimal(100)));
-                totalPrice = totalPrice.multiply((new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
+                if (voucher.getApplyType().equals(VoucherApplyType.ORDER)) {
+                    discountOrderPrice = discountOrderPrice.add(orderPrice.multiply(voucher.getValue()).divide(new BigDecimal(100)));
+                    orderPrice = orderPrice.multiply((new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
+                } else if (voucher.getApplyType().equals(VoucherApplyType.SHIPPING)) {
+                    discountShippingFee = discountShippingFee.add(shippingFee.multiply(voucher.getValue()).divide(new BigDecimal(100)));
+                    shippingFee = shippingFee.multiply((new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
+                }
             } else {
-                discountPrice = discountPrice.add(voucher.getValue());
-                totalPrice = totalPrice.subtract(voucher.getValue());
+                if (voucher.getApplyType().equals(VoucherApplyType.ORDER)) {
+                    discountOrderPrice = discountOrderPrice.add(voucher.getValue());
+                    orderPrice = orderPrice.subtract(voucher.getValue());
+                } else if (voucher.getApplyType().equals(VoucherApplyType.SHIPPING)) {
+                    discountShippingFee = discountShippingFee.add(voucher.getValue());
+                    shippingFee = shippingFee.subtract(voucher.getValue());
+                }
             }
         }
+        if (shippingFee.compareTo(BigDecimal.ZERO) < 0) {
+            shippingFee = BigDecimal.ZERO;
+            discountShippingFee = request.getShippingFee();
+        }
+
+        if (orderPrice.compareTo(BigDecimal.ZERO) < 0) {
+            orderPrice = BigDecimal.ZERO;
+            discountOrderPrice = request.getTotalPrice();
+        }
         return ApplyVoucherResponse.builder()
-                .newTotalPrice(totalPrice)
-                .discountPrice(discountPrice)
+                .newShippingFee(shippingFee)
+                .newOrderPrice(orderPrice)
+                .discountOrderPrice(discountOrderPrice)
+                .discountShippingPrice(discountShippingFee)
                 .build();
     }
 

@@ -86,7 +86,6 @@ public class VoucherServiceImp implements VoucherService {
             voucher.setValue(request.getValue());
             voucher.setDescription(request.getDescription());
             voucher.setValue(request.getValue());
-            voucher.setQuantity(request.getQuantity());
             voucher.setMinRequire(request.getMinRequire());
 
             checkVoucherValue(request.getType(), request.getValue());
