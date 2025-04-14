@@ -70,7 +70,8 @@ public class OrderServiceImp implements OrderService {
         orderRepository.save(order);
 
         //Apply VOucher
-        BigDecimal discountedPrice = order.getTotalPrice();
+        BigDecimal discountedOrderPrice = order.getTotalPrice();
+        BigDecimal discountedShippingPrice = order.getShippingFee();
         for (String voucherCode: request.getVoucherCode()) {
             if(voucherCode != null && !voucherCode.isEmpty()) {
                 Voucher voucher = voucherRepository.findByCodeAndStatus(voucherCode, VoucherStatus.ACTIVE)
@@ -83,15 +84,31 @@ public class OrderServiceImp implements OrderService {
                             .voucherDetail(voucherDetailRepository.findByVoucherIdAndEndDateAfter(voucher.getId(), LocalDateTime.now()))
                             .build();
                     if(voucher.getType().equals(VoucherType.PERCENTAGE)) {
-                        discountedPrice = discountedPrice.multiply((new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
+                        if (voucher.getApplyType().equals(VoucherApplyType.ORDER)) {
+                            discountedOrderPrice = discountedOrderPrice.multiply((new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
+                        } else if (voucher.getApplyType().equals(VoucherApplyType.SHIPPING)) {
+                            discountedShippingPrice = discountedShippingPrice.multiply((new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
+                        }
                     } else {
-                        discountedPrice = discountedPrice.subtract(voucher.getValue());
+                        if (voucher.getApplyType().equals(VoucherApplyType.ORDER)) {
+                            discountedOrderPrice = discountedOrderPrice.subtract(voucher.getValue());
+                        } else if (voucher.getApplyType().equals(VoucherApplyType.SHIPPING)) {
+                            discountedShippingPrice = discountedShippingPrice.subtract(voucher.getValue());
+                        }
                     }
                     orderVoucherRepository.save(orderVoucher);
                 }
             }
         }
-        order.setTotalPrice(discountedPrice);
+        if (discountedShippingPrice.compareTo(BigDecimal.ZERO) < 0) {
+            discountedShippingPrice = BigDecimal.ZERO;
+        }
+
+        if (discountedOrderPrice.compareTo(BigDecimal.ZERO) < 0) {
+            discountedOrderPrice = BigDecimal.ZERO;
+        }
+        order.setTotalPrice(discountedOrderPrice);
+        order.setShippingFee(discountedShippingPrice);
         orderRepository.save(order);
 
         for (CartDetail cartDetail: cartDetails) {

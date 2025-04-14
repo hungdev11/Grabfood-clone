@@ -48,7 +48,6 @@ public class VoucherControllerTest {
                 .id(20) // Giả sử ID được thêm sau khi tạo
                 .code("GRAB50")
                 .description("50% off for GrabFood")
-                .quantity(100)
                 .minRequire(new BigDecimal("100.00"))
                 .type(VoucherType.PERCENTAGE)
                 .value(new BigDecimal("50.00"))
