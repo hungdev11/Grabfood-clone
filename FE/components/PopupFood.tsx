@@ -67,12 +67,12 @@ const Popup: React.FC<PopupProps> = ({
   restaurantId,
   userId,
 }) => {
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(1); // if food given a quantity, set quantity to given number
   const [additionalFoods, setAdditionalFoods] = useState<Food[]>([]);
   const [selectedItems, setSelectedItems] = useState<{ [key: number]: number }>(
     {}
   );
-  const [specialInstructions, setSpecialInstructions] = useState("");
+  const [specialInstructions, setSpecialInstructions] = useState(""); // if note is given, set note to given string
   const { fetchCartItems, isAuthenticated } = useCart(); // Get authentication status from cart context
   const router = useRouter();
 
@@ -81,15 +81,51 @@ const Popup: React.FC<PopupProps> = ({
       try {
         const foods = await getAdditionalFood(selectedFood.id, restaurantId);
         setAdditionalFoods(foods);
+        console.log("✅ API trả về additionalFoods:", foods);
+    
+        // Ensure you're referencing 'additionFoods' instead of 'additionalFoods'
+        if (selectedFood.additionalFoods && Array.isArray(selectedFood.additionalFoods)) {
+          const selectedMap: { [key: number]: number } = {};
+    
+          selectedFood.additionalFoods.forEach((selectedItem) => {
+            const matched = foods.find((f) => f.id === selectedItem.id);
+            if (matched) {
+              selectedMap[matched.id] = matched.price;
+            }
+          });
+    
+          console.log("✅ Selected Map sau khi khớp:", selectedMap);
+          setSelectedItems(selectedMap);
+        } else {
+          console.log("⚠️ No additionFoods available in selectedFood");
+          setSelectedItems({});
+        }
       } catch (error) {
-        console.error("Failed to load additional food:", error);
+        console.error("❌ Failed to load additional food:", error);
       }
     };
-
+  
     if (selectedFood && restaurantId) {
       fetchAdditionalFoods();
     }
   }, [selectedFood, restaurantId]);
+  
+  
+  
+  
+  useEffect(() => {
+    if (selectedFood) {
+
+      if (typeof selectedFood.quantity === "number") {
+        setQuantity(selectedFood.quantity);
+      } else {
+        setQuantity(1); // fallback
+      }
+  
+      // // 2. Set note nếu có
+      setSpecialInstructions(selectedFood.note || "");
+    }
+  }, [selectedFood]);
   
 
   if (!isVisible || !selectedFood) return null;
@@ -217,6 +253,8 @@ const Popup: React.FC<PopupProps> = ({
             additionalFoods={additionalFoods}
             onCheckboxChange={handleCheckboxChange} // Pass the handler for checkbox change
             onSpecialInstructionsChange={setSpecialInstructions} // Truyền hàm callback vào đây
+            selectedItems={selectedItems ?? {}}
+            specialInstructions={specialInstructions ?? ""}
           />
         </div>
 

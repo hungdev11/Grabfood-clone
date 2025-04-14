@@ -2,9 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axiosInstance from '@/utils/axiosInstance';
+import { AdditionalFood } from '@/components/types/Types'; 
 
-// Định nghĩa kiểu dữ liệu cho CartItem
-// CartItem.ts
 interface CartItem {
   restaurantId: string;
   id: number;
@@ -12,18 +11,10 @@ interface CartItem {
   quantity: number;
   image: string;
   foodId: number;
-  foodName: string; // ✅ rename từ `food` → `foodName` cho thống nhất
-  additionFoods: AdditionalCartItem[];
+  foodName: string;
+  additionalFoods: AdditionalFood[];
   note?: string;
 }
-
-
-interface AdditionalCartItem {
-  id: number;
-  price: number;
-  name: string
-}
-
 interface CartContextType {
   cartId: number | null;
   cartItems: CartItem[];
@@ -111,12 +102,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const data: CartItem[] = response.data.data.listItem.map((item: any) => ({
         restaurantId: item.restaurantId,
         id: item.id,
-        foodName: item.foodName, // ✅ dùng đúng key
+        foodName: item.foodName,
         price: Number(item.price),
         quantity: item.quantity,
         image: item.food_img,
         foodId: item.foodId,
-        additionFoods: item.additionFoods || [],
+        additionalFoods: item.additionFoods || [],
         note: item.note,
       }));
             
@@ -162,7 +153,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const payload = {
         userId,
         foodId: itemToRemove.foodId,
-        additionalFoodIds: itemToRemove.additionFoods.map(add => add.id),
+        additionalFoodIds: itemToRemove.additionalFoods.map(add => add.id),
       };
       
   
@@ -185,7 +176,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   // Tổng tiền & tổng số lượng
   const totalPrice = cartItems.reduce((total, item) => {
     const basePrice = item.price;
-    const additionalPrice = item.additionFoods.reduce((sum, add) => sum + Number(add.price), 0);
+    const additionalPrice = item.additionalFoods.reduce((sum, add) => sum + Number(add.price), 0);
     return total + (basePrice + additionalPrice) * item.quantity;
   }, 0);
   
