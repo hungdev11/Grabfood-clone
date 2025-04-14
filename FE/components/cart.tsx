@@ -38,7 +38,7 @@ export default function Cart({ isOpen, onClose, onCartChange }: CartProps) {
       image: cartItem.image,
       note: cartItem.note ?? "",
       quantity: cartItem.quantity,
-      cartDetailId: cartItem.cartDetailId,
+      cartDetailId: cartItem.id,
       additionalFoods: cartItem.additionalFoods,
     };
   

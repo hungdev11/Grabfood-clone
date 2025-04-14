@@ -285,7 +285,7 @@ export default function Checkout() {
                 <div>
                   <h3 className="text-base font-medium">{item.foodName}</h3>
                   <div className="text-xs text-gray-600">
-                    {item.additionFoods.map((food) => (
+                    {item.additionalFoods.map((food) => (
                       <p key={food.id}>+ {food.name}</p>
                     ))}
                   </div>
@@ -307,7 +307,7 @@ export default function Checkout() {
                 </div>
               </div>
               <p className="text-base font-semibold">{(
-                (item.price + item.additionFoods.reduce((sum, add) => sum + add.price, 0)) *
+                (item.price + item.additionalFoods.reduce((sum, add) => sum + add.price, 0)) *
                 item.quantity
               ).toLocaleString()} đ</p>
             </div>
