@@ -131,10 +131,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         cartDetailId,
         foodId: 0, // Server có thể không dùng, tuỳ logic backend
         newQuantity,
-        AdditionFoodIds: [],
+        additionFoodIds: [],
       };
       
-      const response = await axiosInstance.put("/grab/cart/update", requestData);
+      const response = await axiosInstance.put("/grab/cart/update-quantity", requestData);
       
       if (response.status === 200) {
         await fetchCartItems();

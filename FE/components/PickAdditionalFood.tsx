@@ -22,8 +22,6 @@ const PickAdditionalFood: React.FC<PickAdditionalFoodProps> = ({
         {/* List of additional foods */}
         {additionalFoods.map((food) => {
           const isChecked = selectedItems.hasOwnProperty(food.id);
-          console.log(`🔍 Render checkbox for ${food.name} | ID: ${food.id} | Checked: ${isChecked}`);
-
           return (
             <div key={food.id} className="flex justify-between items-center p-2 border-b border-gray-300">
               <div className="flex items-center gap-2">
