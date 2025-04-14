@@ -2,18 +2,18 @@
 import React, { useState, useEffect } from "react";
 import { Food } from "@/components/types/Types";
 import { Button } from "@/components/ui/button";
-import PickAdditionalFood from "@/components/PickAdditionalFood"; // Import your component here
+import PickAdditionalFood from "@/components/PickAdditionalFood";
 import { useCart } from "@/app/context/CartContext";
 import { fetchWithAuth } from "@/utils/api";
-import { useRouter } from "next/navigation"; // Import router
-import { toast } from "@/components/ui/use-toast"; // Import toast if available, or use another notification system
+import { useRouter } from "next/navigation";
+import { toast } from "@/components/ui/use-toast";
 
 interface PopupProps {
   selectedFood: Food;
   isVisible: boolean;
   onClose: () => void;
   restaurantId: string;
-  userId: number; // Added userId for the request
+  userId: number;
 }
 
 async function getAdditionalFood(
@@ -29,36 +29,54 @@ async function getAdditionalFood(
     throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
   }
 
-  let data: any;
-  try {
-    data = await res.json();
-  } catch (err) {
-    console.error("Failed to parse JSON:", err);
-    throw new Error("Invalid JSON response");
-  }
-
-  if (!data?.data?.items || !Array.isArray(data.data.items)) {
-    console.warn("Response doesn't contain 'data.items':", data);
-    return [];
-  }
-
-  return data.data.items;
+  const data = await res.json();
+  return data?.data?.items || [];
 }
-
 
 async function addToCart(userId: number, requestData: any) {
   const res = await fetchWithAuth(`http://localhost:6969/grab/cart/add?userId=${userId}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(requestData),
+  });
+
+  if (!res.ok) throw new Error("Failed to add to cart");
+}
+
+async function updateWholeCartItem(
+  userId: number,
+  cartDetailId: number,
+  foodId: number,
+  quantity: number,
+  additionFoodIds: number[],
+  note: string
+) {
+  const requestData = {
+    userId,
+    cartDetailId,
+    foodId,
+    newQuantity: quantity,
+    additionFoodIds: additionFoodIds,
+    note,
+  };
+
+  console.log("🛠 Updating whole cart item with data:", requestData); // 👈 Log kiểm tra
+
+  const res = await fetchWithAuth("http://localhost:6969/grab/cart/update", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(requestData),
   });
 
   if (!res.ok) {
-    throw new Error("Failed to add to cart");
+    const errText = await res.text();
+    console.error("❌ Update failed:", errText); // 👈 Thêm log nếu lỗi
+    throw new Error("Failed to update cart");
+  } else {
+    console.log("✅ Update success");
   }
 }
+
 
 const Popup: React.FC<PopupProps> = ({
   selectedFood,
@@ -69,11 +87,9 @@ const Popup: React.FC<PopupProps> = ({
 }) => {
   const [quantity, setQuantity] = useState(1);
   const [additionalFoods, setAdditionalFoods] = useState<Food[]>([]);
-  const [selectedItems, setSelectedItems] = useState<{ [key: number]: number }>(
-    {}
-  );
+  const [selectedItems, setSelectedItems] = useState<{ [key: number]: number }>({});
   const [specialInstructions, setSpecialInstructions] = useState("");
-  const { fetchCartItems, isAuthenticated } = useCart(); // Get authentication status from cart context
+  const { fetchCartItems, isAuthenticated } = useCart();
   const router = useRouter();
 
   useEffect(() => {
@@ -81,197 +97,158 @@ const Popup: React.FC<PopupProps> = ({
       try {
         const foods = await getAdditionalFood(selectedFood.id, restaurantId);
         setAdditionalFoods(foods);
+
+        if (selectedFood.additionalFoods?.length) {
+          const selectedMap: { [key: number]: number } = {};
+          selectedFood.additionalFoods.forEach((item) => {
+            const matched = foods.find((f) => f.id === item.id);
+            if (matched) selectedMap[matched.id] = matched.price;
+          });
+          setSelectedItems(selectedMap);
+        } else {
+          setSelectedItems({});
+        }
       } catch (error) {
-        console.error("Failed to load additional food:", error);
+        console.error("❌ Failed to load additional food:", error);
       }
     };
 
-    if (selectedFood && restaurantId) {
-      fetchAdditionalFoods();
-    }
+    if (selectedFood && restaurantId) fetchAdditionalFoods();
   }, [selectedFood, restaurantId]);
-  
+
+  useEffect(() => {
+    if (selectedFood) {
+      setQuantity(typeof selectedFood.quantity === "number" ? selectedFood.quantity : 1);
+      setSpecialInstructions(selectedFood.note || "");
+    }
+  }, [selectedFood]);
 
   if (!isVisible || !selectedFood) return null;
 
   const increase = () => setQuantity((prev) => prev + 1);
-  const decrease = () => setQuantity((prev) => prev - 1);
+  const decrease = () => setQuantity((prev) => Math.max(prev - 1, 0));
 
   const handleCheckboxChange = (foodId: number, price: number) => {
-    setSelectedItems((prevSelectedItems) => {
-      const updatedItems = { ...prevSelectedItems };
-      if (updatedItems[foodId]) {
-        // If already selected, remove it from the list
-        delete updatedItems[foodId];
+    setSelectedItems((prev) => {
+      const updated = { ...prev };
+      if (updated[foodId]) {
+        delete updated[foodId];
       } else {
-        // If not selected, add it to the list
-        updatedItems[foodId] = price;
+        updated[foodId] = price;
       }
-      return updatedItems;
+      return updated;
     });
   };
 
-  const totalAdditionalPrice = Object.values(selectedItems).reduce(
-    (sum, price) => sum + price,
-    0
-  );
-  const totalPrice = (selectedFood.price + totalAdditionalPrice) * quantity; // Include the additional items' price in total
+  const totalAdditionalPrice = Object.values(selectedItems).reduce((sum, price) => sum + price, 0);
+  const totalPrice = (selectedFood.price + totalAdditionalPrice) * quantity;
 
-  const handleAddToBasket = async () => {
-    // Check if user is authenticated
+  const handleSubmitToCart = async () => {
     if (!isAuthenticated) {
-      // Show login notification
-      if (typeof toast !== "undefined") {
-        toast({
-          title: "Login Required",
-          description: "Please login to add items to your basket",
-          variant: "destructive",
-        });
-      } else {
-        alert("Please login to add items to your basket");
-      }
-
-      // Close the popup
+      toast?.({
+        title: "Login Required",
+        description: "Please login to add items to your basket",
+        variant: "destructive",
+      });
       onClose();
-
-      // Redirect to login page
       router.push("/login");
       return;
     }
-    console.log("Special Instructions:", specialInstructions); // Kiểm tra giá trị của specialInstructions
 
-    const requestData = {
-      foodId: selectedFood.id,
-      quantity: quantity,
-      additionalItems: Object.keys(selectedItems).map(Number),
-      note: specialInstructions, // Gửi specialInstructions dưới dạng note
-    };
+    const additionalIds = Object.keys(selectedItems).map(Number);
 
     try {
-      await addToCart(userId, requestData);
-      await fetchCartItems();
-      console.log("Item added to cart");
-
-      // Show success notification
-      if (typeof toast !== "undefined") {
-        toast({
-          title: "Added to Basket",
-          description: `${quantity} × ${selectedFood.name} added to your basket`,
-          variant: "default",
-        });
-      }
-
-      onClose();
-    } catch (error) {
-      console.error("Failed to add to cart:", error);
-
-      // Show error notification
-      if (typeof toast !== "undefined") {
-        toast({
-          title: "Failed to Add Item",
-          description: "Could not add item to basket. Please try again.",
-          variant: "destructive",
+      if (selectedFood.cartDetailId) {
+        await updateWholeCartItem(userId, selectedFood.cartDetailId, selectedFood.id, quantity, additionalIds, specialInstructions);
+        toast?.({
+          title: "Cập nhật thành công",
+          description: `${selectedFood.name} đã được cập nhật`,
         });
       } else {
-        alert("Failed to add item to basket");
+        const requestData = {
+          foodId: selectedFood.id,
+          quantity,
+          additionalItems: additionalIds,
+          note: specialInstructions,
+        };
+        await addToCart(userId, requestData);
+        toast?.({
+          title: "Thêm thành công",
+          description: `${quantity} × ${selectedFood.name} đã được thêm vào giỏ`,
+        });
       }
+
+      await fetchCartItems();
+      onClose();
+    } catch (error) {
+      toast?.({
+        title: "Lỗi",
+        description: "Không thể xử lý. Vui lòng thử lại.",
+        variant: "destructive",
+      });
     }
   };
 
   return (
-    isVisible && (
-      <div
-        className="fixed top-0 right-0 h-full w-2/5 bg-white shadow-lg z-50 transition-transform transform duration-300 flex flex-col"
-        style={{ transform: isVisible ? "translateX(0)" : "translateX(100%)" }}
-      >
+    <div
+      className="fixed top-0 right-0 h-full w-2/5 bg-white shadow-lg z-50 flex flex-col transition-transform duration-300"
+      style={{ transform: isVisible ? "translateX(0)" : "translateX(100%)" }}
+    >
+      <div className="flex justify-left mt-4 mb-4">
+        <button onClick={onClose} className="text-4xl font-bold text-gray-700 hover:text-red-500">
+          ×
+        </button>
+      </div>
 
-        <div className="flex justify-left mt-4 mb-4">
-          <button
-            onClick={onClose}
-            className="text-4xl font-bold text-gray-700 hover:text-red-500 transition duration-200"
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Image and Food Details */}
-        <div className="flex items-center justify-between mb-4 p-4">
-          <img
-            src={selectedFood.image || "/placeholder.svg"}
-            alt={selectedFood.name}
-            className="w-24 h-24 object-cover rounded-md mr-4"
-          />
-          <div className="flex-1 mx-4">
-            <h2 className="text-2xl font-bold text-left">
-              {selectedFood.name}
-            </h2>
-            <p className="text-xl font-bold mt-2 text-left">
-              {selectedFood.price.toLocaleString()}đ
-            </p>
-          </div>
-        </div>
-
-        {/* PickAdditionalFood Component */}
-        <div className="flex-1 overflow-y-auto p-4 border-t border-gray-300 my-4">
-          <PickAdditionalFood
-            additionalFoods={additionalFoods}
-            onCheckboxChange={handleCheckboxChange} // Pass the handler for checkbox change
-            onSpecialInstructionsChange={setSpecialInstructions} // Truyền hàm callback vào đây
-          />
-        </div>
-
-        {/* Quantity and Add to Basket */}
-        <div className="p-4 border-t border-gray-200 bg-white">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={decrease}
-                className="w-10 h-10 rounded-full border text-xl font-bold hover:bg-gray-100"
-              >
-                −
-              </button>
-              <span className="text-xl font-semibold w-8 text-center">
-                {quantity}
-              </span>
-              <button
-                onClick={increase}
-                className="w-10 h-10 rounded-full border text-xl font-bold hover:bg-gray-100"
-              >
-                +
-              </button>
-            </div>
-
-            <Button
-              variant={quantity <= 0 ? "destructive" : "success"} // Switches button variant based on quantity
-              size="lg"
-              onClick={() => {
-                if (quantity <= 0) {
-                  console.log("Cancel operation");
-                  onClose(); // Close the popup if no items are selected
-                } else {
-                  console.log(
-                    "Add to basket:",
-                    selectedFood,
-                    "Quantity:",
-                    quantity
-                  );
-                  handleAddToBasket(); // Gọi hàm handleAddToBasket để thêm vào giỏ hàng
-                }
-              }}
-              className={`flex-1 whitespace-nowrap ${
-                quantity <= 0 ? "bg-red-600 text-white" : ""
-              }`}
-            >
-              {quantity <= 0
-                ? "Cancel"
-                : isAuthenticated
-                ? `Add to basket – ${totalPrice.toLocaleString()}đ`
-                : `Login to add – ${totalPrice.toLocaleString()}đ`}
-            </Button>
-          </div>
+      <div className="flex items-center justify-between mb-4 p-4">
+        <img src={selectedFood.image || "/placeholder.svg"} alt={selectedFood.name} className="w-24 h-24 object-cover rounded-md mr-4" />
+        <div className="flex-1 mx-4">
+          <h2 className="text-2xl font-bold text-left">{selectedFood.name}</h2>
+          <p className="text-xl font-bold mt-2 text-left">{selectedFood.price.toLocaleString()}đ</p>
         </div>
       </div>
-    )
+
+      <div className="flex-1 overflow-y-auto p-4 border-t border-gray-300 my-4">
+        <PickAdditionalFood
+          additionalFoods={additionalFoods}
+          onCheckboxChange={handleCheckboxChange}
+          onSpecialInstructionsChange={setSpecialInstructions}
+          selectedItems={selectedItems}
+          specialInstructions={specialInstructions}
+        />
+      </div>
+
+      <div className="p-4 border-t border-gray-200 bg-white">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <button onClick={decrease} className="w-10 h-10 rounded-full border text-xl font-bold hover:bg-gray-100">−</button>
+            <span className="text-xl font-semibold w-8 text-center">{quantity}</span>
+            <button onClick={increase} className="w-10 h-10 rounded-full border text-xl font-bold hover:bg-gray-100">+</button>
+          </div>
+
+          <Button
+            variant={quantity <= 0 ? "destructive" : "success"}
+            size="lg"
+            onClick={() => {
+              if (quantity <= 0) {
+                onClose();
+              } else {
+                handleSubmitToCart();
+              }
+            }}
+            className={`flex-1 whitespace-nowrap ${quantity <= 0 ? "bg-red-600 text-white" : ""}`}
+          >
+            {quantity <= 0
+              ? "Cancel"
+              : !isAuthenticated
+              ? `Login to add – ${totalPrice.toLocaleString()}đ`
+              : selectedFood.cartDetailId
+              ? `Update – ${totalPrice.toLocaleString()}đ`
+              : `Add to basket – ${totalPrice.toLocaleString()}đ`}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
 
