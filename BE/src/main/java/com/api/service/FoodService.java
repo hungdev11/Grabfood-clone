@@ -3,6 +3,7 @@ package com.api.service;
 import com.api.dto.request.AddAdditionalFoodsRequest;
 import com.api.dto.request.AddFoodRequest;
 import com.api.dto.request.AdjustFoodPriceRequest;
+import com.api.dto.request.UpdateFoodInfoRequest;
 import com.api.dto.response.GetFoodResponse;
 import com.api.dto.response.PageResponse;
 import com.api.utils.FoodStatus;
@@ -22,4 +23,5 @@ public interface FoodService {
     PageResponse<List<GetFoodResponse>> getAdditionalFoodsOfRestaurant(long restaurantId, boolean isForCustomer, int page, int pageSize);
     void addAdditionalFoodToFoodOfRestaurant(AddAdditionalFoodsRequest request);
     PageResponse<List<GetFoodResponse>> getAdditionalFoodsOfFood (long restaurantId, long foodId, boolean isForCustomer, int page, int pageSize);
+    void updateFoodInfo(long restaurantId, long foodId, UpdateFoodInfoRequest request);
 }

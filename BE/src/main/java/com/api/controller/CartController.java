@@ -4,13 +4,11 @@ import com.api.dto.request.AddToCartRequest;
 import com.api.dto.request.CartUpdateRequest;
 import com.api.dto.request.DeleteCartItemRequest;
 import com.api.dto.response.ApiResponse;
-import com.api.dto.response.CartDetailResponse;
 import com.api.dto.response.CartResponse;
-import com.api.entity.CartDetail;
 import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
 import com.api.service.CartService;
-import com.api.service.Imp.JwtService;
+import com.api.jwt.JwtService;
 import com.api.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +49,7 @@ public class CartController {
 
         String token = authHeader.substring(7);
         String username = jwtService.extractUsername(token);
-        Long userId = userService.getUserIdByPhone(username);
+        Long userId = userService.getUserIdByPhoneOrEmail(username);
         return ApiResponse.<CartResponse>builder()
                 .code(200)
                 .message("Success")
