@@ -1,6 +1,5 @@
-package com.api.service.Imp;
+package com.api.jwt;
 
-import com.api.dto.model.AccountInfoDetails;
 import com.api.dto.request.AddUserRequest;
 import com.api.entity.Account;
 import com.api.entity.Role;
@@ -21,9 +20,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class UserInfoService implements UserDetailsService {
@@ -86,6 +85,28 @@ public class UserInfoService implements UserDetailsService {
         cartService.createCart(user.getId());
         return "Account Added Successfully";
     }
+
+    public Account registerOAuth2User(String email, String name, String roleName) {
+
+        Role role = roleRepository.findByRoleName(roleName);
+        Account account = Account.builder()
+                .username(email)
+                .password(encoder.encode(java.util.UUID.randomUUID().toString())) // Set a random password
+                .role(role)
+                .build();
+        User user = User.builder()
+                .name(name)
+                .email(email)
+                .phone("1111111111") // Use email as phone for simplicity
+                .account(account)
+                .build();
+
+        userRepository.save(user);
+        cartService.createCart(user.getId());
+
+        return account;
+    }
+
     private boolean IsUsernameExisted(String phone, String email) {
         return repository.existsByUsername(phone) || userRepository.existsByEmail(email);
     }

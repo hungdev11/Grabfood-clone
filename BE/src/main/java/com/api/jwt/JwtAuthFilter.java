@@ -1,7 +1,6 @@
-package com.api.filter;
+package com.api.jwt;
 
 
-import com.api.service.Imp.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

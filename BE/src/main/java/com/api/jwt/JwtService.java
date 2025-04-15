@@ -1,18 +1,15 @@
-package com.api.service.Imp;
+package com.api.jwt;
 
 import com.api.entity.Account;
-import com.api.entity.User;
 import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
 import com.api.repository.AccountRepository;
-import com.api.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
