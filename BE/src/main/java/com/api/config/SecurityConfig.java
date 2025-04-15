@@ -1,6 +1,7 @@
 package com.api.config;
 
-import com.api.filter.JwtAuthFilter;
+import com.api.jwt.JwtAuthFilter;
+import com.api.oauth2.OAuth2AuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 //import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,6 +20,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -32,12 +37,14 @@ import java.util.List;
 public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     // Constructor injection for required dependencies
     public SecurityConfig(@Lazy JwtAuthFilter jwtAuthFilter,
-                          UserDetailsService userDetailsService) {
+                          UserDetailsService userDetailsService, OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
+        this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
     }
 
 
@@ -97,6 +104,7 @@ public class SecurityConfig {
                                 .requestMatchers("/order/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                                 .requestMatchers(HttpMethod.POST, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/restaurants/**", "/restaurants").permitAll()
+                                .requestMatchers("/login/oauth2/**", "/oauth2/**","/oauth2/authorization/google").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/foods/**").permitAll()
                                 .requestMatchers("/foods/**", "/food-types").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_RES")
                                 .requestMatchers("/vouchers/**", "/voucherDetails/**").permitAll()
@@ -114,9 +122,21 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
 
                 // Add JWT filter before Spring Security's default filter
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService()))
+        );
 
         return http.build();
+    }
+    @Bean
+    public OAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService() {
+        DefaultOAuth2UserService delegate = new DefaultOAuth2UserService();
+        return userRequest -> {
+            OAuth2User oauth2User = delegate.loadUser(userRequest);
+            return oauth2User;
+        };
     }
 
     @Bean
