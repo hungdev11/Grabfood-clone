@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,53 @@ export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
+// Check for token when component mounts (for OAuth redirect)
+useEffect(() => {
+
+  try {
+    console.log("Full URL:", window.location.href);
+    const queryParams = new URLSearchParams(window.location.search);
+    let token = queryParams.get('token');
+    
+    console.log("Token from query params:", token);
+
+    const fragment = window.location.hash.substring(1);
+    console.log("URL fragment:", fragment);
+    
+    // Combine token and fragment to get the full token
+    if (token && fragment) {
+      token = token + "#" + fragment;
+      console.log("Combined token:", token);
+    }
+
+    if (token) {
+      // Process the token in the same format as regular login (UserId#token)
+      const [userIdPart, jwtPart] = token.split('#');
+      
+      console.log("Token parts:", { userIdPart, jwtPart }); // Debug token parsing
+      
+      if (!userIdPart || !jwtPart) {
+        alert("Invalid token format received from OAuth login");
+        return;
+      }
+      
+      // Store token parts in localStorage
+      localStorage.setItem("grabToken", jwtPart);
+      localStorage.setItem("grabUserId", userIdPart);
+      
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Notify user and redirect
+      alert("Google login successful!");
+      window.location.href = "/";
+    }
+  } catch (error) {
+    console.error("Error processing OAuth redirect:", error);
+    alert("Something went wrong with the login process. Please try again.");
+  }
+}, []);
+  
   // Login form state
   const [loginData, setLoginData] = useState({
     username: "", // Changed from email to username for flexibility
@@ -52,7 +99,11 @@ export default function LoginPage() {
       [e.target.name]: e.target.value,
     });
   };
-
+  // Handle Google OAuth login
+  const handleGoogleLogin = () => {
+    console.log("Redirecting to Google OAuth...");
+    window.location.href = "http://localhost:6969/grab/oauth2/authorization/google";
+  };
   // Handle login submission
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,10 +146,10 @@ export default function LoginPage() {
     // Success message
     alert("Login successful!");
       // Redirect to home page
-      router.push("/");
+      window.location.href = "/";
     } catch (error: any) {
       console.error("Login error:", error);
-      alert("Login failed. Please check your credentials and try again.");
+      alert("Login failed. Please check your account and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -311,17 +362,22 @@ export default function LoginPage() {
                 </div>
 
                 <div className="mt-4 flex justify-center">
-                  <Button variant="outline" type="button" className="w-1/2">
-                    <svg
-                      className="mr-2 h-4 w-4"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
+                    <Button 
+                      variant="outline" 
+                      type="button" 
+                      className="w-1/2"
+                      onClick={handleGoogleLogin}
                     >
-                      <path d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.907 8.907 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z"></path>
-                    </svg>
-                    Google
-                  </Button>
-                </div>
+                      <svg
+                        className="mr-2 h-4 w-4"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.907 8.907 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z"></path>
+                      </svg>
+                      Google
+                    </Button>
+                  </div>
               </div>
             </CardContent>
           </Card>
