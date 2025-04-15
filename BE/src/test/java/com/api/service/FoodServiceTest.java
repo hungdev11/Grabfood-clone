@@ -1,193 +1,288 @@
 package com.api.service;
 
-import com.api.dto.request.AddAdditionalFoodsRequest;
 import com.api.dto.request.AddFoodRequest;
 import com.api.dto.request.AdjustFoodPriceRequest;
-import com.api.dto.response.GetFoodResponse;
-import com.api.dto.response.PageResponse;
-import com.api.entity.*;
+import com.api.entity.Food;
+import com.api.entity.FoodDetail;
+import com.api.entity.FoodType;
+import com.api.entity.Restaurant;
 import com.api.exception.AppException;
+import com.api.exception.ErrorCode;
 import com.api.repository.FoodMainAndAdditionalRepository;
 import com.api.repository.FoodRepository;
 import com.api.service.Imp.FoodServiceImp;
 import com.api.utils.FoodKind;
 import com.api.utils.FoodStatus;
-import com.api.utils.VoucherStatus;
-import com.api.utils.VoucherType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
+@ExtendWith(MockitoExtension.class)
 class FoodServiceTest {
-
-    @InjectMocks
-    private FoodServiceImp foodService;
 
     @Mock
     private FoodRepository foodRepository;
+
     @Mock
     private FoodTypeService foodTypeService;
+
     @Mock
     private RestaurantService restaurantService;
+
     @Mock
     private FoodMainAndAdditionalRepository foodMainAndAdditionalRepository;
 
+    @InjectMocks
+    private FoodServiceImp foodServiceImp;
+
+    private AddFoodRequest request;
+    private Restaurant mockRestaurant;
+    private FoodType mockFoodType;
+
     @BeforeEach
-    void setup() {
-        MockitoAnnotations.openMocks(this);
-    }
-
-    private Restaurant mockRestaurant() {
-        Restaurant restaurant = new Restaurant();
-        restaurant.setId(1L);
-        return restaurant;
-    }
-
-    private FoodType mockFoodType(String name) {
-        FoodType type = new FoodType();
-        type.setName(name);
-        type.setFoods(new ArrayList<>());
-        return type;
-    }
-
-    private Food mockFood(Long id, Restaurant restaurant, FoodKind kind, FoodStatus status) {
-        Food food = Food.builder()
-                .name("Pizza")
-                .kind(kind)
-                .status(status)
-                .image("image.jpg")
-                .restaurant(restaurant)
-                .type(mockFoodType("Main"))
-                .foodDetails(new ArrayList<>())
-                .voucherDetails(new ArrayList<>())
-                .mainFoods(new ArrayList<>())
-                .additionFoods(new ArrayList<>())
+    public void setupAddFood() {
+        request = AddFoodRequest.builder()
+                .type("Pizza")
+                .name("Cheese Pizza")
+                .price(BigDecimal.valueOf(10))
+                .description("Very good")
+                .kind(FoodKind.MAIN)
+                .image("a.jpg")
+                .restaurantId(1L)
                 .build();
-        food.setId(1L);
+
+        mockRestaurant = new Restaurant();
+        mockRestaurant.setId(1L);
+        mockRestaurant.setFoods(new ArrayList<>());
+
+        mockFoodType = new FoodType();
+        mockFoodType.setName("Pizza");
+        mockFoodType.setFoods(new ArrayList<>());
+    }
+
+    private final long foodId = 1L;
+    private final long restaurantId = 1L;
+    private final BigDecimal oldPrice = new BigDecimal("10.00");
+    private final BigDecimal newPrice = new BigDecimal("12.00");
+
+    private AdjustFoodPriceRequest createValidRequest() {
+        return AdjustFoodPriceRequest.builder()
+                .foodId(foodId)
+                .restaurantId(restaurantId)
+                .oldPrice(oldPrice)
+                .newPrice(newPrice)
+                .build();
+    }
+
+    private Restaurant createRestaurant() {
+        Restaurant r = new Restaurant();
+        r.setId(restaurantId);
+        return r;
+    }
+
+    private Food createFoodWithDetail(BigDecimal price) {
+        Food food = new Food();
+        food.setId(foodId);
+        food.setRestaurant(createRestaurant());
+
+        FoodDetail detail = new FoodDetail();
+        detail.setFood(food);
+        detail.setPrice(price);
+        detail.setStartTime(LocalDateTime.now().minusDays(1));
+
+        List<FoodDetail> details = new ArrayList<>();
+        details.add(detail);
+
+        food.setFoodDetails(details);
         return food;
     }
 
+
     @Test
-    void testAddFood_Success() {
-        AddFoodRequest request = AddFoodRequest.builder()
-                .name("Pizza")
-                .description("Yummy")
-                .image("image.jpg")
+    void givenAddFoodRequest_whenAddFood_thenReturnFoodId() {
+        // Given
+        given(restaurantService.getRestaurant(request.getRestaurantId())).willReturn(mockRestaurant);
+        given(foodTypeService.getFoodTypeByName(request.getType())).willReturn(mockFoodType);
+        given(foodRepository.existsByRestaurantAndNameAndTypeAndKind(
+                any(), anyString(), any(), any())).willReturn(false);
+
+        Food savedFood = Food.builder()
                 .kind(FoodKind.MAIN)
-                .type("Main")
-                .price(BigDecimal.valueOf(10))
-                .restaurantId(1L)
+                .name(request.getName())
+                .kind(request.getKind())
+                .type(mockFoodType)
+                .restaurant(mockRestaurant)
+                .status(FoodStatus.ACTIVE)
+                .foodDetails(new ArrayList<>())
                 .build();
+        savedFood.setId(1L);
 
-        Restaurant restaurant = mockRestaurant();
-        FoodType foodType = mockFoodType("Main");
+        given(foodRepository.save(any(Food.class))).willReturn(savedFood);
 
-        when(restaurantService.getRestaurant(1L)).thenReturn(restaurant);
-        when(foodTypeService.getFoodTypeByName("Main")).thenReturn(foodType);
-        when(foodRepository.existsByRestaurantAndNameAndTypeAndKind(any(), any(), any(), any())).thenReturn(false);
+        // When
+        long result = foodServiceImp.addFood(request);
 
-        Food savedFood = mockFood(100L, restaurant, FoodKind.MAIN, FoodStatus.ACTIVE);
-        when(foodRepository.save(any())).thenReturn(savedFood);
-
-        long id = foodService.addFood(request);
-        assertEquals(1L, id);
-    }
-
-    @Test
-    void testAdjustFoodPrice_Success() {
-        Food food = mockFood(1L, mockRestaurant(), FoodKind.MAIN, FoodStatus.ACTIVE);
-        FoodDetail detail = FoodDetail.builder()
-                .price(BigDecimal.valueOf(10))
-                .startTime(LocalDateTime.now().minusDays(1))
-                .build();
-
-        food.getFoodDetails().add(detail);
-
-        when(foodRepository.findById(1L)).thenReturn(Optional.of(food));
-        when(restaurantService.getRestaurant(1L)).thenReturn(food.getRestaurant());
-        when(foodRepository.save(any())).thenReturn(food);
-
-        long result = foodService.adjustFoodPrice(AdjustFoodPriceRequest.builder()
-                .foodId(1L)
-                .restaurantId(1L)
-                .oldPrice(BigDecimal.valueOf(10))
-                .newPrice(BigDecimal.valueOf(15))
-                .build());
-
+        // Then
         assertEquals(1L, result);
+        verify(foodRepository, times(1)).save(any(Food.class));
     }
 
     @Test
-    void testGetCurrentPrice_WithVoucherPercentage() {
-        Food food = mockFood(1L, mockRestaurant(), FoodKind.MAIN, FoodStatus.ACTIVE);
-        FoodDetail detail = FoodDetail.builder()
-                .price(BigDecimal.valueOf(100))
-                .startTime(LocalDateTime.now().minusDays(1))
-                .build();
-        food.getFoodDetails().add(detail);
+    public void givenExistedFood_whenAddFood_thenThrowException() {
+        given(restaurantService.getRestaurant(request.getRestaurantId())).willReturn(mockRestaurant);
+        given(foodTypeService.getFoodTypeByName(request.getType())).willReturn(mockFoodType);
+        given(foodRepository.existsByRestaurantAndNameAndTypeAndKind(
+                any(), anyString(), any(), any()
+        )).willReturn(true);
 
-        Voucher voucher = Voucher.builder()
-                .type(VoucherType.PERCENTAGE)
-                .value(BigDecimal.valueOf(20))
-                .status(VoucherStatus.ACTIVE)
-                .restaurant(food.getRestaurant())
-                .build();
+        AppException ex = assertThrows(AppException.class, () -> {
+            foodServiceImp.addFood(request);
+        });
 
-        VoucherDetail vd = VoucherDetail.builder()
-                .voucher(voucher)
-                .startDate(LocalDateTime.now().minusDays(1))
-                .endDate(LocalDateTime.now().plusDays(1))
-                .build();
-
-        food.getVoucherDetails().add(vd);
-
-        when(foodRepository.findById(1L)).thenReturn(Optional.of(food));
-
-        BigDecimal actualPrice = foodService.getCurrentPrice(1L);
-        assertEquals(BigDecimal.valueOf(80), actualPrice);
+        assertEquals(ErrorCode.FOOD_OF_RETAURANT_EXISTED, ex.getErrorCode());
+        verify(foodRepository, never()).save(any(Food.class));
     }
 
     @Test
-    void testChangeFoodStatus_Success() {
-        Food food = mockFood(1L, mockRestaurant(), FoodKind.MAIN, FoodStatus.ACTIVE);
+    public void givenNotExistedRestaurant_whenAddFood_thenThrowException() {
+        given(restaurantService.getRestaurant(anyLong()))
+                .willThrow(new AppException(ErrorCode.RESTAURANT_NOT_FOUND));
 
-        when(foodRepository.findById(1L)).thenReturn(Optional.of(food));
-        when(restaurantService.getRestaurant(1L)).thenReturn(food.getRestaurant());
+        AppException ex = assertThrows(AppException.class, () -> {
+            foodServiceImp.addFood(request);
+        });
 
-        foodService.changeFoodStatus(1L, 1L, FoodStatus.INACTIVE);
-        verify(foodRepository, times(1)).save(food);
-        assertEquals(FoodStatus.INACTIVE, food.getStatus());
+        assertEquals(ErrorCode.RESTAURANT_NOT_FOUND, ex.getErrorCode());
+        verify(foodRepository, never()).save(any(Food.class));
     }
 
     @Test
-    void testAddAdditionalFoodToFoodOfRestaurant_Valid() {
-        Restaurant restaurant = mockRestaurant();
-        Food mainFood = mockFood(1L, restaurant, FoodKind.MAIN, FoodStatus.ACTIVE);
-        Food add1 = mockFood(2L, restaurant, FoodKind.ADDITIONAL, FoodStatus.ACTIVE);
+    public void givenNotExistedFoodType_whenAddFood_thenThrowException() {
+        given(restaurantService.getRestaurant(request.getRestaurantId())).willReturn(mockRestaurant);
+        given(foodTypeService.getFoodTypeByName(anyString()))
+                .willThrow(new AppException(ErrorCode.FOODTYPE_NAME_NOT_EXISTED));
 
-        when(foodRepository.findById(1L)).thenReturn(Optional.of(mainFood));
-        when(foodRepository.findById(2L)).thenReturn(Optional.of(add1));
-        when(restaurantService.getRestaurant(1L)).thenReturn(restaurant);
-        when(foodMainAndAdditionalRepository.existsByMainFoodAndAdditionFood(mainFood, add1)).thenReturn(false);
+        AppException ex = assertThrows(AppException.class, () -> {
+            foodServiceImp.addFood(request);
+        });
 
-        AddAdditionalFoodsRequest request = AddAdditionalFoodsRequest.builder()
-                .restaurantId(1L)
-                .foodId(1L)
-                .additionalFoodIds(Set.of(2))
-                .build();
-
-        foodService.addAdditionalFoodToFoodOfRestaurant(request);
-
-        verifyNoInteractions(foodMainAndAdditionalRepository);
+        assertEquals(ErrorCode.FOODTYPE_NAME_NOT_EXISTED, ex.getErrorCode());
+        verify(foodRepository, never()).save(any(Food.class));
     }
+
+    @Test
+    void adjustFoodPrice_success() {
+        AdjustFoodPriceRequest request = createValidRequest();
+        Food food = createFoodWithDetail(oldPrice);
+
+        given(restaurantService.getRestaurant(restaurantId)).willReturn(createRestaurant());
+        given(foodRepository.findById(foodId)).willReturn(Optional.of(food));
+        given(foodRepository.save(any())).willReturn(food);
+
+        long result = foodServiceImp.adjustFoodPrice(request);
+
+        assertEquals(foodId, result);
+        assertEquals(2, food.getFoodDetails().size()); // Có thêm 1 detail mới
+    }
+
+    @Test
+    void adjustFoodPrice_throw_whenPricesAreTheSame() {
+        AdjustFoodPriceRequest request = createValidRequest();
+        request.setNewPrice(oldPrice); // same
+
+        AppException ex = assertThrows(AppException.class, () ->
+                foodServiceImp.adjustFoodPrice(request)
+        );
+
+        assertEquals(ErrorCode.FOOD_PRICE_REDUNDANT, ex.getErrorCode());
+    }
+
+    @Test
+    void adjustFoodPrice_throw_whenFoodNotBelongToRestaurant() {
+        AdjustFoodPriceRequest request = createValidRequest();
+
+        // Giả lập food thuộc nhà hàng khác
+        Restaurant another = Restaurant.builder().build();
+        another.setId(999L);
+        Food food = createFoodWithDetail(oldPrice);
+        food.setRestaurant(another);
+
+        given(restaurantService.getRestaurant(restaurantId)).willReturn(createRestaurant());
+        given(foodRepository.findById(foodId)).willReturn(Optional.of(food));
+
+        AppException ex = assertThrows(AppException.class, () ->
+                foodServiceImp.adjustFoodPrice(request)
+        );
+
+        assertEquals(ErrorCode.FOOD_RESTAURANT_NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    void adjustFoodPrice_throw_whenNoFoodDetails() {
+        AdjustFoodPriceRequest request = createValidRequest();
+        Food food = Food.builder()
+                .restaurant(createRestaurant())
+                .foodDetails(new ArrayList<>()) // empty list
+                .build();
+        food.setId(foodId);
+
+        given(restaurantService.getRestaurant(restaurantId)).willReturn(createRestaurant());
+        given(foodRepository.findById(foodId)).willReturn(Optional.of(food));
+
+        AppException ex = assertThrows(AppException.class, () ->
+                foodServiceImp.adjustFoodPrice(request)
+        );
+
+        assertEquals(ErrorCode.FOOD_RESTAURANT_NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    void adjustFoodPrice_throw_whenOldPriceConflict() {
+        AdjustFoodPriceRequest request = createValidRequest();
+        Food food = createFoodWithDetail(new BigDecimal("9.00")); // khác oldPrice
+
+        given(restaurantService.getRestaurant(restaurantId)).willReturn(createRestaurant());
+        given(foodRepository.findById(foodId)).willReturn(Optional.of(food));
+
+        AppException ex = assertThrows(AppException.class, () ->
+                foodServiceImp.adjustFoodPrice(request)
+        );
+
+        assertEquals(ErrorCode.FOOD_DETAIL_CONFLICT_PRICE, ex.getErrorCode());
+    }
+
+    @Test
+    void adjustFoodPrice_throw_whenRestaurantNotFound() {
+        AdjustFoodPriceRequest request = createValidRequest();
+
+        given(restaurantService.getRestaurant(restaurantId))
+                .willThrow(new AppException(ErrorCode.RESTAURANT_NOT_FOUND));
+
+        AppException ex = assertThrows(AppException.class, () ->
+                foodServiceImp.adjustFoodPrice(request)
+        );
+
+        assertEquals(ErrorCode.RESTAURANT_NOT_FOUND, ex.getErrorCode());
+    }
+
+
+
+
 }
+

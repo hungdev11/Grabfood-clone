@@ -3,6 +3,7 @@ package com.api.controller;
 import com.api.dto.request.AddAdditionalFoodsRequest;
 import com.api.dto.request.AddFoodRequest;
 import com.api.dto.request.AdjustFoodPriceRequest;
+import com.api.dto.request.UpdateFoodInfoRequest;
 import com.api.dto.response.ApiResponse;
 import com.api.dto.response.GetFoodResponse;
 import com.api.service.FoodService;
@@ -70,6 +71,15 @@ public class FoodController {
                 .build();
     }
 
+    @PutMapping("/info/{foodId}")
+    public ApiResponse<?> updateFoodInfo(@PathVariable long foodId, @RequestParam long restaurantId, @RequestBody UpdateFoodInfoRequest request) {
+        foodService.updateFoodInfo(restaurantId, foodId, request);
+        return ApiResponse.builder()
+                .code(200)
+                .message("Success")
+                .build();
+    }
+
     @GetMapping("/additional")
     public ApiResponse<?> getAdditionalFoodsOfRestaurant(
             @RequestParam long restaurantId,
@@ -107,5 +117,4 @@ public class FoodController {
                 .code(200)
                 .build();
     }
-
 }
