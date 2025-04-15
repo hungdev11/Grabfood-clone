@@ -11,6 +11,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
     Boolean existsByEmail(String email);
+    Boolean existsByPhone(String phone);
     Optional<User> findByPhone(String phone);
 
     @Query(value = "SELECT * FROM `grab-food`.user WHERE id = (SELECT user_id FROM `grab-food`.cart WHERE id = :cartId)", nativeQuery = true)

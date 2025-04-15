@@ -88,16 +88,23 @@ public class UserInfoService implements UserDetailsService {
 
     public Account registerOAuth2User(String email, String name, String roleName) {
 
+        String randomPhone;
+        do {
+            // Create 10-digit random phone number
+            randomPhone = "0" + String.format("%09d", (int)(Math.random() * 1000000000));
+        } while (userRepository.existsByPhone(randomPhone));
+
         Role role = roleRepository.findByRoleName(roleName);
         Account account = Account.builder()
                 .username(email)
-                .password(encoder.encode(java.util.UUID.randomUUID().toString())) // Set a random password
+                .password(encoder.encode(java.util.UUID.randomUUID().toString())) // Random password
                 .role(role)
                 .build();
+
         User user = User.builder()
                 .name(name)
                 .email(email)
-                .phone("1111111111") // Use email as phone for simplicity
+                .phone(randomPhone) // Use the generated unique phone number
                 .account(account)
                 .build();
 

@@ -36,4 +36,9 @@ public class UserServiceImp implements UserService {
                         "User not found with phone or email: " + username));
         return user.getId();
     }
+
+    @Override
+    public Boolean checkUserExistByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
 }

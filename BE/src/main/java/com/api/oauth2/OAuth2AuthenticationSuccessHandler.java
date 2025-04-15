@@ -5,6 +5,7 @@ import com.api.entity.Account;
 import com.api.jwt.JwtService;
 import com.api.jwt.UserInfoService;
 import com.api.service.AccountService;
+import com.api.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,12 +25,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final JwtService jwtService;
     private final UserInfoService userInfoService;
     private final AccountService accountService;
+    private final UserService userService;
 
     @Autowired
-    public OAuth2AuthenticationSuccessHandler(JwtService jwtService, UserInfoService userInfoService, @Lazy AccountService accountService) {
+    public OAuth2AuthenticationSuccessHandler(UserService userService,JwtService jwtService, UserInfoService userInfoService, @Lazy AccountService accountService) {
         this.jwtService = jwtService;
         this.userInfoService = userInfoService;
         this.accountService = accountService;
+        this.userService = userService;
     }
 
     @Override
@@ -40,21 +43,23 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
-
+        String redirectFE = "http://localhost:3000";
         // Check if user exists, otherwise create
         Account account = accountService.getAccountByUsername(email);
-        if (account == null) {
+        Boolean isUserExist = userService.checkUserExistByEmail(email);
+        if (account == null && isUserExist) {
+            String errorRedirectUrl = redirectFE + "/login?error=email_already_used";
+            getRedirectStrategy().sendRedirect(request, response, errorRedirectUrl);
+            return;
+        }
+        if (account == null ) {
             account = userInfoService.registerOAuth2User(email, name, "ROLE_USER");
         }
 
         // Generate JWT token
         String token = jwtService.generateToken(account.getUsername());
 
-        // Log to debug
-        System.out.println("OAuth2 Success Handler - Redirecting to: /views/admin/building/list.html?token=" + token);
-
         // Redirect to frontend with token
-        String redirectFE = "http://localhost:3000";
         String redirectUrl = redirectFE + "/login?token=" + token;
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
