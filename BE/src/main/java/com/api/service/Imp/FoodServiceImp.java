@@ -3,6 +3,7 @@ package com.api.service.Imp;
 import com.api.dto.request.AddAdditionalFoodsRequest;
 import com.api.dto.request.AddFoodRequest;
 import com.api.dto.request.AdjustFoodPriceRequest;
+import com.api.dto.request.UpdateFoodInfoRequest;
 import com.api.dto.response.GetFoodResponse;
 import com.api.dto.response.PageResponse;
 import com.api.entity.*;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -351,6 +353,86 @@ public class FoodServiceImp implements FoodService {
                 .items(foodResponses)
                 .build();
     }
+
+    @Override
+    @Modifying
+    @Transactional
+    public void updateFoodInfo(long restaurantId, long foodId, UpdateFoodInfoRequest request) {
+        log.info("Update food {} of restaurant {}", foodId, restaurantId);
+        Food food = getFoodByIdAndRestaurantId(foodId, restaurantId);
+
+        request.getName().ifPresent(name -> {
+            log.info("Updating food name to '{}'", name);
+            food.setName(name);
+        });
+
+        request.getImage().ifPresent(image -> {
+            log.info("Updating food image to '{}'", image);
+            food.setImage(image);
+        });
+
+        request.getDescription().ifPresent(description -> {
+            log.info("Updating food description to '{}'", description);
+            food.setDescription(description);
+        });
+
+        request.getStatus().ifPresent(status -> {
+            log.info("Updating food status to '{}'", status);
+            food.setStatus(status);
+        });
+
+        request.getFoodKind().ifPresent(kind -> {
+            log.info("Updating food kind to '{}'", kind);
+            food.setKind(kind);
+        });
+
+        request.getFoodType().ifPresent(typeName -> {
+            log.info("Updating food type to '{}'", typeName);
+            FoodType type = foodTypeService.getFoodTypeByName(typeName);
+            food.setType(type);
+        });
+
+        request.getAdditionalIds()
+                .filter(ids -> !ids.isEmpty())
+                .ifPresent(ids -> {
+                    log.info("Updating additional food IDs to {}", ids);
+
+                    //clear Relations additional food before clear
+                    for (FoodMainAndAddition foodMainAndAddition : food.getMainFoods()) {
+                        Food additionalFood = foodMainAndAddition.getAdditionFood();
+                        additionalFood.getAdditionFoods().remove(foodMainAndAddition);
+                        foodMainAndAdditionalRepository.delete(foodMainAndAddition);
+                    }
+                    food.getMainFoods().clear();
+
+                    addAdditionalFoodToFoodOfRestaurant(AddAdditionalFoodsRequest.builder()
+                            .foodId(foodId)
+                            .restaurantId(restaurantId)
+                            .additionalFoodIds(ids)
+                            .build());
+                });
+
+        if (request.getOldPrice().isPresent() && request.getNewPrice().isPresent()) {
+            BigDecimal oldP = request.getOldPrice().get();
+            BigDecimal newP = request.getNewPrice().get();
+
+            if (oldP.compareTo(newP) != 0) {
+                log.info("Adjusting price from {} to {}", oldP, newP);
+                adjustFoodPrice(AdjustFoodPriceRequest.builder()
+                        .foodId(foodId)
+                        .restaurantId(restaurantId)
+                        .oldPrice(oldP)
+                        .newPrice(newP)
+                        .build());
+            } else {
+                log.info("Price unchanged ({}), skipping adjustment", oldP);
+            }
+        }
+
+        log.info("Saving updated food");
+        foodRepository.save(food);
+    }
+
 
 //====================================================================================================================================
 
