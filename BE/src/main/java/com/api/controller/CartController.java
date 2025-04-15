@@ -49,7 +49,7 @@ public class CartController {
 
         String token = authHeader.substring(7);
         String username = jwtService.extractUsername(token);
-        Long userId = userService.getUserIdByPhone(username);
+        Long userId = userService.getUserIdByPhoneOrEmail(username);
         return ApiResponse.<CartResponse>builder()
                 .code(200)
                 .message("Success")
