@@ -108,6 +108,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/foods/**").permitAll()
                                 .requestMatchers("/foods/**", "/food-types").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_RES")
                                 .requestMatchers("/vouchers/**", "/voucherDetails/**").permitAll()
+                                .requestMatchers("payments/**").permitAll()
 //                        .requestMatchers("/cart/**", "/order/**", "/restaurants/**").permitAll()
 //                        .requestMatchers("/foods/**","food-types").permitAll()
 //                        .requestMatchers("/vouchers/**", "/voucherDetails/**").permitAll()

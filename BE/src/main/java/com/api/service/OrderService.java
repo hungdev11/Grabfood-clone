@@ -14,6 +14,6 @@ public interface OrderService {
     OrderResponse createOrder(CreateOrderRequest request);
     List<CartDetail> getCartDetailsByOrder(Long orderId, String status);
     List<Order> getOrdersByUser(Long userId);
-
-   ApplyVoucherResponse applyVoucherToOrder(ApplyVoucherRequest request);
+    ApplyVoucherResponse applyVoucherToOrder(ApplyVoucherRequest request);
+    void DeleteOrderFailedPayment(Long orderId);
 }

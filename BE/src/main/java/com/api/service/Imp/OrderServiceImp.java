@@ -192,6 +192,26 @@ public class OrderServiceImp implements OrderService {
                 .build();
     }
 
+    @Override
+    public void DeleteOrderFailedPayment(Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() ->
+                new RuntimeException("Order not found"));
+        List<CartDetail> cartDetailList = order.getCartDetails();
+        if(!cartDetailList.isEmpty()) {
+            for (CartDetail cartDetail: cartDetailList) {
+                cartDetail.setOrder(null);
+                cartDetailRepository.save(cartDetail);
+            }
+        }
+        List<OrderVoucher> orderVoucherList = order.getOrderVoucherList();
+        if(!orderVoucherList.isEmpty()) {
+            for (OrderVoucher orderVoucher: orderVoucherList) {
+                orderVoucherRepository.deleteById(orderVoucher.getId());
+            }
+        }
+        orderRepository.delete(order);
+    }
+
     private BigDecimal getTotalPrice(List<CartDetail> cartDetails) {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (CartDetail cartDetail: cartDetails) {

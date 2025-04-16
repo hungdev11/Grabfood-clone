@@ -19,10 +19,11 @@ public class PaymentController {
     private final MomoPaymentService momoPaymentService;
 
     @PostMapping("/momo")
-    public ResponseEntity<String> createMomoPayment( @RequestParam BigDecimal amount)
+    public ResponseEntity<String> createMomoPayment(@RequestParam Long orderId, @RequestParam BigDecimal amount)
     {
         try {
-            String payUrl = momoPaymentService.createPaymentUrl( amount);
+            log.info(">> Đã vào controller, amount = {}", amount);
+            String payUrl = momoPaymentService.createPaymentUrl(orderId, amount);
             return ResponseEntity.ok(payUrl);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());

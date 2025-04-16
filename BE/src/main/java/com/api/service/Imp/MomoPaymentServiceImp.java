@@ -21,7 +21,7 @@ import java.util.UUID;
 public class MomoPaymentServiceImp implements MomoPaymentService {
 
     @Override
-    public String createPaymentUrl( BigDecimal amount) {
+    public String createPaymentUrl(Long orderId, BigDecimal amount) {
         try {
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
@@ -29,8 +29,7 @@ public class MomoPaymentServiceImp implements MomoPaymentService {
 
             String requestId = UUID.randomUUID().toString();
             String extraData = "";
-            String orderInfo = "Thanh toan don hang " ;
-            String orderId = UUID.randomUUID().toString();
+            String orderInfo = "Thanh toan don hang " + orderId;
 
             String rawSignature = String.format(
                     "accessKey=%s&amount=%d&extraData=%s&ipnUrl=%s&orderId=%s&orderInfo=%s&partnerCode=%s&redirectUrl=%s&requestId=%s&requestType=captureWallet",
@@ -48,7 +47,7 @@ public class MomoPaymentServiceImp implements MomoPaymentService {
                     .ipnUrl(MomoConfig.IPN_URL)
                     .partnerCode(MomoConfig.PARTNER_CODE)
                     .extraData(extraData)
-                    .orderId(orderId)
+                    .orderId(orderId.toString())
                     .orderInfo(orderInfo)
                     .signature(signature)
                     .build();
@@ -61,6 +60,7 @@ public class MomoPaymentServiceImp implements MomoPaymentService {
 
             MomoResponse momoResponse = mapper.readValue(response, MomoResponse.class);
 
+            System.out.println("Response: " + response);
             log.info("MoMo API Response: " + response);
             if (momoResponse != null && momoResponse.getPayUrl() != null) {
                 return momoResponse.getPayUrl();
