@@ -52,7 +52,7 @@ export default async function RestaurantPage({ params }: { params: Params }) {
       <Header />
 
       {/* Breadcrumb Navigation */}
-      <Breadcrumb aria-label="breadcrumb" style={{ marginTop: "16px", fontSize: "3rem" }}>
+      <Breadcrumb className="ml-4" aria-label="breadcrumb" style={{ marginTop: "16px", fontSize: "3rem" }}>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink href="/">Home</BreadcrumbLink>
@@ -67,7 +67,7 @@ export default async function RestaurantPage({ params }: { params: Params }) {
 
 
       {/* Info section giống hình 1 */}
-      <div className="mb-6 mt-4">
+      <div className="mb-6 mt-4 ml-4">
         <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
           {restaurantInfo.name}
         </h1>
