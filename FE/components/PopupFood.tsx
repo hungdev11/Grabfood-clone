@@ -191,7 +191,7 @@ const Popup: React.FC<PopupProps> = ({
 
   return (
     <div
-      className="fixed top-0 right-0 h-full w-2/5 bg-white shadow-lg z-50 flex flex-col transition-transform duration-300"
+      className="fixed top-0 right-0 h-full w-96 bg-white shadow-lg z-50 flex flex-col transition-transform duration-300"
       style={{ transform: isVisible ? "translateX(0)" : "translateX(100%)" }}
     >
       <div className="flex justify-left mt-4 mb-4">
