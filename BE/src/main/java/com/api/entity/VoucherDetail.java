@@ -16,6 +16,8 @@ import java.util.List;
 @Entity
 @Table(name = "voucher_detail")
 public class VoucherDetail extends BaseEntity{
+    @Column(nullable = false)
+    private int quantity;
 
     @Column(nullable = false)
     private LocalDateTime startDate;

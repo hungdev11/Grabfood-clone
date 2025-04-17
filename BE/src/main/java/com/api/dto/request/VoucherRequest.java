@@ -1,5 +1,6 @@
 package com.api.dto.request;
 
+import com.api.utils.VoucherApplyType;
 import com.api.utils.VoucherStatus;
 import com.api.utils.VoucherType;
 import lombok.*;
@@ -25,6 +26,8 @@ public class VoucherRequest {
     private VoucherType type;
 
     private BigDecimal value;
+
+    private VoucherApplyType applyType;
 
     private VoucherStatus status;
 

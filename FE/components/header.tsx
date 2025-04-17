@@ -54,9 +54,10 @@ export default function Header() {
     // Handle logout
     const handleLogout = () => {
       localStorage.removeItem("grabToken");
+      localStorage.removeItem("grabUserId");
       setIsLoggedIn(false);
       setUsername("");
-      router.push("/");
+      window.location.href = "/";
     };
   
     // Handle cart changes

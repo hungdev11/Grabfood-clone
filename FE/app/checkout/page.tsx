@@ -19,12 +19,24 @@ export default function Checkout() {
   const router = useRouter();
 
   const cartIdRequest = cartId;
+
+  //voucher
+  const [voucherOrderApply, setVoucherOrderApply] = useState<string | null>(null);
+  const [voucherShippingApply, setVoucherShippingApply] = useState<string | null>(null);
+  const [discountOrderPrice, setDiscountOrderPrice] = useState<number>(0);
+  const [discountShippingPrice, setDiscountShippingPrice] = useState<number>(0);
+  const [newOrderPrice, setNewOrderPrice] = useState<number | null>(null);
+  const [newShippingFee, setNewShippingFee] = useState<number | null>(null);
+
   const [voucherCode, setVoucherCode] = useState<string[]>([]);
   const [voucherCodeApply, setVoucherCodeApply] = useState<string[] | null>(null);
-  const [discountedTotal, setDiscountedTotal] = useState<number | null>(null);
   const [voucherError, setVoucherError] = useState<string | null>(null);
+  const [voucherTotal, setVoucherTotal] = useState<number | null>(null);
+
+  //show voucher
   const [vouchers, setVouchers] = useState<any[]>([]);
   const [voucherFetchError, setVoucherFetchError] = useState<string | null>(null);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderDetails, setOrderDetails] = useState<any>(null);
 
@@ -61,8 +73,9 @@ export default function Checkout() {
       const requestBody = {
         listCode: codes,
         totalPrice: totalPrice,
+        shippingFee: deliveryFee,
       };
-
+      console.log(requestBody)
       const response = await axiosInstance.post(
         'http://localhost:6969/grab/order/check/applyVoucher',
         requestBody,
@@ -72,7 +85,7 @@ export default function Checkout() {
           },
         }
       );
-
+      console.log(response.data)
       if (response.data.error || !response.data.data) {
         let errorMessage = 'Không thể áp dụng voucher. Vui lòng kiểm tra lại mã!';
         if (response.data.message) {
@@ -92,19 +105,24 @@ export default function Checkout() {
           }
         }
         setVoucherCodeApply(null);
-        setDiscountedTotal(null);
         setVoucherError(errorMessage);
         return;
       }
 
-      const newTotal = response.data.data.newTotalPrice;
-      setDiscountedTotal(newTotal);
+      const newOrderPrice = response.data.data.newOrderPrice;
+      const newShippingFee = response.data.data.newShippingFee;
+      const discountOrderPrice = response.data.data.discountOrderPrice;
+      const discountShippingPrice = response.data.data.discountShippingPrice;
+      console.log(newOrderPrice, newShippingFee, discountOrderPrice, discountShippingPrice)
+      setNewOrderPrice(newOrderPrice);
+      setNewShippingFee(newShippingFee);
+      setDiscountOrderPrice(discountOrderPrice);
+      setDiscountShippingPrice(discountShippingPrice);
       setVoucherCodeApply(codes);
       setVoucherCode(codes);
       toast.success(`Đã áp dụng voucher!`);
     } catch (err) {
       setVoucherCodeApply(null);
-      setDiscountedTotal(null);
       const error = err as AxiosError<{ message?: string }>;
       let errorMessage = 'Lỗi kết nối hoặc server không phản hồi!';
       if (error.response?.data?.message) {
@@ -114,12 +132,28 @@ export default function Checkout() {
     }
   };
 
-  const handleRemoveVoucher = () => {
-    setVoucherCodeApply(null);
-    setDiscountedTotal(null);
-    setVoucherCode([]);
+  const handleRemoveVoucher = (codeToRemove: string) => {
+    // Lọc bỏ mã voucher được chọn
+    const updatedCodes = voucherCode.filter((code) => code !== codeToRemove);
+    
+    // Cập nhật state
+    setVoucherCode(updatedCodes);
+    setVoucherCodeApply(updatedCodes.length > 0 ? updatedCodes : null);
     setVoucherError(null);
-    toast.success('Đã xóa mã khuyến mãi!');
+  
+    // Nếu không còn mã nào, reset các giá trị giảm giá
+    if (updatedCodes.length === 0) {
+      setNewOrderPrice(null);
+      setNewShippingFee(null);
+      setDiscountOrderPrice(0);
+      setDiscountShippingPrice(0);
+      setVoucherTotal(null);
+    } else {
+      // Gọi lại API để áp dụng các mã còn lại
+      handleApplyVoucher(updatedCodes);
+    }
+  
+    toast.success(`Đã xóa mã khuyến mãi ${codeToRemove}!`);
   };
 
   const deliveryFee = 25000;
@@ -130,9 +164,10 @@ export default function Checkout() {
     if (item) {
       updateQuantity(id, item.quantity + 1);
     }
-    setDiscountedTotal(null);
     setVoucherCodeApply(null);
     setVoucherCode([]);
+    setDiscountOrderPrice(0);
+    setDiscountShippingPrice(0);
   };
 
   const decreaseQuantity = (id: number) => {
@@ -140,9 +175,10 @@ export default function Checkout() {
     if (item && item.quantity > 1) {
       updateQuantity(id, item.quantity - 1);
     }
-    setDiscountedTotal(null);
     setVoucherCodeApply(null);
     setVoucherCode([]);
+    setDiscountOrderPrice(0);
+    setDiscountShippingPrice(0);
   };
 
   const handlePlaceOrder = async () => {
@@ -163,7 +199,7 @@ export default function Checkout() {
       cartId,
       address,
       note,
-      shippingFee: deliveryFee,
+      shippingFee: 25000,
       voucherCode: voucherCodes || [],
     };
     try {
@@ -318,9 +354,21 @@ export default function Checkout() {
               <span>{totalPrice.toLocaleString()} đ</span>
             </div>
             <div className="flex justify-between text-sm text-gray-600 mb-1">
-              <span>Phí ứng dụng <span className="text-blue-500 cursor-pointer">ⓘ</span></span>
+              <span>Phí vận chuyển <span className="text-blue-500 cursor-pointer">ⓘ</span></span>
               <span>{deliveryFee.toLocaleString()} đ</span>
             </div>
+            {(discountOrderPrice ?? 0) !== 0 && (
+              <div className="flex justify-between text-sm text-gray-600 mb-1">
+                <span>Giảm giá sản phẩm<span className="text-blue-500 cursor-pointer"></span></span>
+                <span>- {discountOrderPrice.toLocaleString()} đ</span>
+              </div>
+            )}
+            { (discountShippingPrice ?? 0 ) !== 0 &&(
+              <div className="flex justify-between text-sm text-gray-600 mb-1">
+                <span>Giảm giá vận chuyển<span className="text-blue-500 cursor-pointer"></span></span>
+                <span>- {discountShippingPrice.toLocaleString()} đ</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -384,12 +432,15 @@ export default function Checkout() {
                     <p className="text-sm text-gray-600">
                       Đơn tối thiểu: {voucher.minRequire.toLocaleString()} đ
                     </p>
+                    <p className="text-sm text-gray-600">
+                      Loại: {voucher.applyType}
+                    </p>
                     <div className="mt-3 flex justify-end">
                       {voucherCodeApply?.includes(voucher.code) ? (
                         <Button
                           variant="ghost"
                           className="text-red-500 hover:text-red-700 text-sm font-medium p-0"
-                          onClick={handleRemoveVoucher}
+                          onClick={() => handleRemoveVoucher(voucher.code)}
                         >
                           Xóa
                         </Button>
@@ -397,7 +448,20 @@ export default function Checkout() {
                         <Button
                           className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-sm"
                           onClick={() => {
-                            const newCodes = [...voucherCode, voucher.code];
+                            // Lấy danh sách mã hiện tại
+                            const currentCodes = [...voucherCode];
+                            // Tìm voucher được chọn
+                            const selectedVoucher = vouchers.find((v) => v.code === voucher.code);
+                            if (!selectedVoucher) return;
+
+                            // Xóa các mã cùng loại (SHIPPING hoặc ORDER)
+                            const filteredCodes = currentCodes.filter((code) => {
+                              const existingVoucher = vouchers.find((v) => v.code === code);
+                              return !existingVoucher || existingVoucher.applyType !== selectedVoucher.applyType;
+                            });
+
+                            // Thêm mã mới
+                            const newCodes = [...filteredCodes, voucher.code];
                             setVoucherCode(newCodes);
                             handleApplyVoucher(newCodes);
                           }}
@@ -420,8 +484,8 @@ export default function Checkout() {
         <div>
           <p className="text-lg font-bold">Tổng cộng</p>
           <p className="text-sm text-gray-500">
-            {(discountedTotal !== null ? discountedTotal + deliveryFee : grandTotal).toLocaleString()} đ{' '}
-            {discountedTotal !== null && (
+            {((discountOrderPrice ?? 0) !== 0 || (discountShippingPrice ?? 0) !== 0 ? (newOrderPrice ?? 0) + (newShippingFee ?? 0) : grandTotal).toLocaleString()} đ{' '}
+            {((discountOrderPrice ?? 0) !== 0 || (discountShippingPrice ?? 0)) !== 0 && (
               <span className="line-through">{grandTotal.toLocaleString()} đ</span>
             )}
           </p>

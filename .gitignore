@@ -1,0 +1,8 @@
+﻿# Configuration files
+BE/src/main/resources/application.yml
+
+# Build files
+BE/target/
+
+# IDE files
+.idea/
