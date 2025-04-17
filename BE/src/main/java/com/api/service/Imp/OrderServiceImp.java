@@ -117,6 +117,7 @@ public class OrderServiceImp implements OrderService {
         }
 
         return OrderResponse.builder()
+                .id(order.getId())
                 .userId(user.getId())
                 .status(order.getStatus())
                 .address(order.getAddress())

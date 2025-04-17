@@ -40,9 +40,9 @@ public class Order extends BaseEntity{
     @Column(nullable = false, precision = 9, scale = 2)
     private BigDecimal shippingFee;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private List<CartDetail> cartDetails = new ArrayList<>();
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private List<OrderVoucher> orderVoucherList = new ArrayList<>();
 }
