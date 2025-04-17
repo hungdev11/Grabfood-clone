@@ -4,6 +4,8 @@ import com.api.dto.request.AddAdditionalFoodsRequest;
 import com.api.dto.request.AddFoodRequest;
 import com.api.dto.request.AdjustFoodPriceRequest;
 import com.api.dto.request.UpdateFoodInfoRequest;
+import com.api.dto.response.ApiResponse;
+import com.api.dto.response.GetFoodGroupResponse;
 import com.api.dto.response.GetFoodResponse;
 import com.api.dto.response.PageResponse;
 import com.api.entity.*;
@@ -27,10 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -431,6 +430,41 @@ public class FoodServiceImp implements FoodService {
 
         log.info("Saving updated food");
         foodRepository.save(food);
+    }
+
+    @Override
+    public GetFoodGroupResponse getFoodGroupOfRestaurant(long restaurantId) {
+        log.info("Get food group of restaurant {}", restaurantId);
+        Restaurant restaurant = restaurantService.getRestaurant(restaurantId);
+
+        log.info("Get types of restaurant {}", restaurant);
+        List<Food> foods = restaurant.getFoods().stream()
+                .filter(f -> !f.getKind().equals(FoodKind.ADDITIONAL))
+                .toList();
+        Set<String> types = new HashSet<>();
+        for (Food food : foods) {
+            if (food.getStatus() == FoodStatus.ACTIVE && food.getType() != null) {
+                types.add(food.getType().getName());
+            }
+        }
+
+        log.info("Get foods of restaurant {}", restaurantId);
+        List<GetFoodResponse> foodResponses = foods.stream()
+                .map(f -> GetFoodResponse.builder()
+                        .id(f.getId())
+                        .name(f.getName())
+                        .image(f.getImage())
+                        .description(f.getDescription())
+                        .price(getCurrentPrice(f.getId()))
+                        .rating(BigDecimal.ZERO)
+                        .type(f.getType().getName())
+                        .build())
+                .toList();
+
+        return GetFoodGroupResponse.builder()
+                .types(types)
+                .foods(foodResponses)
+                .build();
     }
 
 

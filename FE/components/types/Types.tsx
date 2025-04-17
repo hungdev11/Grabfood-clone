@@ -1,3 +1,5 @@
+import { types } from "util";
+
 export interface ApiResponse<T> {
     data: T;
     message: string;
@@ -47,5 +49,11 @@ export interface ApiResponse<T> {
     cartDetailId?: number;
     additionalFoods?: AdditionalFood[];
     note?: string;
+    type: string;
+  }
+
+  export interface GroupedFood {
+    types: string[];
+    foods: Food[];
   }
   

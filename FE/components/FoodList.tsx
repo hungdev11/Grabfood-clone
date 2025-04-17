@@ -4,20 +4,23 @@ import { Food } from "@/components/types/Types";
 import PopupFood from "@/components/PopupFood";
 import { Button } from "@/components/ui/button";
 
-interface FoodListProps {
+interface Props {
+  types: string[];
   foods: Food[];
   restaurantId: string;
 }
 
-const FoodListComponent: React.FC<FoodListProps> = ({ foods, restaurantId }) => {
+const FoodListComponent: React.FC<Props> = ({ types, foods, restaurantId }) => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [activeType, setActiveType] = useState(types[0] || "");
 
-  // Ensure code runs only on the client-side
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  if (!isClient) return null;
 
   const handleFoodClick = (food: Food) => {
     setSelectedFood(food);
@@ -29,17 +32,32 @@ const FoodListComponent: React.FC<FoodListProps> = ({ foods, restaurantId }) => 
     setSelectedFood(null);
   };
 
-  // Return a loading state during hydration
-  if (!isClient) {
-    return null;
-  }
+  const filteredFoods = foods.filter((food) => food.type === activeType);
 
   return (
     <div className="p-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {foods.map((food, index) => (
+      {/* Tabs loại món */}
+      <div className="border-b mb-4 flex space-x-4 overflow-x-auto">
+        {types.map((type) => (
+          <button
+            key={type}
+            onClick={() => setActiveType(type)}
+            className={`px-4 py-2 whitespace-nowrap ${
+              activeType === type
+                ? "border-b-2 border-green-600 text-green-600 font-semibold"
+                : "text-gray-500"
+            }`}
+          >
+            {type}
+          </button>
+        ))}
+      </div>
+
+      {/* Danh sách món ăn theo loại */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {filteredFoods.map((food) => (
           <div
-            key={`${food.id}-${index}`}
+            key={food.id}
             className="flex items-center p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer"
             onClick={() => handleFoodClick(food)}
           >
@@ -51,7 +69,9 @@ const FoodListComponent: React.FC<FoodListProps> = ({ foods, restaurantId }) => 
             <div className="ml-4 flex-1">
               <h3 className="text-lg font-bold">{food.name}</h3>
               <p className="text-gray-500 text-sm">{food.description || ""}</p>
-              <p className="text-xl font-bold mt-2">{food.price.toLocaleString()}đ</p>
+              <p className="text-xl font-bold mt-2">
+                {food.price.toLocaleString()}đ
+              </p>
             </div>
             <Button variant="success" size="icon" className="ml-4 text-lg rounded-full">
               +
@@ -60,14 +80,15 @@ const FoodListComponent: React.FC<FoodListProps> = ({ foods, restaurantId }) => 
         ))}
       </div>
 
+      {/* Popup chi tiết món ăn */}
       {selectedFood && (
         <PopupFood
           selectedFood={selectedFood}
           isVisible={isPopupVisible}
           onClose={closePopup}
-          restaurantId={restaurantId} // Truyền restaurantId vào PopupFood
-          userId = {Number(localStorage.getItem("grabUserId"))}
-          />
+          restaurantId={restaurantId}
+          userId={Number(localStorage.getItem("grabUserId"))}
+        />
       )}
     </div>
   );

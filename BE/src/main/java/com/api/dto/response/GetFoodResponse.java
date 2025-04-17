@@ -21,4 +21,5 @@ public class GetFoodResponse {
     private FoodStatus status;
     private BigDecimal price;
     private BigDecimal rating;
+    private String type;
 }

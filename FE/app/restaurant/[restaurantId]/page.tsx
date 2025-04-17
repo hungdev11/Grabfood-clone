@@ -1,6 +1,6 @@
 import FoodList from "@/components/FoodList";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { Food, Restaurant } from "@/components/types/Types";
+import { Food, GroupedFood, Restaurant } from "@/components/types/Types";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
 import { fetchWithAuth } from "@/utils/api";
@@ -9,9 +9,9 @@ interface Params {
   restaurantId: string;
 }
 
-async function getRestaurantData(id: string): Promise<Food[]> {
+async function getRestaurantData(id: string): Promise<{ types: string[]; foods: Food[] }> {
   const res = await fetchWithAuth(
-    `http://localhost:6969/grab/foods/restaurant/${id}?isForCustomer=true&page=0&pageSize=20`,
+    `http://localhost:6969/grab/foods/restaurant/${id}`,
     { cache: "no-store" }
   );
 
@@ -20,8 +20,9 @@ async function getRestaurantData(id: string): Promise<Food[]> {
   }
 
   const data = await res.json();
-  return data.data.items;
+  return data.data; // <-- Trả về { types, foods }
 }
+
 async function getRestaurantInfo(id: string): Promise<Restaurant> {
   const resInfo = await fetchWithAuth(
     `http://localhost:6969/grab/restaurants/${id}`,
@@ -43,83 +44,87 @@ export default async function RestaurantPage({ params }: { params: Params }) {
     throw new Error("Restaurant ID is missing");
   }
   const restaurantInfo = await getRestaurantInfo(restaurantId);
-  const foods = await getRestaurantData(restaurantId);
+  const { types, foods } = await getRestaurantData(restaurantId);
 
   return (
     
     <div className="p-4">
       <Header />
+
       {/* Breadcrumb Navigation */}
-      <Breadcrumb aria-label="breadcrumb">
+      <Breadcrumb aria-label="breadcrumb" style={{ marginTop: "16px", fontSize: "3rem" }}>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink href="/">Home</BreadcrumbLink>
           </BreadcrumbItem>
-
           <BreadcrumbSeparator />
-
           <BreadcrumbItem>
-            <BreadcrumbLink href={`/restaurant/${restaurantId}`}>Restaurants {restaurantId}</BreadcrumbLink>
+            <BreadcrumbLink href={`/restaurant/${restaurantId}`}>{restaurantInfo.name}</BreadcrumbLink>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Restaurant Details
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold" style={{ fontSize: '36px' }}>{restaurantInfo.name}</h2>
-        <p>{restaurantInfo.description}</p>
-        <p><strong>Address:</strong> {restaurantInfo.address}</p>
-        <p><strong>Opening Hours:</strong> {restaurantInfo.openingHour} - {restaurantInfo.closingHour}</p>
-      </div> */}
 
-<div className="mb-6">
-          {/* Tên nhà hàng */}
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
-            {restaurantInfo.name}
-          </h1>
 
-          {/* Mô tả + đánh giá */}
-          <div className="flex flex-wrap items-center text-gray-700 text-sm mb-3 gap-x-4 gap-y-1">
-            {/* Mô tả */}
-            <p className="text-gray-600">{restaurantInfo.description}</p>
+      {/* Info section giống hình 1 */}
+      <div className="mb-6 mt-4">
+        <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
+          {restaurantInfo.name}
+        </h1>
 
-            {/* Đánh giá sao */}
-            <div className="flex items-center">
-              <span className="text-yellow-500 mr-1">⭐</span>
-              <span>{restaurantInfo.rating}</span>
-            </div>
-
-            {/* Giao hàng
-            <div className="flex items-center">
-              <span className="mr-1">⏱️</span>
-              <span>{restaurantInfo.deliveryTime} phút</span>
-            </div>
-
-            {/* Khoảng cách */}
-            {/* <div className="flex items-center">
-              <span className="text-lg font-bold mx-1">•</span>
-              <span>{restaurantInfo.distance} km</span>
-            </div> */}
+        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+          {/* Rating */}
+          <div className="flex items-center">
+            <span className="text-yellow-500 mr-1">⭐</span>
+            <span>{restaurantInfo.rating || "Chưa có đánh giá"}</span>
           </div>
 
-          {/* Địa chỉ */}
-          <p className="text-gray-700 mb-1">
-            <span className="font-medium">Địa chỉ:</span> {restaurantInfo.address}
-          </p>
+          {/* Delivery time */}
+          <div className="flex items-center">
+            <span className="mr-1">⏱️</span>
+            <span>{restaurantInfo.deliveryTime || 15} phút</span>
+          </div>
 
-          {/* Giờ mở cửa */}
-          <div className="text-gray-700 mt-1">
-            <span className="font-medium">Giờ mở cửa:</span>
-            <span className="ml-2">Hôm nay {restaurantInfo.openingHour} - {restaurantInfo.closingHour}</span>
+          {/* Distance */}
+          <div className="flex items-center">
+            <span className="text-lg font-bold mx-1">•</span>
+            <span>{restaurantInfo.distance || "1.6"} km</span>
           </div>
         </div>
 
-      {/* Food List */}
-      <h1 className="text-2xl font-bold mb-4">Danh sách món ăn</h1>
-      <FoodList foods={foods} restaurantId={restaurantId} />
+        {/* Opening hour */}
+        <div className="mt-2 text-gray-700">
+          <span className="font-medium">Giờ mở cửa:</span>{" "}
+          Hôm nay {restaurantInfo.openingHour} - {restaurantInfo.closingHour}
+        </div>
 
-      <Footer />
+        {/* Promotions */}
+        <div className="mt-4 space-y-2">
+          <div className="bg-green-50 p-2 rounded flex items-center text-sm text-green-800 border border-green-200">
+            🏷️ Giảm 5.000₫ phí giao hàng khi đặt đơn tối thiểu 150.000₫
+          </div>
+          <div className="bg-green-50 p-2 rounded flex items-center text-sm text-green-800 border border-green-200">
+            🎁 Tận hưởng ưu đãi hôm nay!
+          </div>
+        </div>
+
+        {/* Delivery date/time - giả lập dropdown */}
+        <div className="flex flex-wrap gap-4 mt-4">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">📅 Ngày giao hàng:</span>
+            <span>Hôm nay</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium">⏰ Thời gian giao:</span>
+            <span>Ngay bây giờ</span>
+          </div>
+        </div>
       </div>
 
+      {/* Food list */}
+      <FoodList types={types} foods={foods} restaurantId={restaurantId} />
+
+      <Footer />
+    </div>
   );
 }

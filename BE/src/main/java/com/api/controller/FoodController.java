@@ -49,14 +49,23 @@ public class FoodController {
                 .build();
     }
 
+//    @GetMapping("/restaurant/{restaurantId}")
+//    public ApiResponse<?> getFoodsOfRestaurant(
+//            @PathVariable long restaurantId,
+//            @RequestParam(defaultValue = "false") boolean isForCustomer,
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "20") int pageSize) {
+//        return ApiResponse.builder()
+//                .data(foodService.getFoodsOfRestaurant(restaurantId, isForCustomer, page, pageSize))
+//                .message("Success")
+//                .code(200)
+//                .build();
+//    }
+
     @GetMapping("/restaurant/{restaurantId}")
-    public ApiResponse<?> getFoodsOfRestaurant(
-            @PathVariable long restaurantId,
-            @RequestParam(defaultValue = "false") boolean isForCustomer,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int pageSize) {
+    public ApiResponse<?> getFoodsOfRestaurant(@PathVariable long restaurantId){
         return ApiResponse.builder()
-                .data(foodService.getFoodsOfRestaurant(restaurantId, isForCustomer, page, pageSize))
+                .data(foodService.getFoodGroupOfRestaurant(restaurantId))
                 .message("Success")
                 .code(200)
                 .build();
