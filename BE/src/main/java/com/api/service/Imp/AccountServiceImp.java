@@ -72,6 +72,12 @@ public class AccountServiceImp implements AccountService {
                 });
     }
 
+    @Override
+    public Account getAccountByUsername(String username) {
+        return accountRepository.findByUsername(username)
+                .orElse(null);
+    }
+
     private boolean IsUsernameExisted(String username) {
         log.info("Check if username {} exists", username);
         return accountRepository.existsByUsername(username);

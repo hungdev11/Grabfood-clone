@@ -30,6 +30,7 @@ public class VoucherDetailServiceImp implements VoucherDetailService {
     public VoucherDetailResponse addVoucherDetails(AddVoucherDetailRequest request) {
         checkStartDateAndEndDate(request.getStartDate(), request.getEndDate());
         VoucherDetail voucherDetail = VoucherDetail.builder()
+                .quantity(request.getQuantity())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .build();
@@ -52,6 +53,7 @@ public class VoucherDetailServiceImp implements VoucherDetailService {
         voucherDetail.setVoucher(voucher);
         voucherDetailRepository.save(voucherDetail);
         VoucherDetailResponse response = VoucherDetailResponse.builder()
+                .quantity(voucherDetail.getQuantity())
                 .startDate(voucherDetail.getStartDate())
                 .endDate(voucherDetail.getEndDate())
                 .voucher_id(voucherDetail.getVoucher().getId())

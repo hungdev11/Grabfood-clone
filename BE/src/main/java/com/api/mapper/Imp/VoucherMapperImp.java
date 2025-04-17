@@ -19,9 +19,9 @@ public class VoucherMapperImp implements VoucherMapper {
         Voucher voucher = Voucher.builder()
                 .code(request.getCode())
                 .description(request.getDescription())
-                .quantity(request.getQuantity())
                 .minRequire(request.getMinRequire())
                 .type(request.getType())
+                .applyType(request.getApplyType())
                 .status(request.getStatus())
                 .value(request.getValue())
                 .build();
@@ -36,8 +36,8 @@ public class VoucherMapperImp implements VoucherMapper {
                         .description(voucher.getDescription())
                         .id(voucher.getId())
                         .minRequire(voucher.getMinRequire())
-                        .quantity(voucher.getQuantity())
                         .status(voucher.getStatus())
+                        .applyType(voucher.getApplyType())
                         .type(voucher.getType())
                         .value(voucher.getValue())
                 .build();

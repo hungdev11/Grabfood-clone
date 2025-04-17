@@ -11,6 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class VoucherDetailResponse {
+    private int quantity;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Long voucher_id;

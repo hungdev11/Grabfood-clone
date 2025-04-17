@@ -9,9 +9,10 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    User findByEmail(String email);
+    Optional<User> findByEmail(String email);
     Boolean existsByEmail(String email);
-    User findByPhone(String phone);
+    Boolean existsByPhone(String phone);
+    Optional<User> findByPhone(String phone);
 
     @Query(value = "SELECT * FROM `grab-food`.user WHERE id = (SELECT user_id FROM `grab-food`.cart WHERE id = :cartId)", nativeQuery = true)
     User findUserByCartId(@Param("cartId") Long cartId);
