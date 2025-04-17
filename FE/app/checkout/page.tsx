@@ -12,6 +12,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
+
 export default function Checkout() {
   const { cartId, cartItems, updateQuantity, totalPrice, setCartItems } = useCart();
   const [loading, setLoading] = useState(false);
@@ -21,8 +22,6 @@ export default function Checkout() {
   const cartIdRequest = cartId;
 
   //voucher
-  const [voucherOrderApply, setVoucherOrderApply] = useState<string | null>(null);
-  const [voucherShippingApply, setVoucherShippingApply] = useState<string | null>(null);
   const [discountOrderPrice, setDiscountOrderPrice] = useState<number>(0);
   const [discountShippingPrice, setDiscountShippingPrice] = useState<number>(0);
   const [newOrderPrice, setNewOrderPrice] = useState<number | null>(null);
@@ -39,6 +38,17 @@ export default function Checkout() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderDetails, setOrderDetails] = useState<any>(null);
+
+  //order
+  const [orderId, setOrderId] = useState<number | null>(null);
+
+  // state lưu payment_method
+  const [paymentMethod, setPaymentMethod] = useState<string>('cod');
+
+  const handlePaymentMethodChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPaymentMethod(event.target.value);
+    console.log('Selected payment method:', paymentMethod);
+  }
 
   useEffect(() => {
     const fetchVouchers = async () => {
@@ -186,10 +196,9 @@ export default function Checkout() {
       setError('Giỏ hàng trống. Vui lòng thêm món trước khi đặt.');
       return;
     }
-
     setLoading(true);
     setError(null);
-
+    
     const address = "97 Man Thiện, P.Hiệp Phú, Tp.Thu Đức, Hồ Chí Minh, 7";
     const note = (document.querySelector('input[placeholder="Hãy gõ thêm số tầng"]') as HTMLInputElement)?.value || '';
     const voucherCodes = voucherCodeApply;
@@ -204,7 +213,7 @@ export default function Checkout() {
     };
     try {
       console.log(orderData)
-      const response = await axiosInstance.post('http://localhost:6969/grab/order/create', orderData, {
+      const response = await axiosInstance.post('http://localhost:6969/grab/payments/cod', orderData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -231,7 +240,10 @@ export default function Checkout() {
         }
         return;
       }
-      setOrderDetails(response.data);
+      const apiResponse = response.data.data
+      setOrderId(apiResponse.orderId);
+      console.log("orderId", orderId)
+      setOrderDetails(apiResponse);
       setCartItems([]);
       setIsModalOpen(true);
     } catch (err) {
@@ -241,6 +253,57 @@ export default function Checkout() {
       setLoading(false);
     }
   };
+
+  //test
+  const handlePaymentMomo = async () => {
+    setLoading  (true);
+    setError(null);
+    const address = "97 Man Thiện, P.Hiệp Phú, Tp.Thu Đức, Hồ Chí Minh, 7";
+    const note = (document.querySelector('input[placeholder="Hãy gõ thêm số tầng"]') as HTMLInputElement)?.value || '';
+    const voucherCodes = voucherCodeApply;
+    const cartId = cartIdRequest;
+
+    const orderData = {
+      cartId,
+      address,
+      note,
+      shippingFee: 25000,
+      voucherCode: voucherCodes || [],
+    };
+    try {
+      console.log(orderData)
+      const response = await axiosInstance.post('http://localhost:6969/grab/payments/momo', orderData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log(response.data)
+      const payurl  = response.data;
+      console.log(payurl);
+      if (payurl) {
+        window.location.href = payurl;
+      } else {
+        setError("Không tạo được mã thanh toán")
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        setError("Lỗi khi khởi tạo thanh toán: " + error.message);
+      } else {
+        setError("Lỗi khi khởi tạo thanh toán: Không xác định.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleOrderButton = () => {
+    if(paymentMethod === "cod") {
+      handlePlaceOrder();
+    }
+    else if(paymentMethod === "momo") {
+      handlePaymentMomo();
+    }
+  }
 
   return (
     <div>
@@ -373,16 +436,67 @@ export default function Checkout() {
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-          <h2 className="text-lg font-semibold mb-3">Chi tiết thanh toán</h2>
-          <label className="text-base font-medium text-gray-700">Phương thức thanh toán</label>
-          <select className="w-full p-2 border rounded-md text-base mb-3 mt-1">
-            <option value="cash">Tiền mặt</option>
-            <option value="card">Thẻ tín dụng</option>
-          </select>
-          <label className="text-base font-medium text-gray-700">Hồ sơ</label>
-          <select className="w-full p-2 border rounded-md text-base mb-3 mt-1">
-            <option value="personal">Personal</option>
-          </select>
+          <h2 className="text-lg font-semibold mb-5">Phương thức thanh toán</h2>
+          
+          {/* Option COD */}
+          <div className="flex items-center mb-5">
+            <input 
+              type="radio" 
+              name="payment-method" 
+              value="cod" 
+              className="mr-3" 
+              checked={paymentMethod === 'cod'}
+              onChange={handlePaymentMethodChange}
+            />
+            <div className="flex items-center">
+              <img 
+                src="/logo/logoCOD.png" 
+                alt="COD" 
+                className="w-6 h-6 mr-3" 
+              />
+              <label className="text-base font-medium text-gray-700">Thanh toán khi nhận hàng</label>
+            </div>
+          </div>
+          
+          {/* Option VnPay */}
+          <div className="flex items-center mb-5">
+            <input 
+              type="radio" 
+              name="payment-method" 
+              value="vnpay" 
+              className="mr-3" 
+              checked={paymentMethod === 'vnpay'}
+              onChange={handlePaymentMethodChange}
+            />
+            <div className="flex items-center">
+              <img 
+                src="/logo/logoVNPay.jpg" 
+                alt="VnPay" 
+                className="w-6 h-6 mr-3" 
+              />
+              <label className="text-base font-medium text-gray-700">VN Pay</label>
+            </div>
+          </div>
+
+          {/* Option MoMo */}
+          <div className="flex items-center mb-5">
+            <input 
+              type="radio" 
+              name="payment-method" 
+              value="momo" 
+              className="mr-3" 
+              checked={paymentMethod === 'momo'}
+              onChange={handlePaymentMethodChange}
+            />
+            <div className="flex items-center">
+              <img 
+                src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" 
+                alt="MoMo" 
+                className="w-6 h-6 mr-3" 
+              />
+              <label className="text-base font-medium text-gray-700">Ví điện tử MoMo</label>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow-md mb-20">
@@ -493,7 +607,7 @@ export default function Checkout() {
         <Button
           id="order-button"
           className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-base"
-          onClick={handlePlaceOrder}
+          onClick={handleOrderButton}
           disabled={loading}
         >
           {loading ? 'Đang xử lý...' : 'Đặt đơn'}

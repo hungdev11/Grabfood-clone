@@ -1,6 +1,9 @@
 package com.api.controller;
 
+import com.api.dto.request.CreateOrderRequest;
 import com.api.dto.request.MomoNotifyRequest;
+import com.api.dto.response.ApiResponse;
+import com.api.dto.response.OrderResponse;
 import com.api.service.MomoPaymentService;
 import com.api.service.OrderService;
 import com.api.service.PaymentService;
@@ -21,14 +24,24 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final OrderService orderService;
     @PostMapping("/momo")
-    public ResponseEntity<String> createMomoPayment(@RequestParam Long orderId, @RequestParam BigDecimal amount)
+    public ResponseEntity<String> createMomoPayment(@RequestBody  CreateOrderRequest request)
     {
         try {
-            String payUrl = momoPaymentService.createPaymentUrl(orderId, amount);
+            String payUrl = paymentService.createOrderPaymentMomo(request);
             return ResponseEntity.ok(payUrl);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
+    }
+
+    @PostMapping("/cod")
+    public ApiResponse<OrderResponse> createCodPayment(@RequestBody CreateOrderRequest request)
+    {
+        return ApiResponse.<OrderResponse>builder()
+                .message("Success")
+                .code(200)
+                .data(paymentService.createOrderPaymentCod(request))
+                .build();
     }
 
     @PostMapping("/momo/notify")
@@ -39,7 +52,6 @@ public class PaymentController {
         long amount = requestBody.getAmount();
         int resultCode = requestBody.getResultCode();
         System.out.println("vo ham");
-
         if (resultCode == 0) {
             System.out.println("ok");
             paymentService.createPayment(new BigDecimal(amount),orderId,requestId);

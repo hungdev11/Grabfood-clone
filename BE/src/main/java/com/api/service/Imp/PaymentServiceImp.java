@@ -1,17 +1,26 @@
 package com.api.service.Imp;
 
+import com.api.dto.request.CreateOrderRequest;
+import com.api.dto.response.CartDetailResponse;
+import com.api.dto.response.OrderResponse;
+import com.api.entity.CartDetail;
 import com.api.entity.Order;
 import com.api.entity.PaymentInfo;
+import com.api.repository.CartDetailRepository;
 import com.api.repository.OrderRepository;
 import com.api.repository.PaymentInfoRepository;
+import com.api.service.MomoPaymentService;
+import com.api.service.OrderService;
 import com.api.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -20,6 +29,9 @@ import java.time.LocalDateTime;
 public class PaymentServiceImp implements PaymentService {
     private final PaymentInfoRepository paymentInfoRepository;
     private final OrderRepository orderRepository;
+    private final OrderService orderService;
+    private final CartDetailRepository cartDetailRepository;
+    private final MomoPaymentService momoPaymentService;
     @Override
     public void updatePaymentStatus(String paymentCode, String status) {
         PaymentInfo payment = paymentInfoRepository.findByPaymentCode(paymentCode);
@@ -41,6 +53,58 @@ public class PaymentServiceImp implements PaymentService {
                 .status("SUCCESS")
                 .order(order)
                 .build();
-        orderRepository.save(order);
+        paymentInfoRepository.save(paymentInfo);
+    }
+
+    @Override
+    public OrderResponse createOrderPaymentCod(CreateOrderRequest request) {
+        Order order = orderService.createOrder(request);
+        PaymentInfo paymentInfo = PaymentInfo.builder()
+                .order(order)
+                .paymentAmount(order.getShippingFee().add(order.getTotalPrice()))
+                .paymentCode(UUID.randomUUID().toString())
+                .paymentName("COD")
+                .create_at(LocalDateTime.now())
+                .status("SUCCESS")
+                .build();
+        paymentInfoRepository.save(paymentInfo);
+
+        OrderResponse response = toOrderResponse(order);
+        response.setPayment_method("COD");
+        return response;
+    }
+
+    @Override
+    public String createOrderPaymentMomo(CreateOrderRequest request) {
+        Order order = orderService.createOrder(request);
+        try {
+            return momoPaymentService.createPaymentUrl(order.getId(), order.getShippingFee().add(order.getTotalPrice()));
+        } catch (Exception e) {
+            throw new RuntimeException("Can not create momo url");
+        }
+    }
+
+    private OrderResponse toOrderResponse(Order order) {
+        return OrderResponse.builder()
+                .id(order.getId())
+                .userId(order.getUser().getId())
+                .address(order.getAddress())
+                .note(order.getNote())
+                .shippingFee(order.getShippingFee())
+                .totalPrice(order.getTotalPrice())
+                .status(order.getStatus())
+                .cartDetails(cartDetailRepository.findByOrderId(order.getId()).stream().map(this::toCartDetailResponse).toList())
+                .build();
+    }
+
+    private CartDetailResponse toCartDetailResponse(CartDetail cartDetail) {
+        return CartDetailResponse.builder()
+                .id(cartDetail.getId())
+                .food_img(cartDetail.getFood().getImage())
+                .foodName(cartDetail.getFood().getName())
+                .quantity(cartDetail.getQuantity())
+                .price(cartDetailRepository.findPriceByFoodId(cartDetail.getFood().getId()))
+                .note(cartDetail.getNote())
+                .build();
     }
 }

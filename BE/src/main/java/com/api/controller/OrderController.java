@@ -23,11 +23,13 @@ import java.util.List;
 public class OrderController {
     @Autowired
     OrderService orderService;
-    @PostMapping("/create")
-    public ResponseEntity<OrderResponse> createOrder(@RequestBody CreateOrderRequest request) {
-        OrderResponse order = orderService.createOrder(request);
-        return ResponseEntity.ok(order);
-    }
+
+    // đã chuyển qua payment
+//    @PostMapping("/create")
+//    public ResponseEntity<OrderResponse> createOrder(@RequestBody CreateOrderRequest request) {
+//        OrderResponse order = orderService.createOrder(request);
+//        return ResponseEntity.ok(order);
+//    }
     @GetMapping("/{userId}")
     public ResponseEntity<List<Order>> getListOrders(@PathVariable Long userId) {
         List<Order> order = orderService.getOrdersByUser(userId);

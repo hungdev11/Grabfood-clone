@@ -50,7 +50,7 @@ public class OrderServiceImp implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponse createOrder(CreateOrderRequest request) {
+    public Order createOrder(CreateOrderRequest request) {
         Cart cart = cartRepository.findById(request.getCartId()).orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
         List<CartDetail> cartDetails = cartDetailRepository.findByCartIdAndOrderIsNull(cart.getId());
         if (cartDetails.isEmpty()) {
@@ -116,16 +116,9 @@ public class OrderServiceImp implements OrderService {
             cartDetailRepository.save(cartDetail);
         }
 
-        return OrderResponse.builder()
-                .id(order.getId())
-                .userId(user.getId())
-                .status(order.getStatus())
-                .address(order.getAddress())
-                .totalPrice(order.getTotalPrice())
-                .shippingFee(order.getShippingFee())
-                .note(order.getNote())
-                .cartDetails(cartDetails.stream().map(this::toCartDetailResponse).toList())
-                .build();
+        return orderRepository.findById(order.getId()).orElseThrow(() ->
+                new RuntimeException("Order not found")
+        );
     }
 
     @Override

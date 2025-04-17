@@ -14,6 +14,7 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Long> {
     boolean existsByCartIdAndFoodId(Long cartId, Long foodId);
     List<CartDetail> findByCartIdAndOrderIsNull(Long cartId);
 
+    List<CartDetail> findByOrderId(Long orderId);
     @Query(value = "SELECT price FROM `grab-food`.food_detail WHERE end_time IS NULL AND food_id = :foodId", nativeQuery = true)
     BigDecimal findPriceByFoodId(@Param("foodId") Long foodid);
 

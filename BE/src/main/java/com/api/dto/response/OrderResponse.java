@@ -20,5 +20,6 @@ public class OrderResponse {
     private OrderStatus status;
     private BigDecimal shippingFee;
     private String note;
+    private String payment_method;
     private List<CartDetailResponse> cartDetails;
 }

@@ -9,6 +9,6 @@ public class MomoConfig {
     public static final String SECRET_KEY = "K951B6PE1waDMi640xX08PD3vg6EkVlz";     // Thay bằng Secret Key
     public static final String ENDPOINT = "https://test-payment.momo.vn/v2/gateway/api/create"; // Test endpoint
     public static final String REDIRECT_URL = "http://localhost:6969/grab/payments/momo/callback"; // URL trả về
-    public static final String IPN_URL = "https://9c13-2001-ee0-4fc7-5040-284c-6aee-bc90-8adf.ngrok-free.app/grab/payments/momo/notify";
+    public static final String IPN_URL = "https://4121-2001-ee0-4fc7-2110-2c18-216c-7358-9791.ngrok-free.app/grab/payments/momo/notify";
 
 }

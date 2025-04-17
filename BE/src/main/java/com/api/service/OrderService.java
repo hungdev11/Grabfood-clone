@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface OrderService {
-    OrderResponse createOrder(CreateOrderRequest request);
+    Order createOrder(CreateOrderRequest request);
     List<CartDetail> getCartDetailsByOrder(Long orderId, String status);
     List<Order> getOrdersByUser(Long userId);
     ApplyVoucherResponse applyVoucherToOrder(ApplyVoucherRequest request);
