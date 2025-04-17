@@ -4,6 +4,8 @@ import com.api.dto.request.AddAdditionalFoodsRequest;
 import com.api.dto.request.AddFoodRequest;
 import com.api.dto.request.AdjustFoodPriceRequest;
 import com.api.dto.request.UpdateFoodInfoRequest;
+import com.api.dto.response.ApiResponse;
+import com.api.dto.response.GetFoodGroupResponse;
 import com.api.dto.response.GetFoodResponse;
 import com.api.dto.response.PageResponse;
 import com.api.utils.FoodStatus;
@@ -24,4 +26,5 @@ public interface FoodService {
     void addAdditionalFoodToFoodOfRestaurant(AddAdditionalFoodsRequest request);
     PageResponse<List<GetFoodResponse>> getAdditionalFoodsOfFood (long restaurantId, long foodId, boolean isForCustomer, int page, int pageSize);
     void updateFoodInfo(long restaurantId, long foodId, UpdateFoodInfoRequest request);
+    GetFoodGroupResponse getFoodGroupOfRestaurant(long restaurantId);
 }
