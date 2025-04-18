@@ -25,6 +25,8 @@ public class AddressServiceImp implements AddressService {
                         .ward(addressRequest.getWard())
                         .district(addressRequest.getDistrict())
                         .province(addressRequest.getProvince())
+                        .lat(addressRequest.getLatitude())
+                        .lon(addressRequest.getLongitude())
                         .detail("")
                         .user(null)
                 .build()).getId();
