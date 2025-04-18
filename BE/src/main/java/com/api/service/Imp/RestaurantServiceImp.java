@@ -14,6 +14,7 @@ import com.api.service.AccountService;
 import com.api.service.AddressService;
 import com.api.service.LocationService;
 import com.api.service.RestaurantService;
+import com.api.utils.GeoUtils;
 import com.api.utils.RestaurantStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -104,9 +105,9 @@ public class RestaurantServiceImp implements RestaurantService {
                         .description(restaurant.getDescription())
                         .image(restaurant.getImage())
                         .rating(BigDecimal.ONE.multiply(BigDecimal.valueOf(5)))
-                        .distance(locationService
-                                .getDistance(10.85307, 106.791679, restaurant.getAddress().getLat(), restaurant.getAddress().getLon())
-                                .getDistance())
+                        .distance(GeoUtils.haversine(
+                                10.85307, 106.791679,
+                                restaurant.getAddress().getLat(), restaurant.getAddress().getLon()))
                         .build())
                 .toList();
 
@@ -137,9 +138,9 @@ public class RestaurantServiceImp implements RestaurantService {
                         .description(restaurant.getDescription())
                         .image(restaurant.getImage())
                         .rating(BigDecimal.ONE.multiply(BigDecimal.valueOf(5)))
-                        .distance(locationService
-                                .getDistance(lat, lon, restaurant.getAddress().getLat(), restaurant.getAddress().getLon())
-                                .getDistance())
+                        .distance(GeoUtils.haversine(
+                                lat, lon,
+                                restaurant.getAddress().getLat(), restaurant.getAddress().getLon()))
                         .build())
                 .toList();
     }
