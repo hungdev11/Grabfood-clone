@@ -12,11 +12,14 @@ import com.api.repository.PaymentInfoRepository;
 import com.api.service.MomoPaymentService;
 import com.api.service.OrderService;
 import com.api.service.PaymentService;
+import com.api.service.VNPayPaymentService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,6 +35,8 @@ public class PaymentServiceImp implements PaymentService {
     private final OrderService orderService;
     private final CartDetailRepository cartDetailRepository;
     private final MomoPaymentService momoPaymentService;
+    private final VNPayPaymentService vnPayPaymentService;
+
     @Override
     public void updatePaymentStatus(String paymentCode, String status) {
         PaymentInfo payment = paymentInfoRepository.findByPaymentCode(paymentCode);
@@ -82,6 +87,27 @@ public class PaymentServiceImp implements PaymentService {
         } catch (Exception e) {
             throw new RuntimeException("Can not create momo url");
         }
+    }
+
+    @Override
+    public String createOrderPaymentVNPay(@RequestBody CreateOrderRequest orderRequest, HttpServletRequest request) {
+        Order order = orderService.createOrder(orderRequest);
+        return vnPayPaymentService.createPaymentUrl(request, order.getTotalPrice().add(orderRequest.getShippingFee()), order.getId());
+    }
+
+    @Override
+    public void createPaymentVNPay(BigDecimal amount, Long orderId, String code) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() ->
+                new RuntimeException("Order not found"));
+        PaymentInfo paymentInfo = PaymentInfo.builder()
+                .create_at(LocalDateTime.now())
+                .paymentAmount(amount)
+                .paymentName("VNPAY")
+                .paymentCode(code)
+                .status("SUCCESS")
+                .order(order)
+                .build();
+        paymentInfoRepository.save(paymentInfo);
     }
 
     private OrderResponse toOrderResponse(Order order) {
