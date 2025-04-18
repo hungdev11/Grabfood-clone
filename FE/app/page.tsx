@@ -11,15 +11,20 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import Cart from "@/components/cart";
 import ResListHome from "@/components/ResListIndex";
+import LocationSearch from "@/components/locationSearch";
+
 export default function Home() {
 	const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
 	const [itemCount, setItemCount] = useState<number>(0);
 	const [totalPrice, setTotalPrice] = useState<number>(0);
   
-	// Hàm xử lý khi giỏ hàng thay đổi
-	const handleCartChange = (count: number, price: number) => {
-	  setItemCount(count);
-	  setTotalPrice(price);
+
+	const [location, setLocation] = useState<{ lat: string; lon: string } | null>(null);
+
+  	const handleLocationSelect = (lat: string, lon: string) => {
+		setLocation({ lat, lon });
+		console.log("Đã chọn vị trí:", lat, lon);
+		// Bạn có thể làm thêm các thao tác khác ở đây
 	};
 
 	return (
@@ -27,7 +32,7 @@ export default function Home() {
 		{/* Header */}
 		<Header />
 			{/* Hero Banner */}
-			<div className="relative h-[300px] w-full overflow-hidden">
+			<div className="relative h-[300px] w-full">
 				<Image
 					src="/VN-new-4.jpg"
 					alt="Food Banner"
@@ -45,13 +50,8 @@ export default function Home() {
 							<h1 className="mb-4 text-2xl font-bold">
 								Where should we deliver your food today?
 							</h1>
-							<div className="relative mb-4">
-								<Input
-									className="h-10 w-full rounded-md border border-gray-300 pl-10 pr-4"
-									placeholder="Nhập địa chỉ của bạn"
-								/>
-								<MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-red-500" />
-							</div>
+							<LocationSearch onSelectLocation={handleLocationSelect}/>
+
 							<Button className="w-full bg-[#00B14F] hover:bg-[#00A040] text-white">
 								Tìm kiếm
 							</Button>
