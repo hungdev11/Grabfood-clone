@@ -296,12 +296,56 @@ export default function Checkout() {
     }
   }
 
+  const handlePaymentVNPay = async () => {
+    setLoading  (true);
+    setError(null);
+    const address = "97 Man Thiện, P.Hiệp Phú, Tp.Thu Đức, Hồ Chí Minh, 7";
+    const note = (document.querySelector('input[placeholder="Hãy gõ thêm số tầng"]') as HTMLInputElement)?.value || '';
+    const voucherCodes = voucherCodeApply;
+    const cartId = cartIdRequest;
+
+    const orderData = {
+      cartId,
+      address,
+      note,
+      shippingFee: 25000,
+      voucherCode: voucherCodes || [],
+      bankCode: "NCB"
+    };
+    try {
+      console.log(orderData)
+      const response = await axiosInstance.post('http://localhost:6969/grab/payments/vnpay', orderData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log(response.data)
+      const payurl  = response.data;
+      console.log(payurl);
+      if (payurl) {
+        window.location.href = payurl;
+      } else {
+        setError("Không tạo được mã thanh toán")
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        setError("Lỗi khi khởi tạo thanh toán: " + error.message);
+      } else {
+        setError("Lỗi khi khởi tạo thanh toán: Không xác định.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const handleOrderButton = () => {
     if(paymentMethod === "cod") {
       handlePlaceOrder();
     }
     else if(paymentMethod === "momo") {
       handlePaymentMomo();
+    } else if (paymentMethod === "vnpay") {
+      handlePaymentVNPay();
     }
   }
 
