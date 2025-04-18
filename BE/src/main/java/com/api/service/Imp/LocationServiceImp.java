@@ -53,12 +53,12 @@ public class LocationServiceImp implements LocationService {
             double distance = routeNode.path("distance").asDouble(); // mét
             double duration = routeNode.path("duration").asDouble(); // giây
 
-            String from = getLocationDisplayName(lat1, lon1);
-            String to = getLocationDisplayName(lat2, lon2);
+//            String from = getLocationDisplayName(lat1, lon1);
+//            String to = getLocationDisplayName(lat2, lon2);
             // Xây dựng response
             return LocationDistanceResponse.builder()
-                    .from(from)
-                    .to(to)
+                    .from("from")
+                    .to("to")
                     .distance(distance)
                     .duration(duration)
                     .build();

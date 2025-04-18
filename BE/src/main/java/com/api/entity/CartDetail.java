@@ -40,7 +40,7 @@ public class CartDetail extends BaseEntity{
     @JoinColumn(name = "order_id")
     private Order order;
 
-    @Column(name = "ids", columnDefinition = "TEXT")
+    @Column(name = "ids", columnDefinition = "VARCHAR(255)") // Hoặc độ dài phù hợp với nhu cầu của bạn
     @Convert(converter = ListLongToStringConverter.class)
     private List<Long> ids;
 }

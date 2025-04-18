@@ -1,9 +1,6 @@
 package com.api.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -23,4 +20,9 @@ public class Address extends BaseEntity{
     private String ward;
     private String detail;
     private boolean isDefault;
+
+    @Column(name = "latitude", nullable = false)
+    private double lat;
+    @Column(name = "longitude", nullable = false)
+    private double lon;
 }

@@ -12,4 +12,5 @@ public interface RestaurantService {
     Restaurant getRestaurant(long id);
     RestaurantResponse getRestaurantResponse(long id);
     PageResponse<List<RestaurantResponse>> getRestaurants(String sortBy, int page, int pageSize);
+    List<RestaurantResponse> getNearbyRestaurants(double lat, double lon, double radiusKm);
 }

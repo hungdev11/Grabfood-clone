@@ -12,6 +12,7 @@ import com.api.entity.Restaurant;
 import com.api.repository.RestaurantRepository;
 import com.api.service.AccountService;
 import com.api.service.AddressService;
+import com.api.service.LocationService;
 import com.api.service.RestaurantService;
 import com.api.utils.RestaurantStatus;
 import jakarta.transaction.Transactional;
@@ -35,6 +36,7 @@ public class RestaurantServiceImp implements RestaurantService {
     private final RestaurantRepository restaurantRepository;
     private final AccountService accountService;
     private final AddressService addressService;
+    private final LocationService locationService;
 
     @Override
     @Transactional
@@ -95,12 +97,16 @@ public class RestaurantServiceImp implements RestaurantService {
         Page<Restaurant> restaurantPage = restaurantRepository.findAll(pageable);
 
         List<RestaurantResponse> content = restaurantPage.getContent().stream()
+                .filter(r -> r.getStatus().equals(RestaurantStatus.ACTIVE))
                 .map(restaurant -> RestaurantResponse.builder()
                         .id(restaurant.getId())
                         .name(restaurant.getName())
                         .description(restaurant.getDescription())
                         .image(restaurant.getImage())
                         .rating(BigDecimal.ONE.multiply(BigDecimal.valueOf(5)))
+                        .distance(locationService
+                                .getDistance(10.85307, 106.791679, restaurant.getAddress().getLat(), restaurant.getAddress().getLon())
+                                .getDistance())
                         .build())
                 .toList();
 
@@ -110,6 +116,32 @@ public class RestaurantServiceImp implements RestaurantService {
                 .total(restaurantPage.getTotalElements())
                 .items(content)
                 .build();
+    }
+
+    @Override
+    public List<RestaurantResponse> getNearbyRestaurants(double lat, double lon, double radiusKm) {
+        double latDiff = radiusKm / 111.0;
+        double lonDiff = radiusKm / (111.0 * Math.cos(Math.toRadians(lat)));
+
+        double minLat = lat - latDiff;
+        double maxLat = lat + latDiff;
+        double minLon = lon - lonDiff;
+        double maxLon = lon + lonDiff;
+
+        return restaurantRepository
+                .findNearbyRestaurants(lat, lon, radiusKm, minLat, maxLat, minLon, maxLon)
+                .stream().filter(r -> r.getStatus().equals(RestaurantStatus.ACTIVE))
+                .map(restaurant -> RestaurantResponse.builder()
+                        .id(restaurant.getId())
+                        .name(restaurant.getName())
+                        .description(restaurant.getDescription())
+                        .image(restaurant.getImage())
+                        .rating(BigDecimal.ONE.multiply(BigDecimal.valueOf(5)))
+                        .distance(locationService
+                                .getDistance(lat, lon, restaurant.getAddress().getLat(), restaurant.getAddress().getLon())
+                                .getDistance())
+                        .build())
+                .toList();
     }
 
 

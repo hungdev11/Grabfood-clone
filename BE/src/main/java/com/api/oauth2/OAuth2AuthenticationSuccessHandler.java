@@ -52,6 +52,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             getRedirectStrategy().sendRedirect(request, response, errorRedirectUrl);
             return;
         }
+
         if (account == null ) {
             account = userInfoService.registerOAuth2User(email, name, "ROLE_USER");
         }

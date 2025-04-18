@@ -12,14 +12,14 @@ import Link from "next/link";
 import Cart from "@/components/cart";
 import ResListHome from "@/components/ResListIndex";
 import LocationSearch from "@/components/locationSearch";
+import { RestaurantHome } from "@/components/types/Types";
 
 export default function Home() {
 	const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
 	const [itemCount, setItemCount] = useState<number>(0);
 	const [totalPrice, setTotalPrice] = useState<number>(0);
-  
-
 	const [location, setLocation] = useState<{ lat: string; lon: string } | null>(null);
+	const [restaurants, setRestaurants] = useState<RestaurantHome[]>([]);
 
   	const handleLocationSelect = (lat: string, lon: string) => {
 		setLocation({ lat, lon });
@@ -27,6 +27,24 @@ export default function Home() {
 		// Bạn có thể làm thêm các thao tác khác ở đây
 	};
 
+	const fetchNearbyRestaurants = async (lat: string, lon: string) => {
+		console.log("Fetching nearby restaurants...");
+		try {
+			const res = await fetch(`http://localhost:6969/grab/restaurants/nearby?userLat=${lat}&userLon=${lon}`);
+			const data = await res.json();
+			
+			console.log("API Response:", data); // Log response của API
+	
+			if (data && data.data) {
+				setRestaurants(data.data);
+			} else {
+				console.log("No data received from API.");
+			}
+		} catch (error) {
+			console.error("Lỗi fetch nearby restaurants:", error);
+		}
+	};
+	  
 	return (
 		<div className="flex min-h-screen flex-col">
 		{/* Header */}
@@ -52,9 +70,21 @@ export default function Home() {
 							</h1>
 							<LocationSearch onSelectLocation={handleLocationSelect}/>
 
-							<Button className="w-full bg-[#00B14F] hover:bg-[#00A040] text-white">
+							<Button
+								onClick={() => {
+									if (location) {
+										fetchNearbyRestaurants(location.lat, location.lon);
+									} else {
+										alert("Vui lòng chọn vị trí trước khi tìm kiếm!");
+									}
+								}}
+								className="w-full bg-[#00B14F] hover:bg-[#00A040] text-white"
+							>
 								Tìm kiếm
 							</Button>
+
+
+
 						</div>
 					</div>
 				</div>
@@ -66,9 +96,7 @@ export default function Home() {
 					Ưu đãi GrabFood tại{" "}
 					<span className="text-[#00B14F]">Hà nội</span>
 				</h2>
-
-				<ResListHome />
-
+				<ResListHome restaurants={restaurants} />
 				<div className="mt-4 rounded-md border border-gray-200 p-3 text-center text-sm text-gray-600">
 					See all promotions
 				</div>

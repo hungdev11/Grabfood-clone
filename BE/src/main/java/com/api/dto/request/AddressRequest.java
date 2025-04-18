@@ -10,4 +10,6 @@ public class AddressRequest {
     private String province;
     private String district;
     private String ward;
+    private double latitude;
+    private double longitude;
 }

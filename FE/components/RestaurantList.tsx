@@ -37,6 +37,13 @@ const RestaurantList: React.FC<Props> = ({ restaurants }) => {
             <div className="mt-2 flex items-center gap-1">
               ⭐ <span className="text-xs">{restaurant.rating}</span>
             </div>
+            <div className="mt-2 flex items-center gap-1">
+              ⭐ <span className="text-xs">{restaurant.distance}</span>
+                  {restaurant.distance > 5000 && (
+                <span className="text-xs text-red-500 ml-1 font-semibold">XA</span>
+              )}
+            </div>
+
           </div>
         </div>
       ))}

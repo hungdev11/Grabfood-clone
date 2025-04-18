@@ -7,6 +7,7 @@ import com.api.entity.Restaurant;
 import com.api.service.RestaurantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/restaurants")
 public class RestaurantController {
+
     private final RestaurantService restaurantService;
 
     @PostMapping
@@ -41,6 +43,18 @@ public class RestaurantController {
             @RequestParam(defaultValue = "20") int pageSize) {
         return ApiResponse.builder()
                 .data(restaurantService.getRestaurants(sortBy, page, pageSize))
+                .message("Success")
+                .code(200)
+                .build();
+    }
+
+    @Value("${radiusKm}")
+    private double radiusKm;
+
+    @GetMapping("/nearby")
+    public ApiResponse<?> getRestaurantsNearBy(@RequestParam double userLat, @RequestParam double userLon) {
+        return ApiResponse.builder()
+                .data(restaurantService.getNearbyRestaurants(userLat, userLon, radiusKm))
                 .message("Success")
                 .code(200)
                 .build();

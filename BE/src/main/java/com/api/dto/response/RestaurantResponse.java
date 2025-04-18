@@ -23,4 +23,5 @@ public class RestaurantResponse {
     private String description;
     private String address;
     private BigDecimal rating;
+    private Double distance;
 }
