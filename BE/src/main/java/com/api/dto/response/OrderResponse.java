@@ -15,6 +15,8 @@ import java.util.List;
 public class OrderResponse {
     private Long id;
     private Long userId;
+    private Long restaurantId;
+    private String restaurantName;
     private BigDecimal totalPrice;
     private String address;
     private OrderStatus status;

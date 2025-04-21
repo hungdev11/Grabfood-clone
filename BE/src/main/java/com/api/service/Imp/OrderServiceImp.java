@@ -2,6 +2,7 @@ package com.api.service.Imp;
 
 import com.api.dto.request.ApplyVoucherRequest;
 import com.api.dto.request.CreateOrderRequest;
+import com.api.dto.response.AdditionalFoodCartResponse;
 import com.api.dto.response.ApplyVoucherResponse;
 import com.api.dto.response.CartDetailResponse;
 import com.api.dto.response.OrderResponse;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,6 +49,12 @@ public class OrderServiceImp implements OrderService {
 
     @Autowired
     private VoucherRepository voucherRepository;
+
+    @Autowired
+    private RestaurantRepository restaurantRepository;
+
+    @Autowired
+    private FoodRepository foodRepository;
 
     @Override
     @Transactional
@@ -117,19 +125,19 @@ public class OrderServiceImp implements OrderService {
         }
 
         return orderRepository.findById(order.getId()).orElseThrow(() ->
-                new RuntimeException("Order not found")
+                new AppException(ErrorCode.ORDER_NOT_FOUND)
         );
     }
 
     @Override
     public List<CartDetail> getCartDetailsByOrder(Long orderId, String status) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
         return order.getCartDetails();
     }
 
     @Override
     public List<Order> getOrdersByUser(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return user.getOrders();
     }
 
@@ -206,6 +214,38 @@ public class OrderServiceImp implements OrderService {
         orderRepository.delete(order);
     }
 
+    @Override
+    public List<OrderResponse> getUserOrderByStatus(Long userId, OrderStatus status) {
+        List<Order> orderList = orderRepository.getOrderByUserIdAndStatus(userId, status);
+        return orderList.stream().map(order -> OrderResponse.builder()
+                .id(order.getId())
+                .address(order.getAddress())
+                .status(order.getStatus())
+                .note(order.getNote())
+                .totalPrice(order.getTotalPrice())
+                .shippingFee(order.getShippingFee())
+                .restaurantId(getRestaurantByOrder(order).getId())
+                .restaurantName(getRestaurantByOrder(order).getName())
+                .cartDetails(order.getCartDetails().stream().map(this::toCartDetailResponse).toList())
+                .build()).toList();
+    }
+
+    @Override
+    public List<OrderResponse> getUserOrder(Long userId) {
+        List<Order> orderList = orderRepository.getOrderByUserId(userId);
+        return orderList.stream().map(order -> OrderResponse.builder()
+                .id(order.getId())
+                .address(order.getAddress())
+                .status(order.getStatus())
+                .note(order.getNote())
+                .totalPrice(order.getTotalPrice())
+                .shippingFee(order.getShippingFee())
+                .restaurantId(getRestaurantByOrder(order).getId())
+                .restaurantName(getRestaurantByOrder(order).getName())
+                .cartDetails(order.getCartDetails().stream().map(this::toCartDetailResponse).toList())
+                .build()).toList();
+    }
+
     private BigDecimal getTotalPrice(List<CartDetail> cartDetails) {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (CartDetail cartDetail: cartDetails) {
@@ -239,6 +279,18 @@ public class OrderServiceImp implements OrderService {
     }
 
     private CartDetailResponse toCartDetailResponse(CartDetail cartDetail) {
+        List<Long> ids = cartDetail.getIds();
+        List<AdditionalFoodCartResponse> additionalFoodCartResponses = new ArrayList<>();
+        for (Long id: ids) {
+            Food food = foodRepository.findById(id).orElse(null);
+            if(food !=null) {
+                AdditionalFoodCartResponse response = AdditionalFoodCartResponse.builder()
+                        .id(id)
+                        .name(food.getName())
+                        .build();
+                additionalFoodCartResponses.add(response);
+            }
+        }
         return CartDetailResponse.builder()
                 .id(cartDetail.getId())
                 .food_img(cartDetail.getFood().getImage())
@@ -246,6 +298,16 @@ public class OrderServiceImp implements OrderService {
                 .quantity(cartDetail.getQuantity())
                 .price(cartDetailRepository.findPriceByFoodId(cartDetail.getFood().getId()))
                 .note(cartDetail.getNote())
+                .additionFoods(additionalFoodCartResponses)
                 .build();
+    }
+
+    private Restaurant getRestaurantByOrder(Order order) {
+        if (!order.getCartDetails().isEmpty()) {
+            return order.getCartDetails().getFirst().getFood().getRestaurant();
+        } else {
+            System.out.println("1");
+            return new Restaurant();
+        }
     }
 }
