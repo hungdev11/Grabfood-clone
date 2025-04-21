@@ -37,16 +37,11 @@ public enum ErrorCode {
     CART_ITEM_NOT_FOUND(0302, "Cart item not found", HttpStatus.BAD_REQUEST),
     CART_EMPTY(0301, "Cart is empty", HttpStatus.BAD_REQUEST),
     INVALID_TIME(0700, "Invalid time", HttpStatus.BAD_REQUEST),
-    //Order
-    ORDER_NOT_FOUND(0400, "Order not found", HttpStatus.BAD_REQUEST)
 
+    ORDER_NOT_FOUND(0400, "Order not found", HttpStatus.BAD_REQUEST),
+    REVIEW_NOT_FOUND(0450, "Review not found", HttpStatus.BAD_REQUEST),
+    CANNOT_WRITE_REVIEW_DUE_DATE(0451, "Can't write review due date", HttpStatus.BAD_REQUEST),
     ;
-
-
-
-
-
-
     private final int code;
     private final String message;
     private final HttpStatus statusCode;

@@ -42,7 +42,7 @@ public class CartServiceImp implements CartService {
     private void clearCart(Cart cart) {
 
         int beforeSize = cart.getCartDetails().size();
-        cart.getCartDetails().removeIf(cd -> cd.getCart() != null);
+        cart.getCartDetails().removeIf(cd -> cd.getCart() != null && cd.getOrder() == null);
         int afterSize = cart.getCartDetails().size();
 
         log.info("Removed {} cart items", beforeSize - afterSize);

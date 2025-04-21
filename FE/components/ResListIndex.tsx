@@ -3,12 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import RestaurantList from './RestaurantList';
 import { ApiResponse, PageResponse, RestaurantHome } from './types/Types';
+import {Location} from './types/Types';
 
 type Props = {
   restaurants?: RestaurantHome[];
+  location: Location;
 };
 
-const IndexPage: React.FC<Props> = ({ restaurants: propsRestaurants }) => {
+const IndexPage: React.FC<Props> = ({ restaurants: propsRestaurants, location: propsLocation}) => {
   const [restaurants, setRestaurants] = useState<RestaurantHome[]>([]);
 
   useEffect(() => {
@@ -48,7 +50,7 @@ const IndexPage: React.FC<Props> = ({ restaurants: propsRestaurants }) => {
 
   return (
     <div>
-      <RestaurantList restaurants={restaurants} />
+      <RestaurantList restaurants={restaurants} location={propsLocation} />
     </div>
   );
 };

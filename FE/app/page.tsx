@@ -18,7 +18,10 @@ export default function Home() {
 	const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
 	const [itemCount, setItemCount] = useState<number>(0);
 	const [totalPrice, setTotalPrice] = useState<number>(0);
-	const [location, setLocation] = useState<{ lat: string; lon: string } | null>(null);
+	const [location, setLocation] = useState<{ lat: string; lon: string }>({
+		lat: "-1",
+		lon: "-1"
+	});
 	const [restaurants, setRestaurants] = useState<RestaurantHome[]>([]);
 
   	const handleLocationSelect = (lat: string, lon: string) => {
@@ -96,7 +99,7 @@ export default function Home() {
 					Ưu đãi GrabFood tại{" "}
 					<span className="text-[#00B14F]">Hà nội</span>
 				</h2>
-				<ResListHome restaurants={restaurants} />
+				<ResListHome restaurants={restaurants} location={location}/>
 				<div className="mt-4 rounded-md border border-gray-200 p-3 text-center text-sm text-gray-600">
 					See all promotions
 				</div>

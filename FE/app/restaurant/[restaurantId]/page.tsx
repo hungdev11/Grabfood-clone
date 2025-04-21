@@ -23,9 +23,9 @@ async function getRestaurantData(id: string): Promise<{ types: string[]; foods: 
   return data.data; // <-- Trả về { types, foods }
 }
 
-async function getRestaurantInfo(id: string): Promise<Restaurant> {
+async function getRestaurantInfo(id: string, lat: string, lon: string): Promise<Restaurant> {
   const resInfo = await fetchWithAuth(
-    `http://localhost:6969/grab/restaurants/${id}`,
+    `http://localhost:6969/grab/restaurants/${id}?userLat=${lat}&userLon=${lon}`,
     { cache: "no-store" }
   );
 
@@ -37,13 +37,16 @@ async function getRestaurantInfo(id: string): Promise<Restaurant> {
   return data.data;
 }
 
-export default async function RestaurantPage({ params }: { params: Params }) {
+export default async function RestaurantPage({ params, searchParams}: { params: Params ,searchParams: { lat?: string; lon?: string }}) {
   const { restaurantId } = params;
 
   if (!restaurantId) {
     throw new Error("Restaurant ID is missing");
   }
-  const restaurantInfo = await getRestaurantInfo(restaurantId);
+  const userLat = searchParams.lat ?? "-1";
+  const userLon = searchParams.lon ?? "-1";
+
+  const restaurantInfo = await getRestaurantInfo(restaurantId, userLat, userLon);
   const { types, foods } = await getRestaurantData(restaurantId);
 
   return (
@@ -82,13 +85,13 @@ export default async function RestaurantPage({ params }: { params: Params }) {
           {/* Delivery time */}
           <div className="flex items-center">
             <span className="mr-1">⏱️</span>
-            <span>{restaurantInfo.deliveryTime || 15} phút</span>
+            <span>{restaurantInfo.timeDistance || "Chưa xác định"}</span>
           </div>
 
           {/* Distance */}
           <div className="flex items-center">
             <span className="text-lg font-bold mx-1">•</span>
-            <span>{restaurantInfo.distance || "1.6"} km</span>
+            <span>{restaurantInfo.distance || "Chưa xác định "}</span>
           </div>
         </div>
 

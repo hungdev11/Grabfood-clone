@@ -19,7 +19,7 @@ export interface ApiResponse<T> {
     image: string;
     rating: number;
     description?: string;
-    distance?: number;
+    distance?: string;
   }
 
   export interface Restaurant {
@@ -31,6 +31,8 @@ export interface ApiResponse<T> {
     openingHour : string;
     closingHour : string;
     rating: number;
+    timeDistance: string;
+    distance: string;
   }
   
   export interface AdditionalFood {
@@ -58,3 +60,7 @@ export interface ApiResponse<T> {
     foods: Food[];
   }
   
+  export interface Location {
+    lat: string;
+    lon: string;
+  }

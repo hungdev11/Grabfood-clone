@@ -15,6 +15,13 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Builder
+@NamedStoredProcedureQuery(
+        name = "Order.getAllOrdersOfRestaurant",
+        procedureName = "get_all_orders_of_restaurant",
+        parameters = {
+                @StoredProcedureParameter(mode = ParameterMode.IN, name = "restaurant_id", type = Long.class)
+        }
+)
 @Table(name = "orders") // order conflict with ORDER in mysql
 public class Order extends BaseEntity{
 

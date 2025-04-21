@@ -96,7 +96,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                                 // Public endpoints
                                 .requestMatchers("/auth/welcome", "/auth/addNewAccount", "/auth/generateToken").permitAll()
-
+                                //
+                                .requestMatchers("reviews/**").permitAll()
+                                //
                                 // Role-based endpoints
                                 .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
                                 .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")

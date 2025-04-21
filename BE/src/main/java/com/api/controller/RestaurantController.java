@@ -28,11 +28,11 @@ public class RestaurantController {
     }
 
     @GetMapping("/{restaurant_id}")
-    public ApiResponse<RestaurantResponse> getRestaurantById(@PathVariable long restaurant_id) {
+    public ApiResponse<RestaurantResponse> getRestaurantById(@PathVariable long restaurant_id, @RequestParam double userLat, double userLon) {
         return ApiResponse.<RestaurantResponse>builder()
                 .code(200)
                 .message("Success")
-                .data(restaurantService.getRestaurantResponse(restaurant_id))
+                .data(restaurantService.getRestaurantResponse(restaurant_id, userLat, userLon))
                 .build();
     }
 

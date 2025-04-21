@@ -3,18 +3,12 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { fetchWithAuth } from "@/utils/api";
-interface RestaurantDetails {
-  id: number;
-  name: string;
-  description: string;
-  image: string;
-  rating: number;
-}
+import { Restaurant } from "./types/Types";
 
 const RestaurantPage = () => {
   const router = useRouter();
   const { id } = router.query; // Lấy id từ URL query
-  const [restaurant, setRestaurant] = useState<RestaurantDetails | null>(null);
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
 
   useEffect(() => {
     if (id) {

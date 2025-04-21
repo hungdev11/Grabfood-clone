@@ -10,12 +10,10 @@ import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
 import com.api.entity.Restaurant;
 import com.api.repository.RestaurantRepository;
-import com.api.service.AccountService;
-import com.api.service.AddressService;
-import com.api.service.LocationService;
-import com.api.service.RestaurantService;
+import com.api.service.*;
 import com.api.utils.GeoUtils;
 import com.api.utils.RestaurantStatus;
+import com.api.utils.TimeUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +24,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -38,6 +39,7 @@ public class RestaurantServiceImp implements RestaurantService {
     private final AccountService accountService;
     private final AddressService addressService;
     private final LocationService locationService;
+    private final ReviewService reviewService;
 
     @Override
     @Transactional
@@ -75,10 +77,10 @@ public class RestaurantServiceImp implements RestaurantService {
     }
 
     @Override
-    public RestaurantResponse getRestaurantResponse(long id) {
+    public RestaurantResponse getRestaurantResponse(long id, double userLat, double userLon) {
         log.info("Get Restaurant response: {}", id);
         Restaurant restaurant = getRestaurant(id);
-        return RestaurantResponse.builder()
+        RestaurantResponse restaurantResponse = RestaurantResponse.builder()
                 .id(restaurant.getId())
                 .name(restaurant.getName())
                 .address(getAddressText(restaurant.getAddress()))
@@ -87,8 +89,28 @@ public class RestaurantServiceImp implements RestaurantService {
                 .openingHour(restaurant.getOpeningHour())
                 .closingHour(restaurant.getClosingHour())
                 .phone(restaurant.getPhone())
-                .rating(BigDecimal.ZERO)
+                .rating(reviewService.calculateAvgRating(restaurant.getId()))
                 .build();
+        if (userLat != -1 && userLon != -1) {
+            var distance = locationService.getDistance(userLat, userLon,
+                    restaurant.getAddress().getLat(), restaurant.getAddress().getLon());
+            double distanceInMeters = distance.getDistance();
+            String formattedDistance;
+
+            if (distanceInMeters < 1000) {
+                formattedDistance = (int) distanceInMeters + " m";
+            } else {
+                double distanceInKm = distanceInMeters / 1000;
+                formattedDistance = String.format("%.1f km", distanceInKm);
+            }
+
+            restaurantResponse.setDistance(formattedDistance);
+            restaurantResponse.setTimeDistance(
+                    TimeUtil.formatDurationFromSeconds(distance.getDuration())
+            );
+        }
+
+        return restaurantResponse;
     }
 
     @Override
@@ -104,10 +126,7 @@ public class RestaurantServiceImp implements RestaurantService {
                         .name(restaurant.getName())
                         .description(restaurant.getDescription())
                         .image(restaurant.getImage())
-                        .rating(BigDecimal.ONE.multiply(BigDecimal.valueOf(5)))
-                        .distance(GeoUtils.haversine(
-                                10.85307, 106.791679,
-                                restaurant.getAddress().getLat(), restaurant.getAddress().getLon()))
+                        .rating(reviewService.calculateAvgRating(restaurant.getId()))
                         .build())
                 .toList();
 
@@ -132,16 +151,24 @@ public class RestaurantServiceImp implements RestaurantService {
         return restaurantRepository
                 .findNearbyRestaurants(lat, lon, radiusKm, minLat, maxLat, minLon, maxLon)
                 .stream().filter(r -> r.getStatus().equals(RestaurantStatus.ACTIVE))
-                .map(restaurant -> RestaurantResponse.builder()
-                        .id(restaurant.getId())
-                        .name(restaurant.getName())
-                        .description(restaurant.getDescription())
-                        .image(restaurant.getImage())
-                        .rating(BigDecimal.ONE.multiply(BigDecimal.valueOf(5)))
-                        .distance(GeoUtils.haversine(
-                                lat, lon,
-                                restaurant.getAddress().getLat(), restaurant.getAddress().getLon()))
-                        .build())
+                .map(restaurant -> {
+                    double distanceInMeters = GeoUtils.haversine(
+                            lat, lon,
+                            restaurant.getAddress().getLat(),
+                            restaurant.getAddress().getLon()
+                    );
+
+                    String formattedDistance = TimeUtil.formatDistance(distanceInMeters);
+
+                    return RestaurantResponse.builder()
+                            .id(restaurant.getId())
+                            .name(restaurant.getName())
+                            .description(restaurant.getDescription())
+                            .image(restaurant.getImage())
+                            .rating(reviewService.calculateAvgRating(restaurant.getId()))
+                            .distance(formattedDistance)
+                            .build();
+                })
                 .toList();
     }
 

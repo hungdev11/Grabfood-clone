@@ -1,17 +1,17 @@
 "use client";
 
 import React from 'react';
-import { RestaurantHome } from './types/Types';
+import { RestaurantHome, Location } from './types/Types';
 
 interface Props {
-  restaurants: RestaurantHome[];
+  restaurants: RestaurantHome[]
+  location?: Location;
 }
 
-const RestaurantList: React.FC<Props> = ({ restaurants }) => {
-
-  const handleClick = (restaurantId: number) => {
-    // Điều hướng bằng link cố định (reload trang)
-    window.location.href = `/restaurant/${restaurantId}`;
+const RestaurantList: React.FC<Props> = ({ restaurants, location }) => {
+  const handleClick = (restaurantId: number, lat: string, lon: string) => {
+    const query = `lat=${lat}&lon=${lon}`;
+    window.location.href = `/restaurant/${restaurantId}?${query}`;
   };
 
   return (
@@ -20,8 +20,12 @@ const RestaurantList: React.FC<Props> = ({ restaurants }) => {
         <div
           key={restaurant.id}
           className="rounded-lg border border-gray-200 overflow-hidden cursor-pointer"
-          onClick={() => handleClick(restaurant.id)}
-        >
+          onClick={() => {
+            if (location) {
+              handleClick(restaurant.id, location.lat.toString(), location.lon.toString());
+            }
+          }}
+                  >
           <div className="relative h-40">
             <img
               src={restaurant.image || "/placeholder.svg"}
@@ -37,12 +41,9 @@ const RestaurantList: React.FC<Props> = ({ restaurants }) => {
             <div className="mt-2 flex items-center gap-1">
               ⭐ <span className="text-xs">{restaurant.rating}</span>
             </div>
-            <div className="mt-2 flex items-center gap-1">
-              ⭐ <span className="text-xs">{restaurant.distance}</span>
-                  {restaurant.distance > 5 && (
-                <span className="text-xs text-red-500 ml-1 font-semibold">XA</span>
-              )}
-            </div>
+            {/* <div className="mt-2 flex items-center gap-1 text-xs text-gray-500">
+              📍 <span>{restaurant.distance}</span>
+            </div> */}
 
           </div>
         </div>

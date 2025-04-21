@@ -215,6 +215,22 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
+    public Order getOrderById(Long orderId) {
+        return orderRepository.findById(orderId).orElseThrow(() -> {
+            log.error("Order {} not found", orderId);
+            throw new AppException(ErrorCode.ORDER_NOT_FOUND);
+        });
+    }
+
+    @Override
+    public List<Order> listAllOrdersOfRestaurant(Long restaurantId) {
+        log.info("get all orders of restaurant {}", restaurantId);
+        return orderRepository.findAllById(
+                orderRepository.getAllOrdersOfRestaurant(restaurantId)
+        );
+    }
+
+    @Override
     public List<OrderResponse> getUserOrderByStatus(Long userId, OrderStatus status) {
         List<Order> orderList = orderRepository.getOrderByUserIdAndStatus(userId, status);
         return orderList.stream().map(order -> OrderResponse.builder()
