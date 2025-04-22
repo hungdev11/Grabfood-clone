@@ -131,7 +131,8 @@ public class FoodServiceImp implements FoodService {
                 .orElse(BigDecimal.ZERO);
 
         LocalDateTime now = LocalDateTime.now();
-        return applyVoucher(food, price, now);
+        return price;
+//        return applyVoucher(food, price, now);
     }
 
 
@@ -153,12 +154,13 @@ public class FoodServiceImp implements FoodService {
                 break;
             }
         }
-        return applyVoucher(food, price, time);
+        return price;
+//        return applyVoucher(food, price, time);
     }
 
     private BigDecimal applyVoucher(Food food, BigDecimal price, LocalDateTime time) {
         for (VoucherDetail vd : food.getVoucherDetails()) {
-            if (!vd.getStartDate().isBefore(time) || !vd.getEndDate().isAfter(time)) continue;
+            if (time.isBefore(vd.getStartDate()) || time.isAfter(vd.getEndDate())) continue;
 
             Voucher voucher = vd.getVoucher();
             if (voucher.getStatus() != VoucherStatus.ACTIVE) continue;

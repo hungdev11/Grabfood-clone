@@ -70,7 +70,7 @@ const FoodListComponent: React.FC<Props> = ({ types, foods, restaurantId }) => {
               <h3 className="text-lg font-bold">{food.name}</h3>
               <p className="text-gray-500 text-sm">{food.description || ""}</p>
               <p className="text-xl font-bold mt-2">
-                {food.discountPrice && food.discountPrice < food.price ? (
+                {typeof food.discountPrice === "number" && food.discountPrice < food.price ? (
                   <>
                     <span className="line-through text-gray-500 mr-2">
                       {food.price.toLocaleString()}đ

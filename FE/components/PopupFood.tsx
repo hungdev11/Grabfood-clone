@@ -141,7 +141,7 @@ const Popup: React.FC<PopupProps> = ({
   };
 
   const totalAdditionalPrice = Object.values(selectedItems).reduce((sum, price) => sum + price, 0);
-  const basePrice = selectedFood.discountPrice && selectedFood.discountPrice < selectedFood.price
+  const basePrice = typeof selectedFood.discountPrice === "number" && selectedFood.discountPrice < selectedFood.price
   ? selectedFood.discountPrice
   : selectedFood.price;
 
@@ -209,7 +209,7 @@ const Popup: React.FC<PopupProps> = ({
         <div className="flex-1 mx-4">
           <h2 className="text-2xl font-bold text-left">{selectedFood.name}</h2>
           <p className="text-xl font-bold mt-2 text-left">
-          {selectedFood.discountPrice && selectedFood.discountPrice < selectedFood.price ? (
+          {typeof selectedFood.discountPrice === "number" && selectedFood.discountPrice < selectedFood.price ? (
             <>
               <span className="line-through text-gray-500 mr-2">
                 {selectedFood.price.toLocaleString()}đ
