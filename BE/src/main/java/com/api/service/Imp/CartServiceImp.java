@@ -5,7 +5,6 @@ import com.api.dto.request.CartUpdateRequest;
 import com.api.dto.response.AdditionalFoodCartResponse;
 import com.api.dto.response.CartDetailResponse;
 import com.api.dto.response.CartResponse;
-import com.api.dto.response.GetFoodResponse;
 import com.api.entity.*;
 import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
@@ -15,29 +14,34 @@ import com.api.repository.FoodRepository;
 import com.api.repository.UserRepository;
 import com.api.service.CartService;
 import com.api.service.FoodService;
+import com.api.service.VoucherDetailService;
+import com.api.service.VoucherService;
 import com.api.utils.FoodStatus;
+import com.api.utils.VoucherStatus;
+import com.api.utils.VoucherType;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @Transactional
+@RequiredArgsConstructor
 public class CartServiceImp implements CartService {
-    @Autowired
-    private CartRepository cartRepository;
-    @Autowired
-    private CartDetailRepository cartDetailRepository;
-    @Autowired
-    private FoodRepository foodRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private FoodService foodService;
-
+    private final CartRepository cartRepository;
+    private final CartDetailRepository cartDetailRepository;
+    private final FoodRepository foodRepository;
+    private final UserRepository userRepository;
+    private final FoodService foodService;
+    private final VoucherService voucherService;
+    private final VoucherDetailService voucherDetailService;
 
     private void clearCart(Cart cart) {
 
@@ -279,43 +283,93 @@ public class CartServiceImp implements CartService {
     public CartResponse getAllCartDetailUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        Cart cart = cartRepository.findByUser(user).orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
-        List<CartDetailResponse> cartDetailResponseList = cartDetailRepository.findByCartIdAndOrderIsNull(cart.getId()).stream().map(cartDetail -> {
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
+
+        // Lấy toàn bộ món ăn chính trong giỏ hàng
+        List<CartDetail> cartDetails = cartDetailRepository.findByCartIdAndOrderIsNull(cart.getId());
+        List<Food> mainFoods = cartDetails.stream()
+                .map(CartDetail::getFood)
+                .toList();
+
+        // Lấy danh sách voucher có hiệu lực
+        List<Voucher> vouchers = voucherService.getVoucherOfRestaurant(mainFoods.get(0).getRestaurant().getId()).stream()
+                .filter(v -> v.getStatus() == VoucherStatus.ACTIVE &&
+                        v.getValue() != null &&
+                        v.getValue().compareTo(BigDecimal.ZERO) > 0)
+                .toList();
+
+        // Lấy VoucherDetail hợp lệ
+        List<VoucherDetail> voucherDetails = voucherDetailService
+                .getVoucherDetailByVoucherInAndFoodInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                        vouchers,
+                        mainFoods,
+                        LocalDateTime.now()
+                );
+
+        // Map<foodId, VoucherDetail>
+        Map<Long, VoucherDetail> foodIdToVoucherDetail = voucherDetails.stream()
+                .collect(Collectors.toMap(
+                        vd -> vd.getFood().getId(),
+                        vd -> vd,
+                        (vd1, vd2) -> vd1 // ưu tiên 1 cái
+                ));
+
+        List<CartDetailResponse> cartDetailResponseList = cartDetails.stream().map(cartDetail -> {
             Food food = cartDetail.getFood();
-            CartDetailResponse cartDetailResponse = CartDetailResponse.builder()
-                    .restaurantId(food.getRestaurant().getId())
-                    .id(cartDetail.getId())
-                    .foodName(food.getName())
-                    .price(foodService.getCurrentPrice(food.getId()))
-                    .foodId(food.getId())
-                    .note(cartDetail.getNote())
-                    .quantity(cartDetail.getQuantity())
-                    .food_img(food.getImage())
-                    .build();
-            // process missing additional food id and merge while read
+            BigDecimal basePrice = foodService.getCurrentPrice(food.getId());
+            BigDecimal finalPrice = basePrice;
+
+            // Áp dụng giảm giá nếu có
+            VoucherDetail voucherDetail = foodIdToVoucherDetail.get(food.getId());
+            if (voucherDetail != null) {
+                Voucher voucher = voucherDetail.getVoucher();
+                if (voucher.getType().equals(VoucherType.FIXED)) {
+                    finalPrice = basePrice.subtract(voucher.getValue());
+                } else if (voucher.getType().equals(VoucherType.PERCENTAGE)) {
+                    BigDecimal discount = basePrice.multiply(voucher.getValue()).divide(BigDecimal.valueOf(100));
+                    finalPrice = basePrice.subtract(discount);
+                }
+                if (finalPrice.compareTo(BigDecimal.ZERO) < 0) {
+                    finalPrice = BigDecimal.ZERO;
+                }
+            }
+
+            // Xử lý món ăn thêm
             List<AdditionalFoodCartResponse> additionalItems = new ArrayList<>();
             List<Long> validIds = new ArrayList<>();
             for (Long id : cartDetail.getIds()) {
-                Optional<Food> AFood = foodRepository.findById(id);
-                if (AFood.isPresent() && AFood.get().getStatus().equals(FoodStatus.ACTIVE)) {
+                Optional<Food> aFoodOpt = foodRepository.findById(id);
+                if (aFoodOpt.isPresent() && aFoodOpt.get().getStatus() == FoodStatus.ACTIVE) {
                     validIds.add(id);
+                    Food aFood = aFoodOpt.get();
                     additionalItems.add(AdditionalFoodCartResponse.builder()
-                            .id(AFood.get().getId())
-                            .name(AFood.get().getName())
-                            .price(foodService.getCurrentPrice(AFood.get().getId()))
+                            .id(aFood.getId())
+                            .name(aFood.getName())
+                            .price(foodService.getCurrentPrice(aFood.getId()))
                             .build());
                 }
             }
             cartDetail.setIds(validIds);
             cartDetailRepository.save(cartDetail);
 
-            cartDetailResponse.setAdditionFoods(additionalItems);
-            return cartDetailResponse;
+            return CartDetailResponse.builder()
+                    .restaurantId(food.getRestaurant().getId())
+                    .id(cartDetail.getId())
+                    .foodName(food.getName())
+                    .price(finalPrice)
+                    .foodId(food.getId())
+                    .note(cartDetail.getNote())
+                    .quantity(cartDetail.getQuantity())
+                    .food_img(food.getImage())
+                    .additionFoods(additionalItems)
+                    .build();
         }).toList();
+
         return CartResponse.builder()
-                //Restaurant_ID
                 .cartId(cart.getId())
                 .listItem(cartDetailResponseList)
                 .build();
     }
+
 }

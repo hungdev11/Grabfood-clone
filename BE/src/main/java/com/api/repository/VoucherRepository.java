@@ -16,4 +16,5 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
     List<Voucher> findByRestaurantIdIsNullAndStatusAndMinRequireLessThanEqual(VoucherStatus status, BigDecimal orderValue);
 
     Optional<Voucher> findByCodeAndStatus(String code, VoucherStatus status);
+    List<Voucher> findByRestaurantId(long restaurantId);
 }

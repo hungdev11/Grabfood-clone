@@ -45,6 +45,7 @@ export interface ApiResponse<T> {
     id: number;
     name: string;
     price: number;
+    discountPrice: number,
     image: string;
     description?: string;
     rating?: number;

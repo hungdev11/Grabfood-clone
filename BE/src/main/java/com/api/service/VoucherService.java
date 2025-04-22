@@ -23,4 +23,6 @@ public interface VoucherService {
     Voucher findVoucherByCode(String code);
 
     List<VoucherResponse> getVoucherCanApply(BigDecimal totalPrice);
+
+    List<Voucher> getVoucherOfRestaurant(long restaurantId);
 }

@@ -13,9 +13,7 @@ import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
 import com.api.repository.FoodMainAndAdditionalRepository;
 import com.api.repository.FoodRepository;
-import com.api.service.FoodService;
-import com.api.service.FoodTypeService;
-import com.api.service.RestaurantService;
+import com.api.service.*;
 import com.api.utils.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +39,8 @@ public class FoodServiceImp implements FoodService {
     private final FoodTypeService foodTypeService;
     private final RestaurantService restaurantService;
     private final FoodMainAndAdditionalRepository foodMainAndAdditionalRepository;
+    private final VoucherService voucherService;
+    private final VoucherDetailService voucherDetailService;
 
     @Override
     @Transactional
@@ -441,24 +441,50 @@ public class FoodServiceImp implements FoodService {
         List<Food> foods = restaurant.getFoods().stream()
                 .filter(f -> !f.getKind().equals(FoodKind.ADDITIONAL))
                 .toList();
-        Set<String> types = new HashSet<>();
-        for (Food food : foods) {
-            if (food.getStatus() == FoodStatus.ACTIVE && food.getType() != null) {
-                types.add(food.getType().getName());
-            }
-        }
+
+        Set<String> types = foods.stream()
+                .filter(f -> f.getStatus() == FoodStatus.ACTIVE && f.getType() != null)
+                .map(f -> f.getType().getName())
+                .collect(Collectors.toSet());
+
+
+        log.info("Get voucher of restaurant {} in present", restaurantId);
+        List<Voucher> voucherList = voucherService.getVoucherOfRestaurant(restaurantId).stream()
+                .filter(v -> v.getStatus().equals(VoucherStatus.ACTIVE)
+                        && v.getValue() != null
+                        && v.getValue().compareTo(BigDecimal.ZERO) > 0)
+                .toList();
+
+        List<VoucherDetail> voucherDetailList = voucherDetailService
+                .getVoucherDetailByVoucherInAndFoodInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(voucherList, foods, LocalDateTime.now());
+
+        Map<Long, VoucherDetail> foodIdToVoucherDetail = voucherDetailList.stream()
+                .collect(Collectors.toMap(
+                        vd -> vd.getFood().getId(),
+                        vd -> vd,
+                        (vd1, vd2) -> vd1 // nếu có 2 voucher thì chọn cái đầu
+                ));
 
         log.info("Get foods of restaurant {}", restaurantId);
         List<GetFoodResponse> foodResponses = foods.stream()
-                .map(f -> GetFoodResponse.builder()
-                        .id(f.getId())
-                        .name(f.getName())
-                        .image(f.getImage())
-                        .description(f.getDescription())
-                        .price(getCurrentPrice(f.getId()))
-                        .rating(BigDecimal.ZERO)
-                        .type(f.getType().getName())
-                        .build())
+                .map(f -> {
+                    BigDecimal currentPrice = getCurrentPrice(f.getId());
+                    VoucherDetail voucherDetail = foodIdToVoucherDetail.get(f.getId());
+                    BigDecimal discountPrice = voucherDetail != null
+                            ? calculateDiscountPrice(currentPrice, voucherDetail.getVoucher())
+                            : currentPrice;
+                    GetFoodResponse foodResponse = GetFoodResponse.builder()
+                            .id(f.getId())
+                            .name(f.getName())
+                            .image(f.getImage())
+                            .description(f.getDescription())
+                            .price(currentPrice)
+                            .discountPrice(discountPrice)
+                            .rating(BigDecimal.ZERO)
+                            .type(f.getType().getName())
+                            .build();
+                    return foodResponse;
+                })
                 .toList();
 
         return GetFoodGroupResponse.builder()
@@ -511,6 +537,21 @@ public class FoodServiceImp implements FoodService {
                     return responseBuilder.build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    private BigDecimal calculateDiscountPrice(BigDecimal originalPrice, Voucher voucher) {
+        if (voucher == null || voucher.getValue() == null) return originalPrice;
+
+        BigDecimal discountPrice = originalPrice;
+
+        if (voucher.getType().equals(VoucherType.FIXED)) {
+            discountPrice = originalPrice.subtract(voucher.getValue());
+        } else if (voucher.getType().equals(VoucherType.PERCENTAGE)) {
+            BigDecimal discount = originalPrice.multiply(voucher.getValue()).divide(BigDecimal.valueOf(100));
+            discountPrice = originalPrice.subtract(discount);
+        }
+
+        return discountPrice.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : discountPrice;
     }
 
 }

@@ -71,6 +71,11 @@ public class VoucherDetailServiceImp implements VoucherDetailService {
         return response;
     }
 
+    @Override
+    public List<VoucherDetail> getVoucherDetailByVoucherInAndFoodInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(List<Voucher> voucherList, List<Food> foodList, LocalDateTime currentTime) {
+        return voucherDetailRepository.findByVoucherInAndFoodInAndStartDateBeforeAndEndDateAfter(voucherList, foodList, currentTime, currentTime);
+    }
+
     private void checkStartDateAndEndDate(LocalDateTime startDate, LocalDateTime endDate)
     {
         if (startDate.isAfter(endDate) || LocalDateTime.now().isAfter(endDate)) {

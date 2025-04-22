@@ -272,7 +272,7 @@ export default function HomePage() {
                     Mua Lại
                   </button>
                   <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-100 w-full sm:w-auto">
-                    Liên Hệ Người Bán
+                    Đánh giá
                   </button>
                 </div>
               </div>

@@ -141,7 +141,11 @@ const Popup: React.FC<PopupProps> = ({
   };
 
   const totalAdditionalPrice = Object.values(selectedItems).reduce((sum, price) => sum + price, 0);
-  const totalPrice = (selectedFood.price + totalAdditionalPrice) * quantity;
+  const basePrice = selectedFood.discountPrice && selectedFood.discountPrice < selectedFood.price
+  ? selectedFood.discountPrice
+  : selectedFood.price;
+
+  const totalPrice = (basePrice + totalAdditionalPrice) * quantity;
 
   const handleSubmitToCart = async () => {
     if (!isAuthenticated) {
@@ -204,7 +208,20 @@ const Popup: React.FC<PopupProps> = ({
         <img src={selectedFood.image || "/placeholder.svg"} alt={selectedFood.name} className="w-24 h-24 object-cover rounded-md mr-4" />
         <div className="flex-1 mx-4">
           <h2 className="text-2xl font-bold text-left">{selectedFood.name}</h2>
-          <p className="text-xl font-bold mt-2 text-left">{selectedFood.price.toLocaleString()}đ</p>
+          <p className="text-xl font-bold mt-2 text-left">
+          {selectedFood.discountPrice && selectedFood.discountPrice < selectedFood.price ? (
+            <>
+              <span className="line-through text-gray-500 mr-2">
+                {selectedFood.price.toLocaleString()}đ
+              </span>
+              <span className="text-red-500">
+                {selectedFood.discountPrice.toLocaleString()}đ
+              </span>
+            </>
+          ) : (
+            <span>{selectedFood.price.toLocaleString()}đ</span>
+          )}
+        </p>
         </div>
       </div>
 

@@ -19,8 +19,6 @@ public class VoucherRequest {
     @NonNull
     private String description;
 
-    private int quantity;
-
     private BigDecimal minRequire;
 
     private VoucherType type;
@@ -31,5 +29,5 @@ public class VoucherRequest {
 
     private VoucherStatus status;
 
-    private long restaurant_id;
+    private Long restaurant_id;
 }

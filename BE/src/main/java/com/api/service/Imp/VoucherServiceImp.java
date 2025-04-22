@@ -146,6 +146,12 @@ public class VoucherServiceImp implements VoucherService {
         }).toList();
     }
 
+    @Override
+    public List<Voucher> getVoucherOfRestaurant(long restaurantId) {
+        log.info("Get voucher of restaurant {}", restaurantId);
+        return voucherRepository.findByRestaurantId(restaurantId);
+    }
+
     public void checkVoucherValue( VoucherType type,BigDecimal value) {
         if(type.equals(VoucherType.PERCENTAGE)) {
             if (value.compareTo(BigDecimal.ZERO) <= 0 || value.compareTo(new BigDecimal("100")) > 0) {
@@ -153,4 +159,8 @@ public class VoucherServiceImp implements VoucherService {
             }
         }
     }
+
+
+
+
 }
