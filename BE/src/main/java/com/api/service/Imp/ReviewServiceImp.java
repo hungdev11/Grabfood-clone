@@ -1,17 +1,22 @@
 package com.api.service.Imp;
 
 import com.api.dto.request.ReviewDTO;
+import com.api.dto.response.PageResponse;
+import com.api.entity.CartDetail;
 import com.api.entity.Order;
 import com.api.entity.Review;
 import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
 import com.api.repository.ReviewRepository;
 import com.api.service.OrderService;
+import com.api.service.RestaurantService;
 import com.api.service.ReviewService;
+import com.api.utils.PageUtils;
 import com.api.utils.TimeUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -19,6 +24,8 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +56,7 @@ public class ReviewServiceImp implements ReviewService {
 
         Review review = Review.builder()
                 .order(order)
+                .orderString(createOrderString(order))
                 .createdAt(LocalDateTime.now())
                 .rating(request.getRating())
                 .build();
@@ -75,10 +83,20 @@ public class ReviewServiceImp implements ReviewService {
     }
 
     @Override
-    public ReviewDTO.ReviewResponse getReview(long reviewId) {
+    public ReviewDTO.ReviewResponse getReviewById(long reviewId) {
         log.info("Get review id {}", reviewId);
         Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
         return buildReviewResponse(review);
+    }
+
+    private String createOrderString (Order order) {
+        log.info("Creating order string of {}", order.getId());
+        var orderedFoodList = order.getCartDetails().stream()
+                .map(cd -> cd.getFood())
+                .collect(Collectors.toSet());
+        StringJoiner sj = new StringJoiner(", ");
+        orderedFoodList.forEach(food -> {sj.add(food.getName());});
+        return sj.toString();
     }
 
     @Override
@@ -97,11 +115,30 @@ public class ReviewServiceImp implements ReviewService {
                         .setScale(1, RoundingMode.HALF_UP);
     }
 
+    @Override
+    public PageResponse<?> getReviewsByRestaurantId(long restaurantId, Pageable pageRequest, int ratingFilter) {
+        log.info("Get reviews by restaurant id {}", restaurantId);
+        List<Order> orders = orderService.listAllOrdersOfRestaurant(restaurantId);
+        List<ReviewDTO.ReviewResponse> reviewResponses = reviewRepository.findAllByOrderIn(orders).stream()
+                .filter(r -> ratingFilter == 6 || r.getRating().compareTo(BigDecimal.valueOf(ratingFilter)) == 0)
+                .map(this::buildReviewResponse)
+                .toList();
+        var pageResponse = PageUtils.convertListToPage(reviewResponses, pageRequest);
+        return PageResponse.builder()
+                .total(pageResponse.getTotalElements())
+                .items(pageResponse.getContent())
+                .page(pageRequest.getPageNumber())
+                .size(pageResponse.getSize())
+                .build();
+    }
+
 
     private ReviewDTO.ReviewResponse buildReviewResponse(Review review) {
         return ReviewDTO.ReviewResponse.builder()
                 .reviewId(review.getId())
+                .customerName(review.getOrder().getUser().getName())
                 .orderId(review.getOrder().getId())
+                .orderString(review.getOrderString())
                 .reviewMessage(review.getReviewMessage())
                 .rating(review.getRating())
                 .createdAt(review.getCreatedAt() == null ? null : TimeUtil.formatRelativeTime(review.getCreatedAt()) + " trước")

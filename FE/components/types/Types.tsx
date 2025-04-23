@@ -65,3 +65,15 @@ export interface ApiResponse<T> {
     lat: string;
     lon: string;
   }
+
+  export interface Review {
+    reviewId: number;
+    orderId: number;
+    customerName: string;
+    orderString: string;
+    reviewMessage: string;
+    rating: number;
+    createdAt: string;
+    replyMessage: string;
+    replyAt: string
+  }

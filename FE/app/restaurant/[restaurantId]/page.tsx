@@ -1,9 +1,10 @@
 import FoodList from "@/components/FoodList";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { Food, GroupedFood, Restaurant } from "@/components/types/Types";
+import { Food, GroupedFood, Restaurant, Review } from "@/components/types/Types";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
 import { fetchWithAuth } from "@/utils/api";
+import {ReviewList} from "@/components/ReviewList";
 
 interface Params {
   restaurantId: string;
@@ -48,7 +49,6 @@ export default async function RestaurantPage({ params, searchParams}: { params: 
 
   const restaurantInfo = await getRestaurantInfo(restaurantId, userLat, userLon);
   const { types, foods } = await getRestaurantData(restaurantId);
-
   return (
     
     <div className="p-4">
@@ -126,6 +126,7 @@ export default async function RestaurantPage({ params, searchParams}: { params: 
 
       {/* Food list */}
       <FoodList types={types} foods={foods} restaurantId={restaurantId} />
+      <ReviewList restaurantId = {restaurantId}/>
 
       <Footer />
     </div>

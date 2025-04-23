@@ -36,6 +36,8 @@ public class ReviewDTO {
     public static class ReviewResponse {
         private long reviewId;
         private long orderId;
+        private String customerName;
+        private String orderString;
         private String reviewMessage;
         private String createdAt;
         private BigDecimal rating;

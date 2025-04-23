@@ -18,6 +18,9 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "order_id", referencedColumnName = "id", nullable = false)
     private Order order;
 
+    @Column(nullable = false, name = "order_string")
+    private String orderString;
+
     @Column(name = "review_time", nullable = false)
     private LocalDateTime createdAt;
 

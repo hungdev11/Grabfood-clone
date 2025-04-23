@@ -2,10 +2,15 @@ package com.api.controller;
 
 import com.api.dto.request.ReviewDTO;
 import com.api.dto.response.ApiResponse;
+import com.api.dto.response.PageResponse;
 import com.api.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -37,7 +42,22 @@ public class ReviewController {
         return ApiResponse.<ReviewDTO.ReviewResponse>builder()
                 .code(202)
                 .message("Review created")
-                .data(reviewService.getReview(reviewId))
+                .data(reviewService.getReviewById(reviewId))
                 .build();
     }
+
+    @GetMapping("/restaurant/{restaurantId}")
+    public ApiResponse<?> getReviewOfRestaurant(
+            @PathVariable long restaurantId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "6") int ratingFilter) {
+        Pageable pageRequest = PageRequest.of(page, size);
+        return ApiResponse.builder()
+                .code(200)
+                .message("Get reviews of restaurant")
+                .data(reviewService.getReviewsByRestaurantId(restaurantId, pageRequest, ratingFilter))
+                .build();
+    }
+
 }
