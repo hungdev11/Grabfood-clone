@@ -292,6 +292,13 @@ public class CartServiceImp implements CartService {
                 .map(CartDetail::getFood)
                 .toList();
 
+        if (cartDetails.isEmpty()) {
+            return CartResponse.builder()
+                    .cartId(cart.getId())
+                    .listItem(Collections.emptyList())
+                    .build();
+        }
+
         // Lấy danh sách voucher có hiệu lực
         List<Voucher> vouchers = voucherService.getVoucherOfRestaurant(mainFoods.get(0).getRestaurant().getId()).stream()
                 .filter(v -> v.getStatus() == VoucherStatus.ACTIVE &&
