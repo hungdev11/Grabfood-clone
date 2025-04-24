@@ -37,6 +37,7 @@ interface Order {
   status: string;
   shippingFee: number;
   note: string;
+  review: boolean
   payment_method: string | null;
   cartDetails: CartDetail[];
 }
@@ -75,6 +76,7 @@ export default function HomePage() {
           status: status, // Truyền status qua params, undefined nếu không có
         },
       });
+      console.log('Dữ liệu đơn hàng:', response.data); // In dữ liệu nhận được từ API
   
       if (response) {
         setOrders(response.data);
@@ -199,7 +201,9 @@ export default function HomePage() {
                     <span className="text-gray-700 font-medium">{order.restaurantName||"Khong xac dinh"}</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <button className="border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-100 text-sm">
+                    <button 
+                    onClick={() => window.location.href=`http://localhost:3000/restaurant/${order.restaurantId}`}
+                    className="border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-100 text-sm">
                       Xem Shop
                     </button>
                     <div className="flex items-center space-x-1"> 
@@ -268,12 +272,17 @@ export default function HomePage() {
 
                 {/* Nút hành động */}
                 <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-4">
-                  <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full sm:w-auto">
-                    Mua Lại
-                  </button>
-                  <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-100 w-full sm:w-auto">
-                    Đánh giá
-                  </button>
+                  {order.status === 'COMPLETED' && (
+                    order.review ? (
+                      <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-100 w-full sm:w-auto cursor-not-allowed" >
+                        Đã đánh giá
+                      </button>
+                    ) : (
+                      <button className="border border-gray-300 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full sm:w-auto">
+                        Đánh giá
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
             ))

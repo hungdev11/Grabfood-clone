@@ -51,7 +51,7 @@ public class OrderServiceImp implements OrderService {
     private VoucherRepository voucherRepository;
 
     @Autowired
-    private RestaurantRepository restaurantRepository;
+    private ReviewRepository reviewRepository;
 
     @Autowired
     private FoodRepository foodRepository;
@@ -242,6 +242,7 @@ public class OrderServiceImp implements OrderService {
                 .shippingFee(order.getShippingFee())
                 .restaurantId(getRestaurantByOrder(order).getId())
                 .restaurantName(getRestaurantByOrder(order).getName())
+                .isReview(reviewRepository.existsByOrder(order))
                 .cartDetails(order.getCartDetails().stream().map(this::toCartDetailResponse).toList())
                 .build()).toList();
     }
@@ -258,6 +259,7 @@ public class OrderServiceImp implements OrderService {
                 .shippingFee(order.getShippingFee())
                 .restaurantId(getRestaurantByOrder(order).getId())
                 .restaurantName(getRestaurantByOrder(order).getName())
+                .isReview(reviewRepository.existsByOrder(order))
                 .cartDetails(order.getCartDetails().stream().map(this::toCartDetailResponse).toList())
                 .build()).toList();
     }
@@ -322,7 +324,6 @@ public class OrderServiceImp implements OrderService {
         if (!order.getCartDetails().isEmpty()) {
             return order.getCartDetails().getFirst().getFood().getRestaurant();
         } else {
-            System.out.println("1");
             return new Restaurant();
         }
     }

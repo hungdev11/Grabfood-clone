@@ -5,6 +5,7 @@ import Footer from "@/components/footer";
 import Header from "@/components/header";
 import { fetchWithAuth } from "@/utils/api";
 import {ReviewList} from "@/components/ReviewList";
+import { CartProvider } from "@/app/context/CartContext";
 
 interface Params {
   restaurantId: string;
@@ -50,10 +51,9 @@ export default async function RestaurantPage({ params, searchParams}: { params: 
   const restaurantInfo = await getRestaurantInfo(restaurantId, userLat, userLon);
   const { types, foods } = await getRestaurantData(restaurantId);
   return (
-    
+    <CartProvider>
     <div className="p-4">
       <Header />
-
       {/* Breadcrumb Navigation */}
       <Breadcrumb className="ml-4" aria-label="breadcrumb" style={{ marginTop: "16px", fontSize: "3rem" }}>
         <BreadcrumbList>
@@ -130,5 +130,6 @@ export default async function RestaurantPage({ params, searchParams}: { params: 
 
       <Footer />
     </div>
+    </CartProvider>
   );
 }

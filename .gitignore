@@ -1,4 +1,4 @@
-﻿# Configuration files
+# Configuration files
 BE/src/main/resources/application.yml
 
 # Build files
@@ -6,3 +6,4 @@ BE/target/
 
 # IDE files
 .idea/
+FE/next-env.d.ts

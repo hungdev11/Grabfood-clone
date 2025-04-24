@@ -60,7 +60,7 @@ public class PaymentController {
         } else {
             System.out.println("not ok");
             orderService.DeleteOrderFailedPayment(orderId);
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.ok().build();
         }
     }
 

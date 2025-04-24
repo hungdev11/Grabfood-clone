@@ -13,6 +13,7 @@ import Cart from "@/components/cart";
 import ResListHome from "@/components/ResListIndex";
 import LocationSearch from "@/components/locationSearch";
 import { RestaurantHome } from "@/components/types/Types";
+import { CartProvider } from "./context/CartContext";
 
 export default function Home() {
 	const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
@@ -49,6 +50,7 @@ export default function Home() {
 	};
 	  
 	return (
+		<CartProvider>
 		<div className="flex min-h-screen flex-col">
 		{/* Header */}
 		<Header />
@@ -234,8 +236,10 @@ export default function Home() {
 			{/* Footer */}
 			<Footer />
 		</div>
+		</CartProvider>
 	);
 }
+
 
 const foodCategories = [
 	{ name: "Trà sữa", image: "/categories/tra-sua.webp" },
