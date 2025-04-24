@@ -132,7 +132,6 @@ public class FoodServiceImp implements FoodService {
 
         LocalDateTime now = LocalDateTime.now();
         return price;
-//        return applyVoucher(food, price, now);
     }
 
 
@@ -146,16 +145,16 @@ public class FoodServiceImp implements FoodService {
             LocalDateTime start = foodDetail.getStartTime();
             LocalDateTime end = foodDetail.getEndTime();
 
-            boolean isInRange = (start == null || !time.isBefore(start)) &&
-                    (end == null || !time.isAfter(end));
+            boolean isInRange = (end == null && start.isBefore(time)) ||
+                    (start.isBefore(time) && end.isAfter(time));
 
             if (isInRange) {
                 price = foodDetail.getPrice();
                 break;
             }
         }
-        return price;
-//        return applyVoucher(food, price, time);
+        //return price;
+        return applyVoucher(food, price, time);
     }
 
     private BigDecimal applyVoucher(Food food, BigDecimal price, LocalDateTime time) {

@@ -16,6 +16,8 @@ import com.api.utils.TimeUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +34,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ReviewServiceImp implements ReviewService {
     private final ReviewRepository reviewRepository;
-    private final OrderService orderService;
+
+    @Autowired
+    @Lazy // circle inject bean
+    private OrderService orderService;
 
     @Override
     @Transactional

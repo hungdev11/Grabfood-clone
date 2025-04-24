@@ -126,4 +126,16 @@ public class FoodController {
                 .code(200)
                 .build();
     }
+
+    @GetMapping("/price")
+    public ApiResponse<?> getFoodPriceIn(
+            @RequestParam long foodId,
+            @RequestParam LocalDateTime time
+    ) {
+        return ApiResponse.builder()
+                .data(foodService.getFoodPriceIn(foodId, time))
+                .message("Success")
+                .code(200)
+                .build();
+    }
 }

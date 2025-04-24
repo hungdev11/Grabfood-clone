@@ -53,6 +53,7 @@ interface CartItem {
 }
 
 export default function HomePage() {
+  const [reviewInputs, setReviewInputs] = useState<{ [key: number]: { show: boolean; content: string; rating: number } }>({});
   const [activeButton, setActiveButton] = useState<string>('Tất cả');
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -124,6 +125,43 @@ export default function HomePage() {
         return { text: status, color: 'text-gray-500' };
     }
   };
+
+  const toggleReviewInput = (orderId: number) => {
+    setReviewInputs(prev => ({
+      ...prev,
+      [orderId]: {
+        show: !prev[orderId]?.show,
+        content: '',
+        rating: 5,
+      }
+    }));
+  };
+  
+  const handleReviewChange = (orderId: number, field: 'content' | 'rating', value: string | number) => {
+    setReviewInputs(prev => ({
+      ...prev,
+      [orderId]: {
+        ...prev[orderId],
+        [field]: value,
+      }
+    }));
+  };
+  
+  const submitReview = async (orderId: number) => {
+    const { content, rating } = reviewInputs[orderId];
+    try {
+      await axiosInstance.post('http://localhost:6969/grab/reviews', {
+        orderId,
+        reviewMessage: content, // Dùng reviewMessage thay vì content
+        rating,
+      });
+      alert('Đánh giá thành công!');
+      fetchOrders(statusMap[activeButton]); // refresh lại đơn hàng
+    } catch (err) {
+      alert('Lỗi khi gửi đánh giá');
+    }
+  };
+  
 
   if (loading) {
     return (
@@ -272,17 +310,54 @@ export default function HomePage() {
 
                 {/* Nút hành động */}
                 <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-4">
-                  {order.status === 'COMPLETED' && (
-                    order.review ? (
-                      <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-100 w-full sm:w-auto cursor-not-allowed" >
-                        Đã đánh giá
-                      </button>
-                    ) : (
-                      <button className="border border-gray-300 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full sm:w-auto">
-                        Đánh giá
-                      </button>
-                    )
-                  )}
+                {order.status === 'COMPLETED' && (
+  order.review ? (
+    <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-100 w-full sm:w-auto cursor-not-allowed">
+      Đã đánh giá
+    </button>
+  ) : (
+    <>
+      <button
+        onClick={() => toggleReviewInput(order.id)}
+        className="border border-gray-300 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full sm:w-auto"
+      >
+        {reviewInputs[order.id]?.show ? 'Đóng' : 'Đánh giá'}
+      </button>
+
+      {reviewInputs[order.id]?.show && (
+        <div className="w-full mt-3 space-y-2">
+          <textarea
+            className="w-full border rounded px-3 py-2"
+            rows={3}
+            placeholder="Nhập đánh giá..."
+            value={reviewInputs[order.id].content}
+            onChange={(e) => handleReviewChange(order.id, 'content', e.target.value)}
+          />
+          <div className="flex items-center space-x-2">
+            <label className="text-sm">Số sao:</label>
+            <select
+              className="border px-2 py-1 rounded"
+              value={reviewInputs[order.id].rating}
+              onChange={(e) => handleReviewChange(order.id, 'rating', Number(e.target.value))}
+            >
+              {[5, 4, 3, 2, 1].map((star) => (
+                <option key={star} value={star}>{star}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => submitReview(order.id)}
+              disabled={!reviewInputs[order.id].content}
+              className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 disabled:opacity-50"
+            >
+              Gửi đánh giá
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+)}
+
                 </div>
               </div>
             ))

@@ -2,16 +2,14 @@ package com.api.service.Imp;
 
 import com.api.dto.request.ApplyVoucherRequest;
 import com.api.dto.request.CreateOrderRequest;
-import com.api.dto.response.AdditionalFoodCartResponse;
-import com.api.dto.response.ApplyVoucherResponse;
-import com.api.dto.response.CartDetailResponse;
-import com.api.dto.response.OrderResponse;
+import com.api.dto.response.*;
 import com.api.entity.*;
 import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
 import com.api.mapper.OrderMapper;
 import com.api.repository.*;
 import com.api.service.CartService;
+import com.api.service.FoodService;
 import com.api.service.OrderService;
 import com.api.utils.OrderStatus;
 import com.api.utils.VoucherApplyType;
@@ -54,7 +52,7 @@ public class OrderServiceImp implements OrderService {
     private ReviewRepository reviewRepository;
 
     @Autowired
-    private FoodRepository foodRepository;
+    private FoodService foodService;
 
     @Override
     @Transactional
@@ -242,7 +240,7 @@ public class OrderServiceImp implements OrderService {
                 .shippingFee(order.getShippingFee())
                 .restaurantId(getRestaurantByOrder(order).getId())
                 .restaurantName(getRestaurantByOrder(order).getName())
-                .isReview(reviewRepository.existsByOrder(order))
+                .isReview(reviewRepository.existsByOrder(order) || order.getOrderDate().plusDays(10).isBefore(LocalDateTime.now()))
                 .cartDetails(order.getCartDetails().stream().map(this::toCartDetailResponse).toList())
                 .build()).toList();
     }
@@ -300,7 +298,7 @@ public class OrderServiceImp implements OrderService {
         List<Long> ids = cartDetail.getIds();
         List<AdditionalFoodCartResponse> additionalFoodCartResponses = new ArrayList<>();
         for (Long id: ids) {
-            Food food = foodRepository.findById(id).orElse(null);
+            GetFoodResponse food = foodService.getFood(id, true);
             if(food !=null) {
                 AdditionalFoodCartResponse response = AdditionalFoodCartResponse.builder()
                         .id(id)
@@ -314,7 +312,7 @@ public class OrderServiceImp implements OrderService {
                 .food_img(cartDetail.getFood().getImage())
                 .foodName(cartDetail.getFood().getName())
                 .quantity(cartDetail.getQuantity())
-                .price(cartDetailRepository.findPriceByFoodId(cartDetail.getFood().getId()))
+                .price(foodService.getFoodPriceIn(cartDetail.getFood().getId(), cartDetail.getOrder().getOrderDate()))
                 .note(cartDetail.getNote())
                 .additionFoods(additionalFoodCartResponses)
                 .build();
