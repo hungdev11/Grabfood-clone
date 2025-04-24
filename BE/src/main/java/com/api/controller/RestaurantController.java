@@ -37,7 +37,7 @@ public class RestaurantController {
     }
 
     @GetMapping()
-    public ApiResponse<?> getFoodsOfRestaurant(
+    public ApiResponse<?> getRestaurants(
             @RequestParam(defaultValue = "name") String sortBy,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int pageSize) {
