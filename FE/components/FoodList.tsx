@@ -8,9 +8,10 @@ interface Props {
   types: string[];
   foods: Food[];
   restaurantId: string;
+  isOpen: boolean;
 }
 
-const FoodListComponent: React.FC<Props> = ({ types, foods, restaurantId }) => {
+const FoodListComponent: React.FC<Props> = ({ types, foods, restaurantId, isOpen }) => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
   const [isClient, setIsClient] = useState(false);
@@ -52,6 +53,11 @@ const FoodListComponent: React.FC<Props> = ({ types, foods, restaurantId }) => {
           </button>
         ))}
       </div>
+      {!isOpen && (
+        <div className="text-red-500 font-semibold mb-2 text-center">
+          Nhà hàng hiện đang đóng cửa. Vui lòng quay lại sau.
+        </div>
+      )}
 
       {/* Danh sách món ăn theo loại */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -59,7 +65,9 @@ const FoodListComponent: React.FC<Props> = ({ types, foods, restaurantId }) => {
           <div
             key={food.id}
             className="flex items-center p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer"
-            onClick={() => handleFoodClick(food)}
+            onClick={() => {
+              if (isOpen) handleFoodClick(food);
+            }}
           >
             <img
               src={food.image || "/placeholder.svg"}
@@ -85,9 +93,15 @@ const FoodListComponent: React.FC<Props> = ({ types, foods, restaurantId }) => {
               </p>
 
             </div>
-            <Button variant="success" size="icon" className="ml-4 text-lg rounded-full">
+            <Button
+              variant="success"
+              size="icon"
+              className="ml-4 text-lg rounded-full"
+              disabled={!isOpen}
+            >
               +
             </Button>
+
           </div>
         ))}
       </div>

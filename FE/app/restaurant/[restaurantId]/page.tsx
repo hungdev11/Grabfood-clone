@@ -6,6 +6,7 @@ import Header from "@/components/header";
 import { fetchWithAuth } from "@/utils/api";
 import {ReviewList} from "@/components/ReviewList";
 import { CartProvider } from "@/app/context/CartContext";
+import { parse, isAfter, isBefore } from "date-fns";
 
 interface Params {
   restaurantId: string;
@@ -39,6 +40,14 @@ async function getRestaurantInfo(id: string, lat: string, lon: string): Promise<
   return data.data;
 }
 
+function isRestaurantOpen(opening: string, closing: string): boolean {
+  const now = new Date();
+  const todayOpen = parse(opening, "HH:mm:ss", new Date());
+  const todayClose = parse(closing, "HH:mm:ss", new Date());
+
+  return isAfter(now, todayOpen) && isBefore(now, todayClose);
+}
+
 export default async function RestaurantPage({ params, searchParams}: { params: Params ,searchParams: { lat?: string; lon?: string }}) {
   const { restaurantId } = params;
 
@@ -50,6 +59,8 @@ export default async function RestaurantPage({ params, searchParams}: { params: 
 
   const restaurantInfo = await getRestaurantInfo(restaurantId, userLat, userLon);
   const { types, foods } = await getRestaurantData(restaurantId);
+  const isOpen = isRestaurantOpen(restaurantInfo.openingHour, restaurantInfo.closingHour);
+
   return (
     <CartProvider>
     <div className="p-4">
@@ -125,7 +136,7 @@ export default async function RestaurantPage({ params, searchParams}: { params: 
       </div>
 
       {/* Food list */}
-      <FoodList types={types} foods={foods} restaurantId={restaurantId} />
+      <FoodList types={types} foods={foods} restaurantId={restaurantId} isOpen={isOpen} />
       <ReviewList restaurantId = {restaurantId}/>
 
       <Footer />
