@@ -1,5 +1,6 @@
 package com.app.grabfoodapp.dto;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 import lombok.AllArgsConstructor;
@@ -13,7 +14,7 @@ public class RestaurantDTO {
     @AllArgsConstructor
     @Getter
     @Setter
-    public static class RestaurantResponse {
+    public static class RestaurantResponse implements Serializable {
         private long id;
         private String name;
         private String image;
