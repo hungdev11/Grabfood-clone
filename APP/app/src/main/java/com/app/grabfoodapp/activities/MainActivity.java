@@ -1,12 +1,15 @@
-package com.app.grabfoodapp;
+package com.app.grabfoodapp.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.app.grabfoodapp.R;
 import com.app.grabfoodapp.adapter.RestaurantAdapter;
 import com.app.grabfoodapp.apiservice.restaurant.RestaurantService;
 import com.app.grabfoodapp.config.ApiClient;
@@ -27,12 +30,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         listView = findViewById(R.id.listViewRestaurants);
         adapter = new RestaurantAdapter(this, restaurantList);
         listView.setAdapter(adapter);
         test();
+        restaurantItemClicked(); // Gọi hàm xử lý sự kiện click
     }
 
     private void test() {
@@ -59,6 +62,21 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("API", "Lỗi mạng hoặc URL: " + t.getMessage());
             }
         });
+    }
 
+    private void restaurantItemClicked() {
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                // Lấy thông tin restaurant khi item được click
+                RestaurantDTO.RestaurantResponse selectedRestaurant = restaurantList.get(position);
+
+                // Tạo Intent để mở Activity mới và truyền dữ liệu
+                Intent intent = new Intent(MainActivity.this, RestaurantDetailActivity.class);
+                // Truyền RestaurantResponse qua Intent
+                intent.putExtra("selectedRestaurant", selectedRestaurant);
+                startActivity(intent);
+            }
+        });
     }
 }
