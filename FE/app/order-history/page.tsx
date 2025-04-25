@@ -40,6 +40,8 @@ interface Order {
   review: boolean
   payment_method: string | null;
   cartDetails: CartDetail[];
+  discountShippingFee: number | null;
+  discountOrderPrice: number | null;
 }
 
 // Interface cho mục đơn hàng trong UI
@@ -297,7 +299,7 @@ export default function HomePage() {
                 ))}
                 <div className="border-t pt-3 mt-3">
                   <div className="flex justify-between text-sm text-gray-600 mb-1">
-                    <span>Tổng tạm tính</span>
+                    <span>Tổng tiền</span>
                     <span>{order.totalPrice.toLocaleString()} đ</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-600 mb-1">
@@ -306,6 +308,18 @@ export default function HomePage() {
                     </span>
                     <span>{order.shippingFee.toLocaleString()} đ</span>
                   </div>
+                  {(order.discountOrderPrice ?? 0 ) !== 0 && (
+                    <div className="flex justify-between text-sm text-gray-600 mb-1">
+                        <span>Giảm giá </span>
+                        <span>- {(order.discountOrderPrice??0).toLocaleString()} đ</span>
+                    </div>
+                  ) }
+                  {(order.discountShippingFee ?? 0 ) !== 0 && (
+                    <div className="flex justify-between text-sm text-gray-600 mb-1">
+                        <span>Giảm giá vận chuyển</span>
+                        <span>- {(order.discountShippingFee??0).toLocaleString()} đ</span>
+                    </div>
+                  ) }
                 </div>
 
                 {/* Nút hành động */}

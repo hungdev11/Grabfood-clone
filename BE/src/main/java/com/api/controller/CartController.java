@@ -71,4 +71,11 @@ public class CartController {
     public void deleteCartItem(@RequestBody DeleteCartItemRequest request) {
         cartService.removeFromCart(request.getUserId(), request.getFoodId(), request.getAdditionalFoodIds());
     }
+
+    @GetMapping("/checkOpen")
+    public ResponseEntity<Boolean> checkRestaurantOpen(@RequestParam long cartId)
+    {
+        boolean check = cartService.checkRestaurantOpen(cartId);
+        return ResponseEntity.ok(check);
+    }
 }

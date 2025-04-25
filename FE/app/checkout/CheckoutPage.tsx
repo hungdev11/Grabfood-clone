@@ -12,6 +12,8 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { CartProvider } from '../context/CartContext';
+import { tr } from 'date-fns/locale';
+import { set } from 'date-fns';
 
 
 export default function Checkout() {
@@ -19,6 +21,8 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [isRestaurantOpen, setIsRestaurantOpen] = useState<boolean | null>(true);
+  const [showModal, setShowModal] = useState(false);
 
   const cartIdRequest = cartId;
 
@@ -49,6 +53,21 @@ export default function Checkout() {
   const handlePaymentMethodChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPaymentMethod(event.target.value);
     console.log('Selected payment method:', paymentMethod);
+  }
+
+  const checkRestaurantOpen = async () => {
+    try {
+      const response = await axiosInstance.get('http://localhost:6969/grab/cart/checkOpen', {
+        params: {
+          cartId: cartIdRequest
+        }
+    })
+    setIsRestaurantOpen(response.data);
+    console.log("Restaurant open status:", response.data);
+    } catch (error) {
+      console.error("Lỗi kiểm tra nhà hàng:", error);
+      setIsRestaurantOpen(false); // fallback nếu lỗi
+    }
   }
 
   useEffect(() => {
@@ -339,16 +358,30 @@ export default function Checkout() {
     }
   }
 
-  const handleOrderButton = () => {
-    if(paymentMethod === "cod") {
-      handlePlaceOrder();
+  const handleOrderButton = async () => {
+    try {
+      const response = await axiosInstance.get('http://localhost:6969/grab/cart/checkOpen', {
+        params: { cartId: cartIdRequest }
+      });
+  
+    console.log("Restaurant open status:", response.data);
+    if (response.data === true) {
+      if(paymentMethod === "cod") {
+        handlePlaceOrder();
+      }
+      else if(paymentMethod === "momo") {
+        handlePaymentMomo();
+      } else if (paymentMethod === "vnpay") {
+        handlePaymentVNPay();
+      }
+    } else {
+      setShowModal(true);
     }
-    else if(paymentMethod === "momo") {
-      handlePaymentMomo();
-    } else if (paymentMethod === "vnpay") {
-      handlePaymentVNPay();
-    }
+  } catch (error) {
+    console.error("Lỗi kiểm tra nhà hàng:", error);
+    setShowModal(true);
   }
+}
 
   return (
     <CartProvider>
@@ -659,6 +692,24 @@ export default function Checkout() {
           {loading ? 'Đang xử lý...' : 'Đặt đơn'}
         </Button>
       </div>
+
+      {showModal === true && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-md text-center max-w-sm">
+            <h2 className="text-lg font-bold mb-4">Ngoài giờ bán hàng</h2>
+            <p className="text-sm text-gray-600 mb-4">Nhà hàng hiện không nhận đơn. Vui lòng quay lại sau.</p>
+            <Button
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+              onClick={() => 
+                window.location.href = '/'
+              }
+            >
+              Đóng
+            </Button>
+          </div>
+        </div>
+      )}
+
 
       <Dialog open={isModalOpen} onOpenChange={(open) => {
         if (!open) {

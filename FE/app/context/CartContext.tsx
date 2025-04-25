@@ -35,6 +35,7 @@ interface CartResponse {
   };
   message: string;
   code: number;
+  restaurantOpen: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -97,6 +98,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       
       console.log(response.data.code);
       console.log(response.data.message);
+      console.log(response.data.data);
       console.log(response.data.data.listItem);
 
       const data: CartItem[] = response.data.data.listItem.map((item: any) => ({

@@ -16,4 +16,6 @@ public interface CartService {
 //    BigDecimal calculateTotalPrice(Long cartId);
     void updateCartDetailQuantity(CartUpdateRequest request);
     CartResponse getAllCartDetailUser(Long userId);
+
+    boolean checkRestaurantOpen(long cartId);
 }

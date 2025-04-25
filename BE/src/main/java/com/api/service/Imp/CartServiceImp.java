@@ -8,10 +8,7 @@ import com.api.dto.response.CartResponse;
 import com.api.entity.*;
 import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
-import com.api.repository.CartDetailRepository;
-import com.api.repository.CartRepository;
-import com.api.repository.FoodRepository;
-import com.api.repository.UserRepository;
+import com.api.repository.*;
 import com.api.service.CartService;
 import com.api.service.FoodService;
 import com.api.service.VoucherDetailService;
@@ -21,12 +18,12 @@ import com.api.utils.VoucherStatus;
 import com.api.utils.VoucherType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -285,7 +282,6 @@ public class CartServiceImp implements CartService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
-
         // Lấy toàn bộ món ăn chính trong giỏ hàng
         List<CartDetail> cartDetails = cartDetailRepository.findByCartIdAndOrderIsNull(cart.getId());
         List<Food> mainFoods = cartDetails.stream()
@@ -377,6 +373,17 @@ public class CartServiceImp implements CartService {
                 .cartId(cart.getId())
                 .listItem(cartDetailResponseList)
                 .build();
+    }
+
+    @Override
+    public boolean checkRestaurantOpen(long cartId) {
+        List<CartDetail> cartDetails = cartDetailRepository.findByCartIdAndOrderIsNull(cartId);
+        boolean isRestaurantOpen = false;
+        if (!cartDetails.isEmpty()) {
+            Restaurant restaurant = cartDetails.getFirst().getFood().getRestaurant();
+            isRestaurantOpen = restaurant.getOpeningHour().isBefore(LocalTime.now()) && restaurant.getClosingHour().isAfter(LocalTime.now());
+        }
+        return isRestaurantOpen;
     }
 
 }

@@ -21,6 +21,8 @@ public class OrderResponse {
     private String address;
     private OrderStatus status;
     private BigDecimal shippingFee;
+    private BigDecimal discountShippingFee;
+    private BigDecimal discountOrderPrice;
     private String note;
     private String payment_method;
     private List<CartDetailResponse> cartDetails;

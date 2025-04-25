@@ -6,7 +6,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
 import PopupFood from "@/components/PopupFood"; 
+
 import { Food } from "./types/Types";
+import axiosInstance from "@/utils/axiosInstance";
+import { set } from "date-fns";
 interface CartProps {
   isOpen: boolean;
   onClose: () => void;
@@ -14,10 +17,12 @@ interface CartProps {
 }
 
 export default function Cart({ isOpen, onClose, onCartChange }: CartProps) {
-  const { cartItems, updateQuantity, removeFromCart, totalPrice, itemCount } = useCart();
-
+  const {cartId, cartItems, updateQuantity, removeFromCart, totalPrice, itemCount } = useCart();
+  const [isRestaurantOpen, setIsRestaurantOpen] = useState<boolean | null>(true);
   const [isPopupVisible, setPopupVisible] = useState(false);
   const [selectedFood, setSelectedFood] = useState<any>(null);
+
+  const cartIdRequest = cartId;
 
   // const openPopup = (cartItem: any) => {
   //   const food = {
@@ -62,6 +67,25 @@ export default function Cart({ isOpen, onClose, onCartChange }: CartProps) {
     const clickedItem = cartItems.find(item => item.id === itemId);
     if (clickedItem) openPopup(clickedItem);
   };
+
+  useEffect(() => {
+    if (!isOpen || cartItems.length === 0) return;
+    const checkRestaurantOpen = async () => {
+      try {
+        const response = await axiosInstance.get('http://localhost:6969/grab/cart/checkOpen', {
+          params: {
+            cartId: cartIdRequest
+          }
+        })
+        setIsRestaurantOpen(response.data);
+        console.log("Restaurant open status:", response.data);
+      } catch (error) {
+        console.error("Lỗi kiểm tra nhà hàng:", error);
+        setIsRestaurantOpen(false); // fallback nếu lỗi
+      }
+    }
+    checkRestaurantOpen();
+  }), [isOpen, cartItems];
   
 
   useEffect(() => {
@@ -185,12 +209,20 @@ export default function Cart({ isOpen, onClose, onCartChange }: CartProps) {
                 <span>Tổng cộng</span>
                 <span>{totalPrice.toLocaleString()} đ</span>
               </div>
-              <Button id="checkout-button"
-                className="w-full bg-green-500 hover:bg-green-600 text-white"
-                asChild
-              >
-                <Link href="/checkout">Thanh toán</Link>
-              </Button>
+              {isRestaurantOpen === null ? (
+                <Button disabled className="w-full bg-gray-300 text-white">Đang kiểm tra...</Button>
+              ) : isRestaurantOpen ? (
+                <Button id="checkout-button"
+                  className="w-full bg-green-500 hover:bg-green-600 text-white"
+                  asChild
+                >
+                  <Link href="/checkout">Thanh toán</Link>
+                </Button>
+              ) : (
+                <Button disabled className="w-full bg-gray-400 text-black cursor-not-allowed">
+                  Ngoài giờ bán hàng
+                </Button>
+              )}
             </div>
           </div>
         )}

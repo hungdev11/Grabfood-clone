@@ -47,6 +47,12 @@ public class Order extends BaseEntity{
     @Column(nullable = false, precision = 9, scale = 2)
     private BigDecimal shippingFee;
 
+    @Column(nullable = false, precision = 9, scale = 2)
+    private BigDecimal discountShippingFee;
+
+    @Column(nullable = false, precision = 9, scale = 2)
+    private BigDecimal discountOrderPrice;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private List<CartDetail> cartDetails = new ArrayList<>();
 

@@ -12,5 +12,6 @@ import java.util.List;
 public class CartResponse {
     private Long cartId;
     private Long restaurantId;
+    private boolean isRestaurantOpen;
     private List<CartDetailResponse> listItem;
 }

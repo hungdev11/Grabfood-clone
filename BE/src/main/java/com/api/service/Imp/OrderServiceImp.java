@@ -15,6 +15,7 @@ import com.api.utils.OrderStatus;
 import com.api.utils.VoucherApplyType;
 import com.api.utils.VoucherStatus;
 import com.api.utils.VoucherType;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,30 +30,25 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @Slf4j
+@RequiredArgsConstructor
 public class OrderServiceImp implements OrderService {
-    @Autowired
-    private OrderRepository orderRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private CartRepository cartRepository;
-    @Autowired
-    private CartDetailRepository cartDetailRepository;
+    private final OrderRepository orderRepository;
 
-    @Autowired
-    private OrderVoucherRepository orderVoucherRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private VoucherDetailRepository voucherDetailRepository;
+    private final CartRepository cartRepository;
 
-    @Autowired
-    private VoucherRepository voucherRepository;
+    private final CartDetailRepository cartDetailRepository;
 
-    @Autowired
-    private ReviewRepository reviewRepository;
+    private final OrderVoucherRepository orderVoucherRepository;
 
-    @Autowired
-    private FoodService foodService;
+    private final VoucherDetailRepository voucherDetailRepository;
+
+    private final VoucherRepository voucherRepository;
+
+    private final ReviewRepository reviewRepository;
+
+    private final FoodService foodService;
 
     @Override
     @Transactional
@@ -71,6 +67,8 @@ public class OrderServiceImp implements OrderService {
                 .user(user)
                 .status(OrderStatus.PENDING)
                 .totalPrice(getTotalPrice(cartDetails))
+                .discountShippingFee(BigDecimal.ZERO)
+                .discountOrderPrice(BigDecimal.ZERO)
                 .orderDate(LocalDateTime.now())
                 .build();
         orderRepository.save(order);
@@ -78,6 +76,8 @@ public class OrderServiceImp implements OrderService {
         //Apply VOucher
         BigDecimal discountedOrderPrice = order.getTotalPrice();
         BigDecimal discountedShippingPrice = order.getShippingFee();
+        BigDecimal discountShippingFee = BigDecimal.ZERO;
+        BigDecimal discountOrderPrice = BigDecimal.ZERO;
         for (String voucherCode: request.getVoucherCode()) {
             if(voucherCode != null && !voucherCode.isEmpty()) {
                 Voucher voucher = voucherRepository.findByCodeAndStatus(voucherCode, VoucherStatus.ACTIVE)
@@ -92,14 +92,19 @@ public class OrderServiceImp implements OrderService {
                     if(voucher.getType().equals(VoucherType.PERCENTAGE)) {
                         if (voucher.getApplyType().equals(VoucherApplyType.ORDER)) {
                             discountedOrderPrice = discountedOrderPrice.multiply((new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
+                            discountOrderPrice = discountOrderPrice.add(discountedOrderPrice.multiply(voucher.getValue()).divide(new BigDecimal(100)));
                         } else if (voucher.getApplyType().equals(VoucherApplyType.SHIPPING)) {
                             discountedShippingPrice = discountedShippingPrice.multiply((new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
+                            discountShippingFee = discountShippingFee.add(discountedShippingPrice.multiply(voucher.getValue()).divide(new BigDecimal(100)));
+
                         }
                     } else {
                         if (voucher.getApplyType().equals(VoucherApplyType.ORDER)) {
                             discountedOrderPrice = discountedOrderPrice.subtract(voucher.getValue());
+                            discountOrderPrice = discountOrderPrice.add(voucher.getValue());
                         } else if (voucher.getApplyType().equals(VoucherApplyType.SHIPPING)) {
                             discountedShippingPrice = discountedShippingPrice.subtract(voucher.getValue());
+                            discountShippingFee = discountShippingFee.add(voucher.getValue());
                         }
                     }
                     orderVoucherRepository.save(orderVoucher);
@@ -108,13 +113,18 @@ public class OrderServiceImp implements OrderService {
         }
         if (discountedShippingPrice.compareTo(BigDecimal.ZERO) < 0) {
             discountedShippingPrice = BigDecimal.ZERO;
+            discountShippingFee = request.getShippingFee();
+
         }
 
         if (discountedOrderPrice.compareTo(BigDecimal.ZERO) < 0) {
             discountedOrderPrice = BigDecimal.ZERO;
+            discountOrderPrice = getTotalPrice(cartDetails);
         }
         order.setTotalPrice(discountedOrderPrice);
         order.setShippingFee(discountedShippingPrice);
+        order.setDiscountOrderPrice(discountOrderPrice);
+        order.setDiscountShippingFee(discountShippingFee);
         orderRepository.save(order);
 
         for (CartDetail cartDetail: cartDetails) {
@@ -240,6 +250,8 @@ public class OrderServiceImp implements OrderService {
                 .shippingFee(order.getShippingFee())
                 .restaurantId(getRestaurantByOrder(order).getId())
                 .restaurantName(getRestaurantByOrder(order).getName())
+                .discountOrderPrice(order.getDiscountOrderPrice())
+                .discountShippingFee(order.getDiscountShippingFee())
                 .isReview(reviewRepository.existsByOrder(order) || order.getOrderDate().plusDays(10).isBefore(LocalDateTime.now()))
                 .cartDetails(order.getCartDetails().stream().map(this::toCartDetailResponse).toList())
                 .build()).toList();
@@ -257,6 +269,8 @@ public class OrderServiceImp implements OrderService {
                 .shippingFee(order.getShippingFee())
                 .restaurantId(getRestaurantByOrder(order).getId())
                 .restaurantName(getRestaurantByOrder(order).getName())
+                .discountOrderPrice(order.getDiscountOrderPrice())
+                .discountShippingFee(order.getDiscountShippingFee())
                 .isReview(reviewRepository.existsByOrder(order))
                 .cartDetails(order.getCartDetails().stream().map(this::toCartDetailResponse).toList())
                 .build()).toList();
@@ -295,11 +309,13 @@ public class OrderServiceImp implements OrderService {
     }
 
     private CartDetailResponse toCartDetailResponse(CartDetail cartDetail) {
+        BigDecimal totalPrice = foodService.getFoodPriceIn(cartDetail.getFood().getId(), cartDetail.getOrder().getOrderDate());
         List<Long> ids = cartDetail.getIds();
         List<AdditionalFoodCartResponse> additionalFoodCartResponses = new ArrayList<>();
         for (Long id: ids) {
             GetFoodResponse food = foodService.getFood(id, true);
             if(food !=null) {
+                totalPrice = totalPrice.add(foodService.getFoodPriceIn(id, cartDetail.getOrder().getOrderDate()));
                 AdditionalFoodCartResponse response = AdditionalFoodCartResponse.builder()
                         .id(id)
                         .name(food.getName())
@@ -312,7 +328,7 @@ public class OrderServiceImp implements OrderService {
                 .food_img(cartDetail.getFood().getImage())
                 .foodName(cartDetail.getFood().getName())
                 .quantity(cartDetail.getQuantity())
-                .price(foodService.getFoodPriceIn(cartDetail.getFood().getId(), cartDetail.getOrder().getOrderDate()))
+                .price(totalPrice)
                 .note(cartDetail.getNote())
                 .additionFoods(additionalFoodCartResponses)
                 .build();
