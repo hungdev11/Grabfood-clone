@@ -34,8 +34,9 @@ public class MainActivity extends AppCompatActivity {
         listView = findViewById(R.id.listViewRestaurants);
         adapter = new RestaurantAdapter(this, restaurantList);
         listView.setAdapter(adapter);
+        Log.e("INFO", "caubaunsosiomsmsi");
+
         test();
-        restaurantItemClicked(); // Gọi hàm xử lý sự kiện click
     }
 
     private void test() {
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
                     restaurantList.clear();
                     restaurantList.addAll(response.body().getData().getItems());
                     adapter.notifyDataSetChanged();
+                    Log.e("INFO", "OK CALL");
                 } else {
                     Log.e("API", "Lỗi server: " + response.code());
                 }
@@ -60,22 +62,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<ApiResponse<PageResponse<List<RestaurantDTO.RestaurantResponse>>>> call, Throwable t) {
                 Log.e("API", "Lỗi mạng hoặc URL: " + t.getMessage());
-            }
-        });
-    }
-
-    private void restaurantItemClicked() {
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                // Lấy thông tin restaurant khi item được click
-                RestaurantDTO.RestaurantResponse selectedRestaurant = restaurantList.get(position);
-
-                // Tạo Intent để mở Activity mới và truyền dữ liệu
-                Intent intent = new Intent(MainActivity.this, RestaurantDetailActivity.class);
-                // Truyền RestaurantResponse qua Intent
-                intent.putExtra("selectedRestaurant", selectedRestaurant);
-                startActivity(intent);
             }
         });
     }
