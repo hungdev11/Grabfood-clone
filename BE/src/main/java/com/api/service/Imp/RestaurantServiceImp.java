@@ -11,9 +11,7 @@ import com.api.exception.ErrorCode;
 import com.api.entity.Restaurant;
 import com.api.repository.RestaurantRepository;
 import com.api.service.*;
-import com.api.utils.GeoUtils;
-import com.api.utils.RestaurantStatus;
-import com.api.utils.TimeUtil;
+import com.api.utils.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +25,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -126,6 +125,7 @@ public class RestaurantServiceImp implements RestaurantService {
                         .name(restaurant.getName())
                         .description(restaurant.getDescription())
                         .image(restaurant.getImage())
+                        .restaurantVouchersInfo(restaurantVouchersInfo(restaurant))
                         .rating(reviewService.calculateAvgRating(restaurant.getId()))
                         .build())
                 .toList();
@@ -137,6 +137,32 @@ public class RestaurantServiceImp implements RestaurantService {
                 .items(content)
                 .build();
     }
+
+    private List<String> restaurantVouchersInfo(Restaurant restaurant) {
+        List<String> result = new ArrayList<>();
+        log.info("Get voucher of restaurant {}", restaurant.getId());
+
+        LocalDateTime now = LocalDateTime.now();
+
+        restaurant.getVouchers().stream()
+                .filter(voucher ->
+                        voucher.getStatus() == VoucherStatus.ACTIVE &&
+                                voucher.getVoucherDetails().stream()
+                                        .anyMatch(vd -> now.isAfter(vd.getStartDate()) && now.isBefore(vd.getEndDate()))
+                )
+                .forEach(voucher -> {
+                    StringBuilder builder = new StringBuilder("Giảm ");
+                    if (voucher.getType().equals(VoucherType.FIXED)) {
+                        builder.append(voucher.getValue().setScale(0)).append("đ");
+                    } else if (voucher.getType().equals(VoucherType.PERCENTAGE)) {
+                        builder.append(voucher.getValue().setScale(0)).append("%");
+                    }
+                    result.add(builder.toString());
+                });
+
+        return result;
+    }
+
 
     @Override
     public List<RestaurantResponse> getNearbyRestaurants(double lat, double lon, double radiusKm) {

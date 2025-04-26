@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -25,4 +26,5 @@ public class RestaurantResponse {
     private BigDecimal rating;
     private String distance;
     private String timeDistance;
+    private List<String> restaurantVouchersInfo;
 }

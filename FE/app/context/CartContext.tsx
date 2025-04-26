@@ -5,7 +5,6 @@ import axiosInstance from '@/utils/axiosInstance';
 import { AdditionalFood } from '@/components/types/Types'; 
 
 interface CartItem {
-  restaurantId: string;
   id: number;
   price: number;
   quantity: number;
@@ -16,6 +15,7 @@ interface CartItem {
   note?: string;
 }
 interface CartContextType {
+  restaurantCartId: number | null;
   cartId: number | null;
   cartItems: CartItem[];
   setCartItems: (items: CartItem[]) => void;
@@ -45,6 +45,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userId, setUserId] = useState<number | null>(null);
   const [cartId, setCartId] = useState<number | null>(null);
+  const [restaurantCartId, setRestaurantCartId] = useState<number | null>(null);
+
   ;
   // Check if user is authenticated
   useEffect(() => {
@@ -91,7 +93,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     try {
       // Use user-specific endpoint instead of hardcoded cart ID
       const response = await axiosInstance.get<CartResponse>("/grab/cart");
-      
+      console.log(response.data);
       if (response.data.code !== 200) {
         throw new Error('Không thể lấy dữ liệu giỏ hàng');
       }
@@ -114,6 +116,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }));
             
       setCartId(response.data.data.cartId);
+      setRestaurantCartId(response.data.data.restaurantId);
       setCartItems(data);
     } catch (error) {
       console.error('Lỗi khi lấy dữ liệu giỏ hàng:', error);
@@ -191,6 +194,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   return (
     <CartContext.Provider
       value={{ 
+        restaurantCartId,
         cartId,
         cartItems, 
         setCartItems, 
