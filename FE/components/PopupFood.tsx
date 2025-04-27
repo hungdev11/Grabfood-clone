@@ -169,7 +169,7 @@ const Popup: React.FC<PopupProps> = ({
           description: `${selectedFood.name} đã được cập nhật`,
         });
       } else {
-        if (Number(restaurantCartId) !== Number(restaurantId)) {
+        if (restaurantCartId && Number(restaurantCartId) !== Number(restaurantId)) {
           const confirmAdd = window.confirm(
             "Bạn không thể thêm món từ nhiều nhà hàng cùng lúc. Nếu muốn tiếp tục, chọn OK và dữ liệu trong giỏ sẽ được bị xóa và không thể khôi phục."
           );
