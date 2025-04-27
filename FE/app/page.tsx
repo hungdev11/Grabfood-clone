@@ -17,9 +17,6 @@ import { CartProvider } from "./context/CartContext";
 import {MyComponent} from "@/components/TestNoti";
 
 export default function Home() {
-	const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
-	const [itemCount, setItemCount] = useState<number>(0);
-	const [totalPrice, setTotalPrice] = useState<number>(0);
 	const [location, setLocation] = useState<{ lat: string; lon: string }>({
 		lat: "-1",
 		lon: "-1"
@@ -29,7 +26,6 @@ export default function Home() {
   	const handleLocationSelect = (lat: string, lon: string) => {
 		setLocation({ lat, lon });
 		console.log("Đã chọn vị trí:", lat, lon);
-		// Bạn có thể làm thêm các thao tác khác ở đây
 	};
 
 	const fetchNearbyRestaurants = async (lat: string, lon: string) => {
@@ -40,7 +36,8 @@ export default function Home() {
 			
 			console.log("API Response:", data); // Log response của API
 	
-			if (data && data.data) {
+			if (data?.data?.items && Array.isArray(data.data.items) && data.data.items.length > 0) {
+				console.log(data.data);
 				setRestaurants(data.data);
 			} else {
 				console.log("No data received from API.");

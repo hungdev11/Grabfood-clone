@@ -42,16 +42,16 @@ public class MainActivity extends AppCompatActivity {
     private void test() {
         RestaurantService restaurantService = ApiClient.getClient().create(RestaurantService.class);
 
-        Call<ApiResponse<PageResponse<List<RestaurantDTO.RestaurantResponse>>>> call =
-                restaurantService.getRestaurants("name", 0, 20);
+        Call<ApiResponse<List<RestaurantDTO.RestaurantResponse>>> call =
+                restaurantService.getRestaurants("name", 13.9747, 108.0117);
 
-        call.enqueue(new retrofit2.Callback<ApiResponse<PageResponse<List<RestaurantDTO.RestaurantResponse>>>>() {
+        call.enqueue(new retrofit2.Callback<ApiResponse<List<RestaurantDTO.RestaurantResponse>>>() {
             @Override
-            public void onResponse(Call<ApiResponse<PageResponse<List<RestaurantDTO.RestaurantResponse>>>> call,
-                                   retrofit2.Response<ApiResponse<PageResponse<List<RestaurantDTO.RestaurantResponse>>>> response) {
+            public void onResponse(Call<ApiResponse<List<RestaurantDTO.RestaurantResponse>>> call,
+                                   retrofit2.Response<ApiResponse<List<RestaurantDTO.RestaurantResponse>>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     restaurantList.clear();
-                    restaurantList.addAll(response.body().getData().getItems());
+                    restaurantList.addAll(response.body().getData());
                     adapter.notifyDataSetChanged();
                     Log.e("INFO", "OK CALL");
                 } else {
@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<ApiResponse<PageResponse<List<RestaurantDTO.RestaurantResponse>>>> call, Throwable t) {
+            public void onFailure(Call<ApiResponse<List<RestaurantDTO.RestaurantResponse>>> call, Throwable t) {
                 Log.e("API", "Lỗi mạng hoặc URL: " + t.getMessage());
             }
         });

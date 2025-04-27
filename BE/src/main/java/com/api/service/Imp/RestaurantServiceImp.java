@@ -90,30 +90,11 @@ public class RestaurantServiceImp implements RestaurantService {
                 .phone(restaurant.getPhone())
                 .rating(reviewService.calculateAvgRating(restaurant.getId()))
                 .build();
-        if (userLat != -1 && userLon != -1) {
-            var distance = locationService.getDistance(userLat, userLon,
-                    restaurant.getAddress().getLat(), restaurant.getAddress().getLon());
-            double distanceInMeters = distance.getDistance();
-            String formattedDistance;
-
-            if (distanceInMeters < 1000) {
-                formattedDistance = (int) distanceInMeters + " m";
-            } else {
-                double distanceInKm = distanceInMeters / 1000;
-                formattedDistance = String.format("%.1f km", distanceInKm);
-            }
-
-            restaurantResponse.setDistance(formattedDistance);
-            restaurantResponse.setTimeDistance(
-                    TimeUtil.formatDurationFromSeconds(distance.getDuration())
-            );
-        }
-
-        return restaurantResponse;
+        return addDistance(userLat, userLon, restaurant, restaurantResponse);
     }
 
     @Override
-    public PageResponse<List<RestaurantResponse>> getRestaurants(String sortBy, int page, int pageSize) {
+    public PageResponse<List<RestaurantResponse>> getRestaurantsForAdmin(String sortBy, int page, int pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(sortBy));
 
         Page<Restaurant> restaurantPage = restaurantRepository.findAll(pageable);
@@ -136,6 +117,53 @@ public class RestaurantServiceImp implements RestaurantService {
                 .total(restaurantPage.getTotalElements())
                 .items(content)
                 .build();
+    }
+
+    @Override
+    public List<RestaurantResponse> getRestaurants(String sortBy, double userLat, double userLon) {
+        List<RestaurantResponse> content = restaurantRepository
+                .findAll(Sort.by(Sort.Direction.ASC, sortBy))
+                .stream()
+                .filter(r -> r.getStatus().equals(RestaurantStatus.ACTIVE))
+                .map(restaurant -> {
+                    RestaurantResponse response = RestaurantResponse.builder()
+                            .id(restaurant.getId())
+                            .name(restaurant.getName())
+                            .description(restaurant.getDescription())
+                            .image(restaurant.getImage())
+                            .address(getAddressText(restaurant.getAddress()))
+                            .openingHour(restaurant.getOpeningHour())
+                            .closingHour(restaurant.getClosingHour())
+                            .phone(restaurant.getPhone())
+                            .restaurantVouchersInfo(restaurantVouchersInfo(restaurant))
+                            .rating(reviewService.calculateAvgRating(restaurant.getId()))
+                            .build();
+                    return addDistance(userLat, userLon, restaurant, response);
+                })
+                .toList();
+        return content;
+    }
+
+    private RestaurantResponse addDistance(double userLat, double userLon, Restaurant restaurant, RestaurantResponse response) {
+        if (userLat != -1 && userLon != -1) {
+            var distance = locationService.getDistance(userLat, userLon,
+                    restaurant.getAddress().getLat(), restaurant.getAddress().getLon());
+            double distanceInMeters = distance.getDistance();
+            String formattedDistance;
+
+            if (distanceInMeters < 1000) {
+                formattedDistance = (int) distanceInMeters + " m";
+            } else {
+                double distanceInKm = distanceInMeters / 1000;
+                formattedDistance = String.format("%.1f km", distanceInKm);
+            }
+
+            response.setDistance(formattedDistance);
+            response.setTimeDistance(
+                    TimeUtil.formatDurationFromSeconds(distance.getDuration())
+            );
+        }
+        return response;
     }
 
     private List<String> restaurantVouchersInfo(Restaurant restaurant) {

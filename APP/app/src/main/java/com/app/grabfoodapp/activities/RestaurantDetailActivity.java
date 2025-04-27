@@ -3,19 +3,25 @@ package com.app.grabfoodapp.activities;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.grabfoodapp.R;
 import com.app.grabfoodapp.adapter.FoodCategoryAdapter;
+import com.app.grabfoodapp.adapter.FoodTypeStringAdapter;
 import com.app.grabfoodapp.apiservice.food.FoodService;
 import com.app.grabfoodapp.config.ApiClient;
 import com.app.grabfoodapp.dto.ApiResponse;
 import com.app.grabfoodapp.dto.FoodDTO;
 import com.app.grabfoodapp.dto.RestaurantDTO;
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,8 +33,12 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class RestaurantDetailActivity extends AppCompatActivity {
+    private ImageView ivResImg;
+    private TextView tvResName;
+    private TextView tvResRating;
+    private TextView tvTimeDistance;
     private ListView listViewCategory;
-
+    private RecyclerView resRecyclerViewFoodTypes;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,10 +46,13 @@ public class RestaurantDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_restaurant_detail);
 
         listViewCategory = findViewById(R.id.res_listViewCategory);
+        resRecyclerViewFoodTypes = findViewById(R.id.res_recyclerViewFoodTypes);
 
         RestaurantDTO.RestaurantResponse selectedRestaurant =
                 (RestaurantDTO.RestaurantResponse) getIntent().getSerializableExtra("selectedRestaurant");
         getFoodRestaurantHome(selectedRestaurant.getId());
+
+        setRestaurantInfo(selectedRestaurant);
 
         Toolbar toolbar = findViewById(R.id.res_toolbar);
         setSupportActionBar(toolbar);
@@ -79,10 +92,26 @@ public class RestaurantDetailActivity extends AppCompatActivity {
 
                     FoodCategoryAdapter adapter = new FoodCategoryAdapter(
                             RestaurantDetailActivity.this,
-                            foodGroup.getTypes(),    // Dùng luôn list, không cần .stream()
+                            foodGroup.getTypes(),
                             categoryFoodsMap
                     );
                     listViewCategory.setAdapter(adapter);
+                    FoodTypeStringAdapter foodTypeAdapter = new FoodTypeStringAdapter(RestaurantDetailActivity.this, foodGroup.getTypes());
+                    resRecyclerViewFoodTypes.setAdapter(foodTypeAdapter);
+
+// Set layout ngang cho RecyclerView
+                    LinearLayoutManager layoutManager = new LinearLayoutManager(RestaurantDetailActivity.this, LinearLayoutManager.HORIZONTAL, false);
+                    resRecyclerViewFoodTypes.setLayoutManager(layoutManager);
+
+// Optional: xử lý click vào 1 loại món ăn
+                    foodTypeAdapter.setOnItemClickListener(selectedType -> {
+                        // Tìm vị trí trong ListView theo loại món
+                        int position = findFirstFoodPositionByType(foodGroup, selectedType);
+                        if (position != -1) {
+                            listViewCategory.smoothScrollToPosition(position);
+                        }
+                    });
+
                 } else {
                     Log.e("API", "Lỗi server: " + response.code());
                 }
@@ -102,5 +131,26 @@ public class RestaurantDetailActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    private int findFirstFoodPositionByType(FoodDTO.GetFoodGroupResponse foodGroup, String type) {
+        // Lấy vị trí của loại trong foodGroup.getTypes()
+        for (int i = 0; i < foodGroup.getTypes().size(); i++) {
+            if (type.equals(foodGroup.getTypes().get(i))) {
+                return i;
+            }
+        }
+        return -1; // Không tìm thấy
+    }
+
+    private void setRestaurantInfo(RestaurantDTO.RestaurantResponse resInfo) {
+        ivResImg = findViewById(R.id.res_image);
+        tvResName = findViewById(R.id.res_name);
+        tvResRating = findViewById(R.id.res_rating);
+        tvTimeDistance = findViewById(R.id.res_time_distance);
+
+        Glide.with(this).load(resInfo.getImage()).into(ivResImg);
+        tvResName.setText(resInfo.getName());
+        tvResRating.setText(resInfo.getRating().toString());
+        tvTimeDistance.setText("Cách " + resInfo.getTimeDistance());
     }
 }

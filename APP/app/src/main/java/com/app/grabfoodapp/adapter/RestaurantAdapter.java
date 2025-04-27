@@ -46,7 +46,7 @@ public class RestaurantAdapter extends ArrayAdapter<RestaurantDTO.RestaurantResp
         resName.setText(restaurant.getName());
         resRating.setText(restaurant.getRating().toString());
         resShippingFee.setText("8000đ");
-        resTimeDistance.setText("From 25 mins");
+        resTimeDistance.setText("Cách " + restaurant.getTimeDistance());
 
         Glide.with(getContext())
                 .load(restaurant.getImage())
