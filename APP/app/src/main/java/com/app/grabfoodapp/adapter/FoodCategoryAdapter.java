@@ -43,9 +43,6 @@ public class FoodCategoryAdapter extends ArrayAdapter<String> {
         FoodAdapter foodAdapter = new FoodAdapter(context, foods);
         gridView.setAdapter(foodAdapter);
 
-//        // Fix lỗi GridView trong ListView
-//        gridView.setExpanded(true);
-
         return convertView;
     }
 }

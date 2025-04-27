@@ -42,9 +42,8 @@ const RestaurantList: React.FC<Props> = ({ restaurants, location }) => {
               ⭐ <span className="text-xs">{restaurant.rating}</span>
             </div>
             {/* <div className="mt-2 flex items-center gap-1 text-xs text-gray-500">
-              📍 <span>{restaurant.distance}</span>
+              📍 <span>{restaurant.timeDistance}</span>
             </div> */}
-
           </div>
         </div>
       ))}
