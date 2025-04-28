@@ -57,6 +57,15 @@ public class CartController {
                 .build();
     }
 
+    @GetMapping("/test")
+    public ApiResponse<CartResponse> getCartTest() {
+        return ApiResponse.<CartResponse>builder()
+                .code(200)
+                .message("Success")
+                .data(cartService.getAllCartDetailUser(4L))
+                .build();
+    }
+
     @PutMapping("/update-quantity")
     public void updateQuantity(@RequestBody CartUpdateRequest request) {
         cartService.updateCartDetailQuantity(request);
@@ -70,6 +79,11 @@ public class CartController {
     @DeleteMapping("/delete")
     public void deleteCartItem(@RequestBody DeleteCartItemRequest request) {
         cartService.removeFromCart(request.getUserId(), request.getFoodId(), request.getAdditionalFoodIds());
+    }
+
+    @DeleteMapping
+    public void deleteCartDetail(@RequestParam long cartDetailId) {
+        cartService.deleteCartDetail(cartDetailId);
     }
 
     @GetMapping("/checkOpen")

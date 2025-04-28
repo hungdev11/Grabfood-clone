@@ -38,12 +38,14 @@ dependencies {
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
 
-    implementation libs.retrofit
-    implementation libs.converter.gson
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
-    implementation libs.lombok
-    annotationProcessor libs.lombok
+    // Lombok
+    implementation 'org.projectlombok:lombok:1.18.30' // Nếu không dùng libs.lombok
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
-    implementation libs.glide
+    // Glide
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
 }

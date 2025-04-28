@@ -369,10 +369,17 @@ public class CartServiceImp implements CartService {
                     .build();
         }).toList();
 
+
         return CartResponse.builder()
                 .cartId(cart.getId())
                 .listItem(cartDetailResponseList)
+                .restaurantName(cartDetails.getFirst().getFood().getRestaurant().getName())
                 .build();
+    }
+
+    @Override
+    public void deleteCartDetail(Long cartDetailId) {
+        cartDetailRepository.deleteById(cartDetailId);
     }
 
     @Override

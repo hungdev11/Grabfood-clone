@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ImageButton;
 import android.widget.ListView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,11 +28,20 @@ public class MainActivity extends AppCompatActivity {
     private RestaurantAdapter adapter;
     private List<RestaurantDTO.RestaurantResponse> restaurantList = new ArrayList<>();
 
+    private ImageButton btnCart;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         listView = findViewById(R.id.listViewRestaurants);
+        btnCart = findViewById(R.id.btn_cart);
+        // Xử lý sự kiện nhấn nút giỏ hàng
+        btnCart.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, CartActivity.class);
+            startActivity(intent);
+        });
         adapter = new RestaurantAdapter(this, restaurantList);
         listView.setAdapter(adapter);
         test();

@@ -17,5 +17,6 @@ public interface CartService {
     void updateCartDetailQuantity(CartUpdateRequest request);
     CartResponse getAllCartDetailUser(Long userId);
 
+    void deleteCartDetail(Long cartDetailId);
     boolean checkRestaurantOpen(long cartId);
 }
