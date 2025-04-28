@@ -5,6 +5,13 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public enum ErrorCode {
+    NOT_FOUND(404, "Resource not found", HttpStatus.NOT_FOUND),
+    //RESET PASSWORD
+    INVALID_TOKEN(1000, "Invalid token", HttpStatus.BAD_REQUEST),
+    EXPIRED_TOKEN(1001, "Token has expired", HttpStatus.BAD_REQUEST),
+    INVALID_PASSWORD(1002, "Invalid password", HttpStatus.BAD_REQUEST),
+    // JWT
+    FORBIDDEN(403, "Access forbidden", HttpStatus.FORBIDDEN),
     UNAUTHORIZED(401, "Unauthorized access", HttpStatus.UNAUTHORIZED),
     SOME_THING_WENT_WRONG(9999, "Not OK", HttpStatus.BAD_REQUEST),
     RESOURCE_NOT_FOUND(404, "Not Found", HttpStatus.NOT_FOUND),
