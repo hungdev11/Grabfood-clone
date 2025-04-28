@@ -13,5 +13,5 @@ public interface ReviewService {
     void restaurantReplyReview(ReviewDTO.RestaurantReplyRequest request);
     ReviewDTO.ReviewResponse getReviewById(long reviewId);
     BigDecimal calculateAvgRating(long restaurantId);
-    PageResponse<?> getReviewsByRestaurantId(long restaurantId, Pageable pageRequest, int ratingFilter);
+    PageResponse<List<ReviewDTO.ReviewResponse>> getReviewsByRestaurantId(long restaurantId, Pageable pageRequest, int ratingFilter);
 }
