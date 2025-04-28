@@ -95,7 +95,8 @@ public class RestaurantDetailActivity extends AppCompatActivity {
                     FoodCategoryAdapter adapter = new FoodCategoryAdapter(
                             RestaurantDetailActivity.this,
                             foodGroup.getTypes(),
-                            categoryFoodsMap
+                            categoryFoodsMap,
+                            restaurantId
                     );
                     listViewCategory.setAdapter(adapter);
                     FoodTypeStringAdapter foodTypeAdapter = new FoodTypeStringAdapter(RestaurantDetailActivity.this, foodGroup.getTypes());

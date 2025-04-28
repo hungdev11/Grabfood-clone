@@ -16,6 +16,9 @@
         android:theme="@style/Theme.GrabfoodApp"
         tools:targetApi="31">
         <activity
+            android:name=".activities.PopUpFood"
+            android:exported="false" />
+        <activity
             android:name=".activities.ResInfoDetail"
             android:exported="false" />
         <activity

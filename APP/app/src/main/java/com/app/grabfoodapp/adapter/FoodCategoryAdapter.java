@@ -18,12 +18,14 @@ public class FoodCategoryAdapter extends ArrayAdapter<String> {
     private Context context;
     private List<String> categories;
     private Map<String, List<FoodDTO.GetFoodResponse>> categoryFoodsMap;
+    private final long restaurantId;
 
-    public FoodCategoryAdapter(Context context, List<String> categories, Map<String, List<FoodDTO.GetFoodResponse>> categoryFoodsMap) {
+    public FoodCategoryAdapter(Context context, List<String> categories, Map<String, List<FoodDTO.GetFoodResponse>> categoryFoodsMap, long restaurantId) {
         super(context, 0, categories);
         this.context = context;
         this.categories = categories;
         this.categoryFoodsMap = categoryFoodsMap;
+        this.restaurantId = restaurantId;
     }
 
     @Override
@@ -40,7 +42,7 @@ public class FoodCategoryAdapter extends ArrayAdapter<String> {
         categoryName.setText(category);
 
         List<FoodDTO.GetFoodResponse> foods = categoryFoodsMap.get(category);
-        FoodAdapter foodAdapter = new FoodAdapter(context, foods);
+        FoodAdapter foodAdapter = new FoodAdapter(context, foods, restaurantId);
         gridView.setAdapter(foodAdapter);
 
         return convertView;

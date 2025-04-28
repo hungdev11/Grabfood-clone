@@ -14,16 +14,15 @@ import retrofit2.http.Query;
 public interface FoodService {
     @GET("foods/restaurant/{restaurantId}")
     Call<ApiResponse<FoodDTO.GetFoodGroupResponse>> getFoodRestaurantHome(
-            @Path("restaurantId") long restaurantId  // Sử dụng @Path để thay thế {restaurantId} trong URL
+            @Path("restaurantId") long restaurantId
     );
 
     @GET("foods/additional/{foodId}")
-    Call<PageResponse<List<FoodDTO.GetFoodResponse>>> getAdditionalFoodsOfFood(
-            @Query("restaurantId") long restaurantId,
+    Call<ApiResponse<PageResponse<List<FoodDTO.GetFoodResponse>>>> getAdditionalFoodsOfFood(
             @Path("foodId") long foodId,
+            @Query("restaurantId") long restaurantId,
             @Query("page") int page,
             @Query("pageSize") int pageSize,
             @Query("isForCustomers") boolean isForCustomer
     );
-
 }
