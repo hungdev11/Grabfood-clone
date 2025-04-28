@@ -1,5 +1,6 @@
 package com.app.grabfoodapp.dto;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
@@ -23,7 +24,7 @@ public class FoodDTO {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public class GetFoodResponse {
+    public class GetFoodResponse implements Serializable {
         private long id;
         private String name;
         private String image;

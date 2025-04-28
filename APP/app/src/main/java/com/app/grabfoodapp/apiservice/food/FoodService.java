@@ -17,4 +17,13 @@ public interface FoodService {
             @Path("restaurantId") long restaurantId  // Sử dụng @Path để thay thế {restaurantId} trong URL
     );
 
+    @GET("foods/additional/{foodId}")
+    Call<PageResponse<List<FoodDTO.GetFoodResponse>>> getAdditionalFoodsOfFood(
+            @Query("restaurantId") long restaurantId,
+            @Path("foodId") long foodId,
+            @Query("page") int page,
+            @Query("pageSize") int pageSize,
+            @Query("isForCustomers") boolean isForCustomer
+    );
+
 }

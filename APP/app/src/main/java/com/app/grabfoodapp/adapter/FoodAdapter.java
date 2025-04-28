@@ -1,11 +1,15 @@
 package com.app.grabfoodapp.adapter;
 
+import static java.security.AccessController.getContext;
+
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StrikethroughSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +18,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.app.grabfoodapp.R;
+import com.app.grabfoodapp.activities.PopUpFood;
+import com.app.grabfoodapp.activities.RestaurantDetailActivity;
 import com.app.grabfoodapp.dto.FoodDTO;
 import com.bumptech.glide.Glide;
 
@@ -62,6 +68,14 @@ public class FoodAdapter extends BaseAdapter {
         // Thiết lập tên món ăn và hình ảnh
         foodName.setText(food.getName());
         Glide.with(context).load(food.getImage()).into(foodImg);
+
+//        convertView.setOnClickListener(v -> {
+//            Log.e("INFO", "Item clicked: " + food.getName());
+//            // Thực hiện hành động khi nhấn vào item, ví dụ như mở chi tiết nhà hàng
+//            Intent intent = new Intent(getContext(), PopUpFood.class);
+//            intent.putExtra("selectedFood", food);
+//            getContext().startActivity(intent);
+//        });
 
         return convertView;
     }

@@ -1,8 +1,10 @@
 package com.app.grabfoodapp.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -39,6 +41,8 @@ public class RestaurantDetailActivity extends AppCompatActivity {
     private TextView tvTimeDistance;
     private ListView listViewCategory;
     private RecyclerView resRecyclerViewFoodTypes;
+
+    private RestaurantDTO.RestaurantResponse selectedRestaurant;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,9 +51,7 @@ public class RestaurantDetailActivity extends AppCompatActivity {
 
         listViewCategory = findViewById(R.id.res_listViewCategory);
         resRecyclerViewFoodTypes = findViewById(R.id.res_recyclerViewFoodTypes);
-
-        RestaurantDTO.RestaurantResponse selectedRestaurant =
-                (RestaurantDTO.RestaurantResponse) getIntent().getSerializableExtra("selectedRestaurant");
+        selectedRestaurant = (RestaurantDTO.RestaurantResponse) getIntent().getSerializableExtra("selectedRestaurant");
         getFoodRestaurantHome(selectedRestaurant.getId());
 
         setRestaurantInfo(selectedRestaurant);
@@ -152,5 +154,12 @@ public class RestaurantDetailActivity extends AppCompatActivity {
         tvResName.setText(resInfo.getName());
         tvResRating.setText(resInfo.getRating().toString());
         tvTimeDistance.setText("Cách " + resInfo.getTimeDistance());
+    }
+
+    public void getMoreResDetails(View view) {
+        Log.e("INFO", "Item clicked for more res detail: " + selectedRestaurant.getName());
+        Intent intent = new Intent(this, ResInfoDetail.class);
+        intent.putExtra("selectedResInfo", selectedRestaurant);
+        this.startActivity(intent);
     }
 }

@@ -1,67 +1,71 @@
 package com.app.grabfoodapp.activities;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
-
+import android.view.MenuItem;
+import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 import com.app.grabfoodapp.R;
-import com.app.grabfoodapp.adapter.RestaurantAdapter;
-import com.app.grabfoodapp.apiservice.restaurant.RestaurantService;
-import com.app.grabfoodapp.config.ApiClient;
-import com.app.grabfoodapp.dto.ApiResponse;
-import com.app.grabfoodapp.dto.PageResponse;
-import com.app.grabfoodapp.dto.RestaurantDTO;
-
-import java.util.ArrayList;
-import java.util.List;
-import retrofit2.Call;
+import com.app.grabfoodapp.adapter.ViewPageAdapter;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ListView listView;
-    private RestaurantAdapter adapter;
-    private List<RestaurantDTO.RestaurantResponse> restaurantList = new ArrayList<>();
-
+    private ViewPager viewPager;
+    private BottomNavigationView bottomNavigationView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        listView = findViewById(R.id.listViewRestaurants);
-        adapter = new RestaurantAdapter(this, restaurantList);
-        listView.setAdapter(adapter);
-        Log.e("INFO", "caubaunsosiomsmsi");
-
-        test();
+        init();
+        ViewPageAdapter adapter = new ViewPageAdapter(getSupportFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
+        viewPager.setAdapter(adapter);
+        viewPager.setCurrentItem(0);
+        viewPagerPlay();
     }
-
-    private void test() {
-        RestaurantService restaurantService = ApiClient.getClient().create(RestaurantService.class);
-
-        Call<ApiResponse<List<RestaurantDTO.RestaurantResponse>>> call =
-                restaurantService.getRestaurants("name", 13.9747, 108.0117);
-
-        call.enqueue(new retrofit2.Callback<ApiResponse<List<RestaurantDTO.RestaurantResponse>>>() {
+    private void init() {
+        viewPager = findViewById(R.id.view_pager);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+    }
+    private void viewPagerPlay() {
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public void onResponse(Call<ApiResponse<List<RestaurantDTO.RestaurantResponse>>> call,
-                                   retrofit2.Response<ApiResponse<List<RestaurantDTO.RestaurantResponse>>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    restaurantList.clear();
-                    restaurantList.addAll(response.body().getData());
-                    adapter.notifyDataSetChanged();
-                    Log.e("INFO", "OK CALL");
-                } else {
-                    Log.e("API", "Lỗi server: " + response.code());
+            public void onPageScrolled(int position, float positionOffset,
+                                       int positionOffsetPixels) {
+            }
+            @Override
+            public void onPageSelected(int position) {
+                switch (position) {
+                    case 0:
+                        bottomNavigationView.getMenu().findItem(R.id.home).setChecked(true);
+                        break;
+                    case 1:
+                        bottomNavigationView.getMenu().findItem(R.id.search).setChecked(true);
+                        break;
+                    case 2:
+                        bottomNavigationView.getMenu().findItem(R.id.profile).setChecked(true);
+                        break;
                 }
             }
-
             @Override
-            public void onFailure(Call<ApiResponse<List<RestaurantDTO.RestaurantResponse>>> call, Throwable t) {
-                Log.e("API", "Lỗi mạng hoặc URL: " + t.getMessage());
+            public void onPageScrollStateChanged(int state) {
+            }
+        });
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int itemId = item.getItemId();
+                if (itemId == R.id.home) {
+                    viewPager.setCurrentItem(0);
+                } else if (itemId == R.id.search) {
+                    viewPager.setCurrentItem(1);
+                } else if (itemId == R.id.profile) {
+                    viewPager.setCurrentItem(2);
+                }
+                return true;
             }
         });
     }
