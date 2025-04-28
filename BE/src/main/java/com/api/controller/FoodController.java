@@ -105,8 +105,8 @@ public class FoodController {
 
     @GetMapping("/additional/{foodId}")
     public ApiResponse<?> getAdditionalFoodsOfFood(
-            @RequestParam long restaurantId,
             @PathVariable long foodId,
+            @RequestParam long restaurantId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int pageSize,
             @RequestParam(defaultValue = "false") boolean isForCustomer

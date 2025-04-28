@@ -24,18 +24,22 @@ const IndexPage: React.FC<Props> = ({ restaurants: propsRestaurants, location: p
     // Nếu không có propsRestaurants, fetch từ API
     const fetchRestaurants = async () => {
       try {
+        const lat = propsLocation?.lat ?? -1;
+        const lon = propsLocation?.lon ?? -1;
+
         const res = await fetch(
-          "http://localhost:6969/grab/restaurants?sortBy=name&page=0&pageSize=20"
+          `http://localhost:6969/grab/restaurants?userLat=${lat}&userLon=${lon}`
         );
 
         if (!res.ok) {
           throw new Error("Failed to fetch data");
         }
 
-        const data: ApiResponse<PageResponse<RestaurantHome>> = await res.json();
+        const data: ApiResponse<RestaurantHome[]> = await res.json();
 
-        if (data && data.data && data.data.items) {
-          setRestaurants(data.data.items);
+        console.log("API Response abc :", data.data); // Log response của API
+        if (data && data.data) {
+          setRestaurants(data.data);
         } else {
           setRestaurants([]); // Không có dữ liệu trả về
         }

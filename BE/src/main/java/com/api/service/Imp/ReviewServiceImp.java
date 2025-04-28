@@ -121,7 +121,7 @@ public class ReviewServiceImp implements ReviewService {
     }
 
     @Override
-    public PageResponse<?> getReviewsByRestaurantId(long restaurantId, Pageable pageRequest, int ratingFilter) {
+    public PageResponse<List<ReviewDTO.ReviewResponse>> getReviewsByRestaurantId(long restaurantId, Pageable pageRequest, int ratingFilter) {
         log.info("Get reviews by restaurant id {}", restaurantId);
         List<Order> orders = orderService.listAllOrdersOfRestaurant(restaurantId);
         List<ReviewDTO.ReviewResponse> reviewResponses = reviewRepository.findAllByOrderIn(orders).stream()
@@ -129,7 +129,7 @@ public class ReviewServiceImp implements ReviewService {
                 .map(this::buildReviewResponse)
                 .toList();
         var pageResponse = PageUtils.convertListToPage(reviewResponses, pageRequest);
-        return PageResponse.builder()
+        return PageResponse.<List<ReviewDTO.ReviewResponse>>builder()
                 .total(pageResponse.getTotalElements())
                 .items(pageResponse.getContent())
                 .page(pageRequest.getPageNumber())

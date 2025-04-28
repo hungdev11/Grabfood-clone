@@ -1,24 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:orientation="vertical"
+android:layout_width="match_parent"
+android:layout_height="match_parent">
+
+<!-- Toolbar -->
+<androidx.appcompat.widget.Toolbar
+    android:id="@+id/res_toolbar"
+    android:background="?attr/colorPrimary"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
-
-    <TextView
-        android:id="@+id/restaurantName"
-        android:layout_width="wrap_content"
+    android:layout_height="?attr/actionBarSize" />
+<!--    Restaurant info, click to see more-->
+<LinearLayout
+    android:onClick="getMoreResDetails"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+    <ImageView
+        android:id="@+id/res_image"
+        android:padding="7dp"
+        android:layout_width="0dp"
+        android:layout_height="130dp"
+        android:layout_weight="1"
+        android:src="@drawable/ic_custom_launcher"/>
+    <LinearLayout
+        android:paddingTop="7dp"
+        android:paddingRight="7dp"
+        android:layout_width="0dp"
+        android:layout_weight="2"
         android:layout_height="wrap_content"
-        android:text="Restaurant Name"
-        android:textSize="18sp"
-        android:textStyle="bold"/>
-
-    <TextView
-        android:id="@+id/restaurantId"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Restaurant Address"
-        android:textSize="16sp"
-        android:layout_marginTop="8dp"/>
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/res_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:text="Res name"
+            android:textStyle="bold"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/rating_star"/>
+            <TextView
+                android:id="@+id/res_rating"
+                android:layout_marginLeft="2dp"
+                android:layout_marginBottom="3dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="15dp"
+                android:text="rating (103)"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/res_ship_fee"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Shipping fee"/>
+            <TextView
+                android:id="@+id/res_time_distance"
+                android:layout_marginLeft="2dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:textSize="15dp"
+                android:text="From xx mins"/>
+        </LinearLayout>
+    </LinearLayout>
 
 </LinearLayout>
+<androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/res_recyclerViewFoodTypes"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="20dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    android:padding="4dp"
+    android:overScrollMode="never"
+    android:scrollbars="none"/>
+<!-- ListView -->
+<ListView
+    android:id="@+id/res_listViewCategory"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"/>
+</LinearLayout>
+
+

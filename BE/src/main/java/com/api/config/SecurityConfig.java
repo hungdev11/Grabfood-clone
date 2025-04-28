@@ -98,6 +98,8 @@ public class SecurityConfig {
                                 .requestMatchers("/auth/welcome", "/auth/addNewAccount", "/auth/generateToken").permitAll()
                                 //
                                 .requestMatchers("reviews/**").permitAll()
+                                .requestMatchers("/ws/**").permitAll()
+                                .requestMatchers("/push-noti").permitAll()
                                 //
                                 // Role-based endpoints
                                 .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")

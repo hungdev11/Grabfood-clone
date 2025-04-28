@@ -39,10 +39,10 @@ public class RestaurantController {
     @GetMapping()
     public ApiResponse<?> getRestaurants(
             @RequestParam(defaultValue = "name") String sortBy,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int pageSize) {
+            @RequestParam(defaultValue = "-1") double userLat,
+            @RequestParam(defaultValue = "-1") double userLon) {
         return ApiResponse.builder()
-                .data(restaurantService.getRestaurants(sortBy, page, pageSize))
+                .data(restaurantService.getRestaurants(sortBy, userLat, userLon))
                 .message("Success")
                 .code(200)
                 .build();

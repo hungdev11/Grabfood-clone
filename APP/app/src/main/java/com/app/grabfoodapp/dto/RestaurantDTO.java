@@ -2,6 +2,7 @@ package com.app.grabfoodapp.dto;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,5 +27,6 @@ public class RestaurantDTO {
         private BigDecimal rating;
         private String distance;
         private String timeDistance;
+        private List<String> restaurantVouchersInfo;
     }
 }

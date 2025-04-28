@@ -357,7 +357,6 @@ public class CartServiceImp implements CartService {
             cartDetailRepository.save(cartDetail);
 
             return CartDetailResponse.builder()
-                    .restaurantId(food.getRestaurant().getId())
                     .id(cartDetail.getId())
                     .foodName(food.getName())
                     .price(finalPrice)
@@ -371,6 +370,7 @@ public class CartServiceImp implements CartService {
 
 
         return CartResponse.builder()
+                .restaurantId(cartDetails.get(0).getFood().getRestaurant().getId())
                 .cartId(cart.getId())
                 .listItem(cartDetailResponseList)
                 .restaurantName(cartDetails.getFirst().getFood().getRestaurant().getName())

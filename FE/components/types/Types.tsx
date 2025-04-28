@@ -19,7 +19,7 @@ export interface ApiResponse<T> {
     image: string;
     rating: number;
     description?: string;
-    distance?: string;
+    timeDistance?: string;
   }
 
   export interface Restaurant {

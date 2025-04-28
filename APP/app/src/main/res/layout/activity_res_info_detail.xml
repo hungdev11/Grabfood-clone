@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".activities.ResInfoDetail">
+
+    <ImageButton
+        android:onClick="backToRestaurant"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/arrow_left" />
+
+    <ImageView
+        android:id="@+id/res_detail_image"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:src="@drawable/ic_custom_launcher"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:id="@+id/res_detail_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RESTAURANT NAME"
+        android:paddingLeft="12dp"
+        android:paddingTop="12dp"
+        android:textStyle="bold"
+        android:textSize="20dp"/>
+
+    <LinearLayout
+        android:onClick="lookReviews"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="12dp"
+        android:orientation="horizontal">
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/rating_star"/>
+        <TextView
+            android:id="@+id/res_detail_rating"
+            android:layout_marginLeft="2dp"
+            android:layout_marginBottom="3dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15dp"
+            android:text="rating (103)"/>
+    </LinearLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="What people say"
+        android:layout_marginLeft="12dp"
+        android:textStyle="bold"
+        android:paddingTop="7dp"
+        android:textSize="20dp"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:paddingLeft="12dp"
+        android:id="@+id/res_detail_quick_reviews"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="About"
+        android:layout_marginLeft="12dp"
+        android:textStyle="bold"
+        android:paddingTop="7dp"
+        android:textSize="20dp"/>
+    <TextView
+        android:id="@+id/res_detail_open_hours"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Opening hours"
+        android:layout_marginLeft="14dp"
+        android:textStyle="bold"
+        android:textSize="15dp"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Address"
+        android:layout_marginLeft="14dp"
+        android:textStyle="bold"
+        android:textSize="15dp"/>
+    <TextView
+        android:id="@+id/res_detail_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Addres info"
+        android:layout_marginLeft="20dp"
+        android:textSize="15dp"/>
+    <TextView
+        android:id="@+id/res_detail_distance"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Distance"
+        android:layout_marginLeft="14dp"
+        android:textStyle="bold"
+        android:textSize="15dp"/>
+
+</LinearLayout>

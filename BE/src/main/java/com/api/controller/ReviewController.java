@@ -47,13 +47,13 @@ public class ReviewController {
     }
 
     @GetMapping("/restaurant/{restaurantId}")
-    public ApiResponse<?> getReviewOfRestaurant(
+    public ApiResponse<PageResponse<List<ReviewDTO.ReviewResponse>>> getReviewOfRestaurant(
             @PathVariable long restaurantId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "6") int ratingFilter) {
         Pageable pageRequest = PageRequest.of(page, size);
-        return ApiResponse.builder()
+        return ApiResponse.<PageResponse<List<ReviewDTO.ReviewResponse>>>builder()
                 .code(200)
                 .message("Get reviews of restaurant")
                 .data(reviewService.getReviewsByRestaurantId(restaurantId, pageRequest, ratingFilter))

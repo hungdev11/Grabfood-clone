@@ -9,8 +9,14 @@ import java.util.List;
 
 public interface RestaurantService {
     long addRestaurant(AddRestaurantRequest request);
+
     Restaurant getRestaurant(long id);
+
     RestaurantResponse getRestaurantResponse(long id, double userLat, double userLon);
-    PageResponse<List<RestaurantResponse>> getRestaurants(String sortBy, int page, int pageSize);
+
+    List<RestaurantResponse> getRestaurants(String sortBy, double userLat, double userLon);
+
     List<RestaurantResponse> getNearbyRestaurants(double lat, double lon, double radiusKm);
+
+    PageResponse<List<RestaurantResponse>> getRestaurantsForAdmin(String sortBy, int page, int pageSize);
 }

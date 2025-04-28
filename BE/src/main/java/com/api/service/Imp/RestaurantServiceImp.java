@@ -11,9 +11,7 @@ import com.api.exception.ErrorCode;
 import com.api.entity.Restaurant;
 import com.api.repository.RestaurantRepository;
 import com.api.service.*;
-import com.api.utils.GeoUtils;
-import com.api.utils.RestaurantStatus;
-import com.api.utils.TimeUtil;
+import com.api.utils.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +25,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -91,6 +90,61 @@ public class RestaurantServiceImp implements RestaurantService {
                 .phone(restaurant.getPhone())
                 .rating(reviewService.calculateAvgRating(restaurant.getId()))
                 .build();
+        return addDistance(userLat, userLon, restaurant, restaurantResponse);
+    }
+
+    @Override
+    public PageResponse<List<RestaurantResponse>> getRestaurantsForAdmin(String sortBy, int page, int pageSize) {
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(sortBy));
+
+        Page<Restaurant> restaurantPage = restaurantRepository.findAll(pageable);
+
+        List<RestaurantResponse> content = restaurantPage.getContent().stream()
+                .filter(r -> r.getStatus().equals(RestaurantStatus.ACTIVE))
+                .map(restaurant -> RestaurantResponse.builder()
+                        .id(restaurant.getId())
+                        .name(restaurant.getName())
+                        .description(restaurant.getDescription())
+                        .image(restaurant.getImage())
+                        .restaurantVouchersInfo(restaurantVouchersInfo(restaurant))
+                        .rating(reviewService.calculateAvgRating(restaurant.getId()))
+                        .build())
+                .toList();
+
+        return PageResponse.<List<RestaurantResponse>>builder()
+                .page(page)
+                .size(pageSize)
+                .total(restaurantPage.getTotalElements())
+                .items(content)
+                .build();
+    }
+
+    @Override
+    public List<RestaurantResponse> getRestaurants(String sortBy, double userLat, double userLon) {
+        List<RestaurantResponse> content = restaurantRepository
+                .findAll(Sort.by(Sort.Direction.ASC, sortBy))
+                .stream()
+                .filter(r -> r.getStatus().equals(RestaurantStatus.ACTIVE))
+                .map(restaurant -> {
+                    RestaurantResponse response = RestaurantResponse.builder()
+                            .id(restaurant.getId())
+                            .name(restaurant.getName())
+                            .description(restaurant.getDescription())
+                            .image(restaurant.getImage())
+                            .address(getAddressText(restaurant.getAddress()))
+                            .openingHour(restaurant.getOpeningHour())
+                            .closingHour(restaurant.getClosingHour())
+                            .phone(restaurant.getPhone())
+                            .restaurantVouchersInfo(restaurantVouchersInfo(restaurant))
+                            .rating(reviewService.calculateAvgRating(restaurant.getId()))
+                            .build();
+                    return addDistance(userLat, userLon, restaurant, response);
+                })
+                .toList();
+        return content;
+    }
+
+    private RestaurantResponse addDistance(double userLat, double userLon, Restaurant restaurant, RestaurantResponse response) {
         if (userLat != -1 && userLon != -1) {
             var distance = locationService.getDistance(userLat, userLon,
                     restaurant.getAddress().getLat(), restaurant.getAddress().getLon());
@@ -104,39 +158,39 @@ public class RestaurantServiceImp implements RestaurantService {
                 formattedDistance = String.format("%.1f km", distanceInKm);
             }
 
-            restaurantResponse.setDistance(formattedDistance);
-            restaurantResponse.setTimeDistance(
+            response.setDistance(formattedDistance);
+            response.setTimeDistance(
                     TimeUtil.formatDurationFromSeconds(distance.getDuration())
             );
         }
-
-        return restaurantResponse;
+        return response;
     }
 
-    @Override
-    public PageResponse<List<RestaurantResponse>> getRestaurants(String sortBy, int page, int pageSize) {
-        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(sortBy));
+    private List<String> restaurantVouchersInfo(Restaurant restaurant) {
+        List<String> result = new ArrayList<>();
+        log.info("Get voucher of restaurant {}", restaurant.getId());
 
-        Page<Restaurant> restaurantPage = restaurantRepository.findAll(pageable);
+        LocalDateTime now = LocalDateTime.now();
 
-        List<RestaurantResponse> content = restaurantPage.getContent().stream()
-                .filter(r -> r.getStatus().equals(RestaurantStatus.ACTIVE))
-                .map(restaurant -> RestaurantResponse.builder()
-                        .id(restaurant.getId())
-                        .name(restaurant.getName())
-                        .description(restaurant.getDescription())
-                        .image(restaurant.getImage())
-                        .rating(reviewService.calculateAvgRating(restaurant.getId()))
-                        .build())
-                .toList();
+        restaurant.getVouchers().stream()
+                .filter(voucher ->
+                        voucher.getStatus() == VoucherStatus.ACTIVE &&
+                                voucher.getVoucherDetails().stream()
+                                        .anyMatch(vd -> now.isAfter(vd.getStartDate()) && now.isBefore(vd.getEndDate()))
+                )
+                .forEach(voucher -> {
+                    StringBuilder builder = new StringBuilder("Giảm ");
+                    if (voucher.getType().equals(VoucherType.FIXED)) {
+                        builder.append(voucher.getValue().setScale(0)).append("đ");
+                    } else if (voucher.getType().equals(VoucherType.PERCENTAGE)) {
+                        builder.append(voucher.getValue().setScale(0)).append("%");
+                    }
+                    result.add(builder.toString());
+                });
 
-        return PageResponse.<List<RestaurantResponse>>builder()
-                .page(page)
-                .size(pageSize)
-                .total(restaurantPage.getTotalElements())
-                .items(content)
-                .build();
+        return result;
     }
+
 
     @Override
     public List<RestaurantResponse> getNearbyRestaurants(double lat, double lon, double radiusKm) {

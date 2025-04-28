@@ -61,11 +61,11 @@
                 android:textSize="15dp"
                 android:text="From xx mins"/>
         </LinearLayout>
-        <TextView
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/home_res_vouchers_info"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="Res vouchers display here"
-            android:textStyle="bold"
-            android:gravity="center"/>
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            />
     </LinearLayout>
 </LinearLayout>

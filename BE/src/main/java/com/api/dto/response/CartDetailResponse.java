@@ -11,7 +11,6 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class CartDetailResponse {
-    private long restaurantId;
     private Long id;
     private Long foodId;
     private String foodName;

@@ -89,7 +89,7 @@ const Popup: React.FC<PopupProps> = ({
   const [additionalFoods, setAdditionalFoods] = useState<Food[]>([]);
   const [selectedItems, setSelectedItems] = useState<{ [key: number]: number }>({});
   const [specialInstructions, setSpecialInstructions] = useState("");
-  const { fetchCartItems, isAuthenticated } = useCart();
+  const { fetchCartItems, isAuthenticated, restaurantCartId } = useCart();
   const router = useRouter();
 
   useEffect(() => {
@@ -169,17 +169,30 @@ const Popup: React.FC<PopupProps> = ({
           description: `${selectedFood.name} đã được cập nhật`,
         });
       } else {
+        if (restaurantCartId && Number(restaurantCartId) !== Number(restaurantId)) {
+          const confirmAdd = window.confirm(
+            "Bạn không thể thêm món từ nhiều nhà hàng cùng lúc. Nếu muốn tiếp tục, chọn OK và dữ liệu trong giỏ sẽ được bị xóa và không thể khôi phục."
+          );
+        
+          if (!confirmAdd) {
+            return; // Người dùng không đồng ý => Không làm gì cả
+          }
+        }
+        
+        // Đồng ý hoặc cùng nhà hàng thì addToCart bình thường
         const requestData = {
           foodId: selectedFood.id,
           quantity,
           additionalItems: additionalIds,
           note: specialInstructions,
         };
+        
         await addToCart(userId, requestData);
+        
         toast?.({
           title: "Thêm thành công",
           description: `${quantity} × ${selectedFood.name} đã được thêm vào giỏ`,
-        });
+        });        
       }
 
       await fetchCartItems();

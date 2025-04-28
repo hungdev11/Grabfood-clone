@@ -12,9 +12,9 @@ import retrofit2.http.Query;
 
 public interface RestaurantService {
     @GET("restaurants")
-    Call<ApiResponse<PageResponse<List<RestaurantDTO.RestaurantResponse>>>> getRestaurants(
+    Call<ApiResponse<List<RestaurantDTO.RestaurantResponse>>> getRestaurants(
             @Query("sortBy") String sortBy,
-            @Query("page") int page,
-            @Query("pageSize") int pageSize
+            @Query("userLat") double userLat,
+            @Query("userLon") double userLon
     );
 }
