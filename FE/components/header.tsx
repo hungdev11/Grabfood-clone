@@ -8,6 +8,7 @@ import Link from "next/link";
 import Cart from "@/components/cart";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import {NotificationBell} from "@/components/NotificationBell";
 
 export default function Header() {
     const router = useRouter();
@@ -78,6 +79,7 @@ export default function Header() {
             </Link>
           </div>
           <div className="flex items-center gap-3">
+            <NotificationBell />
             {itemCount > 0 ? (
               <Button id="cart-button"
                 className="bg-green-500 hover:bg-green-600 text-white rounded-md px-4 py-2 flex items-center gap-2 relative"
