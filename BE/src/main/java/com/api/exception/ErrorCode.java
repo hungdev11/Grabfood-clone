@@ -5,6 +5,8 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public enum ErrorCode {
+    // Add to ErrorCode.java
+    GOOGLE_ACCOUNT_NO_PASSWORD(1003, "Google account cannot reset password", HttpStatus.BAD_REQUEST),
     NOT_FOUND(404, "Resource not found", HttpStatus.NOT_FOUND),
     //RESET PASSWORD
     INVALID_TOKEN(1000, "Invalid token", HttpStatus.BAD_REQUEST),

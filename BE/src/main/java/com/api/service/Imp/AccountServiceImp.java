@@ -109,9 +109,16 @@ public class AccountServiceImp implements AccountService {
     @Override
     public String generatePasswordResetToken(String email) {
 //        Account account = getAccountByUsername(username);
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, "User not found"));
         Account account = user.getAccount();
+        if(account.getUsername().equalsIgnoreCase(email)){
+            throw new AppException(
+                    ErrorCode.GOOGLE_ACCOUNT_NO_PASSWORD,
+                    "Tài khoản này đăng nhập bằng Google. Không thể đặt lại mật khẩu."
+            );
+        }
 
         // Generate random token
         String token = UUID.randomUUID().toString();
