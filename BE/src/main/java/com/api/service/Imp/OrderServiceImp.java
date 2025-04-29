@@ -1,5 +1,6 @@
 package com.api.service.Imp;
 
+import com.api.controller.NotificationController;
 import com.api.dto.request.ApplyVoucherRequest;
 import com.api.dto.request.CreateOrderRequest;
 import com.api.dto.response.*;
@@ -49,6 +50,8 @@ public class OrderServiceImp implements OrderService {
     private final ReviewRepository reviewRepository;
 
     private final FoodService foodService;
+
+    private final NotificationController notificationController;
 
     @Override
     @Transactional
@@ -131,7 +134,7 @@ public class OrderServiceImp implements OrderService {
             cartDetail.setOrder(order);
             cartDetailRepository.save(cartDetail);
         }
-
+        //notificationController.sendNewOrderNotification(f, null);
         return orderRepository.findById(order.getId()).orElseThrow(() ->
                 new AppException(ErrorCode.ORDER_NOT_FOUND)
         );

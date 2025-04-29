@@ -99,7 +99,7 @@ public class SecurityConfig {
                                 //
                                 .requestMatchers("reviews/**").permitAll()
                                 .requestMatchers("/ws/**").permitAll()
-                                .requestMatchers("/push-noti").permitAll()
+                                .requestMatchers("/push-noti/**").permitAll()
                                 //
                                 // Role-based endpoints
                                 .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")

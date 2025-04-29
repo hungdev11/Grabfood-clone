@@ -1,8 +1,13 @@
+"use client";
+
 import { useEffect } from 'react';
 import { connectWebSocket, disconnectWebSocket } from '@/lib/websocket';
-import { fr } from 'date-fns/locale';
 
-export const MyComponent = () => {
+type MyComponentProps = {
+  restaurantId: string;
+};
+
+export const MyComponent = ({ restaurantId }: MyComponentProps) => {
   // Hàm callback để xử lý đơn hàng nhận được
   const handleOrderReceived = (order: string) => {
     console.log('Order received:', order); // Để kiểm tra log nhận đơn hàng
@@ -10,7 +15,7 @@ export const MyComponent = () => {
 
   useEffect(() => {
     // Kết nối WebSocket khi component mount
-    connectWebSocket(handleOrderReceived);
+    connectWebSocket(restaurantId, handleOrderReceived);
 
     // Dọn dẹp kết nối WebSocket khi component unmount
     return () => {

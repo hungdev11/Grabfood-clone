@@ -14,7 +14,6 @@ import ResListHome from "@/components/ResListIndex";
 import LocationSearch from "@/components/locationSearch";
 import { RestaurantHome } from "@/components/types/Types";
 import { CartProvider } from "./context/CartContext";
-import {MyComponent} from "@/components/TestNoti";
 
 export default function Home() {
 	const [location, setLocation] = useState<{ lat: string; lon: string }>({
@@ -99,7 +98,6 @@ export default function Home() {
 					Ưu đãi GrabFood tại{" "}
 					<span className="text-[#00B14F]">Hà nội</span>
 				</h2>
-				<MyComponent/>
 				<ResListHome restaurants={restaurants} location={location}/>
 				<div className="mt-4 rounded-md border border-gray-200 p-3 text-center text-sm text-gray-600">
 					See all promotions
