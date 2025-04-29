@@ -78,7 +78,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
             totalPrice = totalPrice.add(item.getAdditionFoods().get(i).getPrice());
         }
         NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
-        holder.price.setText(formatter.format(totalPrice) + "đ");
+        holder.price.setText(formatter.format(totalPrice.multiply(BigDecimal.valueOf(item.getQuantity()))) + "đ");
 
         holder.increaseButton.setOnClickListener(new View.OnClickListener() {
             @Override

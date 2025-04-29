@@ -79,7 +79,7 @@
             android:id="@+id/btnOrder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Đặt đơn"
+            android:text="Thanh toán"
             android:textAllCaps="false"
             android:textSize="16sp"
             android:backgroundTint="#4CAF50"

@@ -1,10 +1,12 @@
 package com.app.grabfoodapp.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ListView;
 
 import androidx.annotation.NonNull;
@@ -31,6 +33,7 @@ public class HomeFragment extends Fragment {
     private RestaurantAdapter adapter;
     private List<RestaurantDTO.RestaurantResponse> restaurantList = new ArrayList<>();
 
+    private ImageButton btnCart;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -40,10 +43,19 @@ public class HomeFragment extends Fragment {
         listView = view.findViewById(R.id.listViewRestaurants); // Phải tìm theo "view"
         adapter = new RestaurantAdapter(getContext(), restaurantList);
         listView.setAdapter(adapter);
+        btnCart = view.findViewById(R.id.btn_cart);
 
         Log.e("INFO", "Fragment Started");
 
         test();
+
+        btnCart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), CartActivity.class);
+                startActivity(intent);
+            }
+        });
 
         return view;
     }
@@ -59,8 +71,14 @@ public class HomeFragment extends Fragment {
             public void onResponse(Call<ApiResponse<List<RestaurantDTO.RestaurantResponse>>> call,
                                    Response<ApiResponse<List<RestaurantDTO.RestaurantResponse>>> response) {
                 if (response.isSuccessful() && response.body() != null) {
+                    List<RestaurantDTO.RestaurantResponse> data = response.body().getData();
                     restaurantList.clear();
-                    restaurantList.addAll(response.body().getData());
+                    if (data != null) {
+                        restaurantList.addAll(data);
+                        Log.e("INFO", "Data loaded successfully");
+                    } else {
+                        Log.w("API", "Response body data is null");
+                    }
                     adapter.notifyDataSetChanged();
                     Log.e("INFO", "Data loaded successfully");
                 } else {
