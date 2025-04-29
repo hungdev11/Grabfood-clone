@@ -5,6 +5,7 @@ let stompClient: Client | null = null;
 let orderSubscription: any = null;
 
 export const connectWebSocket = (
+  restaurantId: string,
   onOrderReceived: (order: any) => void,
 ) => {
   const socket = new SockJS('http://localhost:6969/grab/ws'); // Backend WebSocket URL
@@ -18,7 +19,8 @@ export const connectWebSocket = (
       console.log('Connected to WebSocket'); // Log khi kết nối thành công
 
       // Subcribe đơn hàng mới
-      orderSubscription = stompClient?.subscribe('/topic/restaurant/1', (message: IMessage) => {
+      const topic = `/topic/restaurant/${restaurantId}`;
+      orderSubscription = stompClient?.subscribe(topic, (message: IMessage) => {
         // Kiểm tra nếu bạn nhận được chuỗi văn bản, không cần phải parse
         const orderMessage = message.body; // Đây là chuỗi văn bản, không phải JSON
         console.log('Received order message:', orderMessage); // Để kiểm tra
