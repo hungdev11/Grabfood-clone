@@ -16,4 +16,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(value = "SELECT * FROM `grab-food`.user WHERE id = (SELECT user_id FROM `grab-food`.cart WHERE id = :cartId)", nativeQuery = true)
     User findUserByCartId(@Param("cartId") Long cartId);
+    Optional<User> findByAccountId(Long accountId);
 }

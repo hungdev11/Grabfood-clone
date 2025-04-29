@@ -41,4 +41,11 @@ public class UserServiceImp implements UserService {
     public Boolean checkUserExistByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
+
+    @Override
+    public User getUserByAccountId(Long accountId) {
+        return userRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND,
+                        "User not found with account ID: " + accountId));
+    }
 }

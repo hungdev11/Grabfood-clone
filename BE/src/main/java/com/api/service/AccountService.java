@@ -8,4 +8,8 @@ public interface AccountService {
     void checkAccount(String username, String password);
     public Account getAccountById(long id);
     Account getAccountByUsername(String username);
+    boolean changePassword(String username, String currentPassword, String newPassword);
+    String generatePasswordResetToken(String email);
+    boolean validatePasswordResetToken(String token);
+    void resetPassword(String token, String newPassword);
 }
