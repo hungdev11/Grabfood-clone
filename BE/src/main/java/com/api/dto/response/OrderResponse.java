@@ -5,6 +5,7 @@ import com.api.utils.OrderStatus;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -15,6 +16,7 @@ import java.util.List;
 public class OrderResponse {
     private Long id;
     private Long userId;
+    private String userName;
     private Long restaurantId;
     private String restaurantName;
     private BigDecimal totalPrice;
@@ -27,4 +29,5 @@ public class OrderResponse {
     private String payment_method;
     private List<CartDetailResponse> cartDetails;
     private boolean isReview;
+    private LocalDateTime createdAt;
 }

@@ -79,7 +79,7 @@ export default function Header() {
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <NotificationBell />
+            {/* <NotificationBell /> */}
             {itemCount > 0 ? (
               <Button id="cart-button"
                 className="bg-green-500 hover:bg-green-600 text-white rounded-md px-4 py-2 flex items-center gap-2 relative"

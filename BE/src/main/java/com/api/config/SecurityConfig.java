@@ -105,7 +105,7 @@ public class SecurityConfig {
                                 .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
                                 .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
                                 .requestMatchers("/cart/**").hasAuthority("ROLE_USER")
-                                .requestMatchers("/order/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                                .requestMatchers("/order/**").permitAll()//hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                                 .requestMatchers(HttpMethod.POST, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/restaurants/**", "/restaurants").permitAll()
                                 .requestMatchers("/login/oauth2/**", "/oauth2/**","/oauth2/authorization/google").permitAll()

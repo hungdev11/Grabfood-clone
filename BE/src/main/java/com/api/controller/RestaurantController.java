@@ -27,12 +27,15 @@ public class RestaurantController {
                 .build();
     }
 
-    @GetMapping("/{restaurant_id}")
-    public ApiResponse<RestaurantResponse> getRestaurantById(@PathVariable long restaurant_id, @RequestParam double userLat, double userLon) {
+    @GetMapping("/{restaurantId}")
+    public ApiResponse<RestaurantResponse> getRestaurantById(
+            @PathVariable long restaurantId,
+            @RequestParam(defaultValue = "-1") double userLat,
+            @RequestParam(defaultValue = "-1") double userLon) {
         return ApiResponse.<RestaurantResponse>builder()
                 .code(200)
                 .message("Success")
-                .data(restaurantService.getRestaurantResponse(restaurant_id, userLat, userLon))
+                .data(restaurantService.getRestaurantResponse(restaurantId, userLat, userLon))
                 .build();
     }
 
