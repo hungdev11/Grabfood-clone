@@ -11,59 +11,40 @@ type Notification = {
   read: boolean;
 };
 
-export const NotificationBell = () => {
+type NotificationBellProps = {
+  channelId: string;
+  parseMessage?: (msg: string) => string;
+};
+
+export const NotificationBell = ({ channelId, parseMessage = (msg) => msg }: NotificationBellProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [nextId, setNextId] = useState(1); // để tạo id thông báo
+  const [nextId, setNextId] = useState(1);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const toggleDropdown = () => {
-    setIsOpen((prev) => !prev);
-  };
+  const toggleDropdown = () => setIsOpen((prev) => !prev);
+  const markAllAsRead = () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const deleteNotification = (id: number) => setNotifications((prev) => prev.filter((n) => n.id !== id));
+  const deleteAllNotifications = () => setNotifications([]);
 
-  const markAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((n) => ({ ...n, read: true }))
-    );
-  };
-
-  const deleteNotification = (id: number) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
-
-  const deleteAllNotifications = () => {
-    setNotifications([]);
-  };
-
-  // 📡 Nhận đơn hàng qua websocket rồi thêm vào danh sách noti
   useEffect(() => {
-    const restaurantId = "1"; // ID thật ở đây
-
     const handleOrderReceived = (order: string) => {
+      const message = parseMessage(order);
       setNotifications((prev) => [
-        { id: nextId, message: order, read: false },
+        { id: nextId, message, read: false },
         ...prev,
       ]);
       setNextId((id) => id + 1);
     };
 
-    connectWebSocket(restaurantId, handleOrderReceived);
-
-    return () => {
-      disconnectWebSocket();
-    };
-  }, [nextId]); // Cập nhật mỗi khi thêm noti mới
+    connectWebSocket(channelId, handleOrderReceived);
+    return () => disconnectWebSocket();
+  }, [channelId, nextId, parseMessage]);
 
   return (
     <div className="relative inline-block text-left">
-      <button
-        onClick={() => {
-          toggleDropdown();
-          markAllAsRead();
-        }}
-        className="relative"
-      >
+      <button onClick={() => { toggleDropdown(); markAllAsRead(); }} className="relative">
         <Bell className="w-6 h-6 text-gray-700" />
         {unreadCount > 0 && (
           <span className="absolute top-0 right-0 block w-2 h-2 rounded-full bg-red-500"></span>
@@ -82,10 +63,7 @@ export const NotificationBell = () => {
               <li className="p-2 text-sm text-gray-500">Không có thông báo</li>
             ) : (
               notifications.map((n) => (
-                <li
-                  key={n.id}
-                  className="flex items-center justify-between p-2 text-sm group hover:bg-gray-50"
-                >
+                <li key={n.id} className="flex items-center justify-between p-2 text-sm group hover:bg-gray-50">
                   <span className={`${n.read ? "text-gray-500" : "text-black font-semibold"}`}>
                     {n.message}
                   </span>

@@ -69,7 +69,7 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
         config.setAllowedOrigins(List.of("http://localhost:3000")); // Frontend URL
         config.setAllowedHeaders(List.of("Origin", "Content-Type", "Accept", "Authorization"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -96,18 +96,16 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                                 // Public endpoints
                                 .requestMatchers("/auth/welcome", "/auth/addNewAccount", "/auth/generateToken").permitAll()
-                                // New password reset endpoints
-                                .requestMatchers("/auth/forgot-password", "/auth/validate-reset-token", "/auth/reset-password").permitAll()
                                 //
                                 .requestMatchers("reviews/**").permitAll()
                                 .requestMatchers("/ws/**").permitAll()
                                 .requestMatchers("/push-noti/**").permitAll()
                                 //
                                 // Role-based endpoints
-                                .requestMatchers("/auth/user/**", "/users/**").hasAuthority("ROLE_USER")
+                                .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
                                 .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
-                                .requestMatchers("/cart/**").permitAll()
-                                .requestMatchers("/order/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                                .requestMatchers("/cart/**").hasAuthority("ROLE_USER")
+                                .requestMatchers("/order/**").permitAll()//hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                                 .requestMatchers(HttpMethod.POST, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/restaurants/**", "/restaurants").permitAll()
                                 .requestMatchers("/login/oauth2/**", "/oauth2/**","/oauth2/authorization/google").permitAll()

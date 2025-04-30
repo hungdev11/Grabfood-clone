@@ -3,6 +3,7 @@ package com.api.service;
 import com.api.dto.request.ApplyVoucherRequest;
 import com.api.dto.request.CreateOrderRequest;
 import com.api.dto.response.ApplyVoucherResponse;
+import com.api.dto.response.GetOrderGroupResponse;
 import com.api.dto.response.OrderResponse;
 import com.api.entity.CartDetail;
 import com.api.entity.Order;
@@ -18,6 +19,7 @@ public interface OrderService {
     void DeleteOrderFailedPayment(Long orderId);
     List<OrderResponse> getUserOrderByStatus(Long userId, OrderStatus status);
     List<OrderResponse> getUserOrder(Long userId);
+    GetOrderGroupResponse getRestaurantOrders(long restaurantId);
     Order getOrderById(Long orderId);
     List<Order> listAllOrdersOfRestaurant(Long restaurantId);
 }
