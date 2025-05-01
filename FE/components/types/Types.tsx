@@ -1,5 +1,3 @@
-import { types } from "util";
-
 export interface ApiResponse<T> {
     data: T;
     message: string;
@@ -31,6 +29,7 @@ export interface ApiResponse<T> {
     openingHour : string;
     closingHour : string;
     rating: number;
+    phone: string;
     timeDistance: string;
     distance: string;
   }
@@ -77,3 +76,34 @@ export interface ApiResponse<T> {
     replyMessage: string;
     replyAt: string
   }
+
+  export interface CartDetail {
+    id: number;
+    foodName: string;
+    quantity: number;
+    price: number;
+    additionFoods: AdditionalFood[];
+    food_img: string;
+    note: string;
+    restaurantId: number;
+    foodId: number | null;
+}
+
+export interface Order {
+    id: number;
+    userId: number | null;
+    userName: string;
+    createdAt: string;
+    restaurantId: number | null;
+    restaurantName: string;
+    totalPrice: number;
+    address: string;
+    status: string;
+    shippingFee: number;
+    note: string;
+    review: boolean
+    payment_method: string | null;
+    cartDetails: CartDetail[];
+    discountShippingFee: number | null;
+    discountOrderPrice: number | null;
+}
