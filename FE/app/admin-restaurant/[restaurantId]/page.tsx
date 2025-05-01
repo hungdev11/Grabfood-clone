@@ -107,26 +107,26 @@ function OrdersManagement() {
     const params = useParams();
     const restaurantId = params?.restaurantId as string;
   
+    const fetchOrders = async () => {
+      if (!restaurantId) return;
+      try {
+        const response = await axios.get(
+          `http://localhost:6969/grab/order/restaurant/${restaurantId}`
+        );
+    
+        const { orders, statusList } = response.data.data;
+        setOrders(orders || []);
+        setStatusList(statusList || []);
+      } catch (err) {
+        setError("Không thể tải thông tin đơn hàng.");
+        console.error("Lỗi khi lấy đơn hàng:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     useEffect(() => {
       if (!restaurantId) return;
-  
-      const fetchOrders = async () => {
-        try {
-          const response = await axios.get(
-            `http://localhost:6969/grab/order/restaurant/${restaurantId}`
-          );
-  
-          const { orders, statusList } = response.data.data;
-          setOrders(orders || []);
-          setStatusList(statusList || []);
-        } catch (err) {
-          setError("Không thể tải thông tin đơn hàng.");
-          console.error("Lỗi khi lấy đơn hàng:", err);
-        } finally {
-          setLoading(false);
-        }
-      };
-  
       fetchOrders();
     }, [restaurantId]);
   
@@ -141,7 +141,25 @@ function OrdersManagement() {
         // Toggle expanded state for each order
         setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
       };
-
+    const changeStatus = async (order: Order, status: "PROCESSING" | "REJECTED") => {
+      try {
+        const restaurantId = params?.restaurantId as string;
+    
+        await axios.put(
+          `http://localhost:6969/grab/restaurants/${restaurantId}/handle-order/${order.id}`,
+          null, // PUT body is empty
+          {
+            params: { status }, // status passed as query param
+          }
+        );
+    
+        alert(`Đã cập nhật trạng thái đơn hàng #${order.id} thành ${status}`);
+        fetchOrders(); // Refresh orders after status change
+      } catch (error) {
+        console.error("Lỗi khi cập nhật trạng thái đơn hàng:", error);
+        alert("Cập nhật trạng thái thất bại.");
+      }
+    };
     return (
       <div>
         <h2 className="text-xl font-semibold mb-4">Quản lý Đơn Hàng</h2>
@@ -228,6 +246,24 @@ function OrdersManagement() {
                     <td colSpan={7} className="border-b bg-gray-100">
                       <div className="p-4">
                         <h3 className="text-xl font-semibold mb-4">Chi tiết Món Ăn</h3>
+                        <div className="mb-4 flex gap-2">
+                        {order.status === "PENDING" && (
+                          <>
+                            <button
+                              onClick={() => changeStatus(order, "PROCESSING")}
+                              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                            >
+                              Nhận
+                            </button>
+                            <button
+                              onClick={() => changeStatus(order, "REJECTED")}
+                              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                            >
+                              Từ chối
+                            </button>
+                          </>
+                        )}
+                      </div>
                         <table className="min-w-full table-auto">
                           <thead>
                             <tr className="bg-gray-100">
@@ -241,7 +277,7 @@ function OrdersManagement() {
                           </thead>
                           <tbody>
                             {order.cartDetails.map((cartDetail, index) => (
-                              <tr key={cartDetail.id}>
+                              <tr className = {"text-center"} key={cartDetail.id}>
                                 <td className="px-4 py-2">{index + 1}</td>
                                 <td className="px-4 py-2">{cartDetail.foodName}</td>
                                 <td className="px-4 py-2">

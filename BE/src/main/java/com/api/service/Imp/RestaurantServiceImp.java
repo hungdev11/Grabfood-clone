@@ -6,9 +6,11 @@ import com.api.dto.response.GetFoodResponse;
 import com.api.dto.response.PageResponse;
 import com.api.dto.response.RestaurantResponse;
 import com.api.entity.Address;
+import com.api.entity.Order;
 import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
 import com.api.entity.Restaurant;
+import com.api.repository.OrderRepository;
 import com.api.repository.RestaurantRepository;
 import com.api.service.*;
 import com.api.utils.*;
@@ -39,6 +41,7 @@ public class RestaurantServiceImp implements RestaurantService {
     private final AddressService addressService;
     private final LocationService locationService;
     private final ReviewService reviewService;
+    private final OrderRepository orderRepository;
 
     @Override
     @Transactional
@@ -117,6 +120,26 @@ public class RestaurantServiceImp implements RestaurantService {
                 .total(restaurantPage.getTotalElements())
                 .items(content)
                 .build();
+    }
+
+    @Override
+    public void handlePendingOrder(long restaurantId, long orderId, OrderStatus status) {
+        log.info("Handle PendingOrder");
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+        if (order.getCartDetails().get(0).getFood().getRestaurant().getId() != restaurantId) {
+            log.error("Order {} not belong to restaurant {}", orderId, restaurantId);
+            throw new AppException(ErrorCode.ORDER_NOT_BELONG_TO_RES);
+        }
+        if (!order.getStatus().equals(OrderStatus.PENDING)) {
+            log.error("Order id {} is not PENDING", orderId);
+            throw new AppException(ErrorCode.HANDLE_NOT_PENDING_ORDER);
+        }
+        if (status.equals(OrderStatus.PROCESSING) || status.equals(OrderStatus.REJECTED)) {
+            log.info("Change order {} status from PENDING to {}", orderId, status);
+            order.setStatus(status);
+        }
+        orderRepository.save(order);
     }
 
     @Override

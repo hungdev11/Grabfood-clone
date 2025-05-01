@@ -4,6 +4,7 @@ import com.api.dto.request.AddRestaurantRequest;
 import com.api.dto.response.PageResponse;
 import com.api.dto.response.RestaurantResponse;
 import com.api.entity.Restaurant;
+import com.api.utils.OrderStatus;
 
 import java.util.List;
 
@@ -19,4 +20,6 @@ public interface RestaurantService {
     List<RestaurantResponse> getNearbyRestaurants(double lat, double lon, double radiusKm);
 
     PageResponse<List<RestaurantResponse>> getRestaurantsForAdmin(String sortBy, int page, int pageSize);
+
+    void handlePendingOrder(long restaurantId, long orderId, OrderStatus status);
 }
