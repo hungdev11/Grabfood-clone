@@ -434,17 +434,24 @@ public class FoodServiceImp implements FoodService {
     }
 
     @Override
-    public GetFoodGroupResponse getFoodGroupOfRestaurant(long restaurantId) {
+    public GetFoodGroupResponse getFoodGroupOfRestaurant(long restaurantId, boolean isForCustomer) {
         log.info("Get food group of restaurant {}", restaurantId);
         Restaurant restaurant = restaurantService.getRestaurant(restaurantId);
 
         log.info("Get types of restaurant {}", restaurant);
-        List<Food> foods = restaurant.getFoods().stream()
+        List<Food> foods = restaurant.getFoods();
+        if (isForCustomer) {
+            foods = foods.stream()
+                    .filter(f -> f.getStatus() == FoodStatus.ACTIVE)
+                    .toList();
+        }
+
+        foods = foods.stream()
                 .filter(f -> !f.getKind().equals(FoodKind.ADDITIONAL))
                 .toList();
 
         Set<String> types = foods.stream()
-                .filter(f -> f.getStatus() == FoodStatus.ACTIVE && f.getType() != null)
+                .filter(f -> f.getType() != null)
                 .map(f -> f.getType().getName())
                 .collect(Collectors.toSet());
 
@@ -453,8 +460,7 @@ public class FoodServiceImp implements FoodService {
         List<Voucher> voucherList = voucherService.getVoucherOfRestaurant(restaurantId).stream()
                 .filter(v -> v.getStatus().equals(VoucherStatus.ACTIVE)
                         && v.getValue() != null
-                        && v.getValue().compareTo(BigDecimal.ZERO) > 0)
-                .toList();
+                        && v.getValue().compareTo(BigDecimal.ZERO) > 0).toList();
 
         List<VoucherDetail> voucherDetailList = voucherDetailService
                 .getVoucherDetailByVoucherInAndFoodInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(voucherList, foods, LocalDateTime.now());
@@ -484,6 +490,9 @@ public class FoodServiceImp implements FoodService {
                             .rating(BigDecimal.ZERO)
                             .type(f.getType().getName())
                             .build();
+                    if (!isForCustomer) {
+                        foodResponse.setStatus(f.getStatus());
+                    }
                     return foodResponse;
                 })
                 .toList();

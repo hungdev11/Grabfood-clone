@@ -7,7 +7,6 @@ import { fetchWithAuth } from "@/utils/api";
 import {ReviewList} from "@/components/ReviewList";
 import { CartProvider } from "@/app/context/CartContext";
 import { parse, isAfter, isBefore } from "date-fns";
-import { MyComponent } from "@/components/TestNoti";
 
 interface Params {
   restaurantId: string;
@@ -15,7 +14,7 @@ interface Params {
 
 async function getRestaurantData(id: string): Promise<{ types: string[]; foods: Food[] }> {
   const res = await fetchWithAuth(
-    `http://localhost:6969/grab/foods/restaurant/${id}`,
+    `http://localhost:6969/grab/foods/restaurant/${id}?isForCustomer=true`,
     { cache: "no-store" }
   );
 
@@ -139,8 +138,6 @@ export default async function RestaurantPage({ params, searchParams}: { params: 
       {/* Food list */}
       <FoodList types={types} foods={foods} restaurantId={restaurantId} isOpen={isOpen} />
       <ReviewList restaurantId = {restaurantId}/>
-      
-      {/* <MyComponent restaurantId = {restaurantId}/> */}
       <Footer />
     </div>
     </CartProvider>

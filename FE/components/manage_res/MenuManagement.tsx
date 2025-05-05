@@ -128,6 +128,15 @@ export default function MenuManagement() {
                 Xem chi tiết
               </button>
             </div>
+            <div className="ml-4 flex-1 relative">
+              <p
+                className={`absolute top-0 right-0 text-sm ${
+                  food.status === 'ACTIVE' ? 'text-green-500' : 'text-red-500'
+                }`}
+              >
+                {food.status}
+              </p>
+            </div>
           </div>
         ))}
       </div>
@@ -153,14 +162,6 @@ export default function MenuManagement() {
                 onChange={(e) => setEditData({ ...editData, price: Number(e.target.value) })}
                 className="w-full border px-3 py-2 rounded"
                 placeholder="Giá"
-              />
-              <input
-                type="number"
-                value={editData.discountPrice || 0}
-                disabled={!isEditing}
-                onChange={(e) => setEditData({ ...editData, discountPrice: Number(e.target.value) })}
-                className="w-full border px-3 py-2 rounded"
-                placeholder="Giá giảm"
               />
               <textarea
                 value={editData.description || ""}

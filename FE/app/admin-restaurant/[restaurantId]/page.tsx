@@ -31,7 +31,7 @@ export default function RestaurantPage() {
           <h1 className="text-3xl font-bold">Quản lý Nhà Hàng {restaurantId}</h1>  {/* Hiển thị restaurantId */}
           <NotificationBell
             channelId={`restaurant/${restaurantId}`}  // Truyền dynamic channelId từ restaurantId
-            parseMessage={(msg) => `📦 Đơn hàng mới: ${msg}`}
+            parseMessage={(msg) => `📦 Đơn hàng mới: ${msg.id}`}
           />
         </div>
 

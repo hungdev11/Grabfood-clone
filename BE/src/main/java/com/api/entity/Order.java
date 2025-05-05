@@ -1,6 +1,7 @@
 package com.api.entity;
 
 import com.api.utils.OrderStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -54,6 +55,7 @@ public class Order extends BaseEntity{
     private BigDecimal discountOrderPrice;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
+    @JsonIgnore
     private List<CartDetail> cartDetails = new ArrayList<>();
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)

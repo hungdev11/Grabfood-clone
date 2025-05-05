@@ -50,6 +50,7 @@ export interface ApiResponse<T> {
     rating?: number;
     quantity?: number;
     cartDetailId?: number;
+    status?: string;
     additionalFoods?: AdditionalFood[];
     note?: string;
     type: string;
