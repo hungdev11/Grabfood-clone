@@ -1,5 +1,6 @@
 package com.app.grabfoodapp.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -7,6 +8,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -41,7 +43,6 @@ public class CartActivity extends AppCompatActivity {
     TextView txtTotalCartAmount;
     ImageButton btnCartBack;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,61 +53,17 @@ public class CartActivity extends AppCompatActivity {
         txtCartRestaurantName = findViewById(R.id.restaurantCartName);
         txtTotalCartAmount = findViewById(R.id.totalCartAmount);
         btnCartBack = findViewById(R.id.btnCartBack);
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new CartAdapter(cartItems);
-        adapter.setOnCartChangeListener(new CartAdapter.OnCartChangeListener() {
-            @Override
-            public void onCartChanged() {
-                updateTotalPrice();
-            }
-        });
+        adapter.setOnCartChangeListener(() -> updateTotalPrice());
         recyclerView.setAdapter(adapter);
 
-        CartService cartService = ApiClient.getClient().create(CartService.class);
+        reloadCartList();  // <- gọi API tách riêng
 
-        Call<ApiResponse<CartResponse>>  call = cartService.getCart();
-
-        call.enqueue(new Callback<ApiResponse<CartResponse>>() {
-            @Override
-            public void onResponse(Call<ApiResponse<CartResponse>> call, Response<ApiResponse<CartResponse>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    ApiResponse<CartResponse> apiResponse = response.body();
-                    if (apiResponse.getData() != null && apiResponse.getData().getListItem() != null) {
-                        cartItems.clear();
-                        cartItems.addAll(apiResponse.getData().getListItem());
-                        txtCartRestaurantName.setText(apiResponse.getData().getRestaurantName());
-                        BigDecimal totalPrice = BigDecimal.ZERO;
-                        for (CartDetailDTO item: cartItems) {
-                            BigDecimal itemPrice = item.getPrice();
-                            for (int i = 0; i < item.getAdditionFoods().size(); i++) {
-                                itemPrice = itemPrice.add(item.getAdditionFoods().get(i).getPrice());
-                            }
-                            totalPrice = totalPrice.add(itemPrice.multiply(BigDecimal.valueOf(item.getQuantity())));
-                        }
-
-                        NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
-                        txtTotalCartAmount.setText("Tổng cộng: " + formatter.format(totalPrice) + "đ");
-                        adapter.notifyDataSetChanged();
-                    }
-                }
-                else {
-                    Log.e("API", "Lỗi server: " + response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ApiResponse<CartResponse>> call, Throwable t) {
-                Log.e("API", "Lỗi mạng hoặc URL: " + t.getMessage());
-            }
-        });
-
-        btnCartBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        btnCartBack.setOnClickListener(v -> finish());
     }
+
 
     private void updateTotalPrice() {
         BigDecimal totalPrice = BigDecimal.ZERO;
@@ -121,5 +78,55 @@ public class CartActivity extends AppCompatActivity {
         NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
         txtTotalCartAmount.setText("Tổng cộng: " + formatter.format(totalPrice) + "đ");
     }
+
+    private void reloadCartList() {
+        CartService cartService = ApiClient.getClient().create(CartService.class);
+        Call<ApiResponse<CartResponse>> call = cartService.getCart();
+
+        call.enqueue(new Callback<ApiResponse<CartResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<CartResponse>> call, Response<ApiResponse<CartResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<CartResponse> apiResponse = response.body();
+                    if (apiResponse.getData() != null && apiResponse.getData().getListItem() != null) {
+                        cartItems.clear();
+                        cartItems.addAll(apiResponse.getData().getListItem());
+                        txtCartRestaurantName.setText(apiResponse.getData().getRestaurantName());
+
+                        BigDecimal totalPrice = BigDecimal.ZERO;
+                        for (CartDetailDTO item : cartItems) {
+                            BigDecimal itemPrice = item.getPrice();
+                            for (int i = 0; i < item.getAdditionFoods().size(); i++) {
+                                itemPrice = itemPrice.add(item.getAdditionFoods().get(i).getPrice());
+                            }
+                            totalPrice = totalPrice.add(itemPrice.multiply(BigDecimal.valueOf(item.getQuantity())));
+                        }
+
+                        NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+                        txtTotalCartAmount.setText("Tổng cộng: " + formatter.format(totalPrice) + "đ");
+
+                        adapter.setRestaurantId(apiResponse.getData().getRestaurantId());
+                        adapter.notifyDataSetChanged();
+                    }
+                } else {
+                    Log.e("API", "Lỗi server: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<CartResponse>> call, Throwable t) {
+                Log.e("API", "Lỗi mạng hoặc URL: " + t.getMessage());
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1001 && resultCode == RESULT_OK) {
+            reloadCartList();  // Viết hàm này để gọi API load giỏ hàng mới và gọi adapter.notifyDataSetChanged()
+        }
+    }
+
 
 }

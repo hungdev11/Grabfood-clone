@@ -17,7 +17,7 @@ interface CartProps {
 }
 
 export default function Cart({ isOpen, onClose, onCartChange }: CartProps) {
-  const {cartId, cartItems, updateQuantity, removeFromCart, totalPrice, itemCount } = useCart();
+  const {cartId, restaurantCartId, cartItems, updateQuantity, removeFromCart, totalPrice, itemCount } = useCart();
   const [isRestaurantOpen, setIsRestaurantOpen] = useState<boolean | null>(true);
   const [isPopupVisible, setPopupVisible] = useState(false);
   const [selectedFood, setSelectedFood] = useState<any>(null);
@@ -52,17 +52,11 @@ export default function Cart({ isOpen, onClose, onCartChange }: CartProps) {
     setPopupVisible(true);
   };
   
-  
-
   const closePopup = () => {
     setSelectedFood(null);
     setPopupVisible(false);
   };
 
-  // const handleCartClickItem = (itemId: number) => {
-  //   const clickedItem = cartItems.find(item => item.id === itemId);
-  //   if (clickedItem) openPopup(clickedItem);
-  // };
   const handleCartClickItem = (itemId: number) => {
     const clickedItem = cartItems.find(item => item.id === itemId);
     if (clickedItem) openPopup(clickedItem);
@@ -233,7 +227,7 @@ export default function Cart({ isOpen, onClose, onCartChange }: CartProps) {
         selectedFood={selectedFood}
         isVisible={isPopupVisible}
         onClose={closePopup}
-        restaurantId={cartItems[0]?.restaurantId}
+        restaurantId={String(restaurantCartId!)}
         userId = {Number(localStorage.getItem("grabUserId"))}
         />
     </>

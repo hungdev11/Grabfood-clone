@@ -1,6 +1,9 @@
 package com.app.grabfoodapp.adapter;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.grabfoodapp.R;
+import com.app.grabfoodapp.activities.PopUpFood;
 import com.app.grabfoodapp.apiservice.cart.CartService;
 import com.app.grabfoodapp.config.ApiClient;
 import com.app.grabfoodapp.dto.AdditionFood;
@@ -33,9 +37,13 @@ import retrofit2.Response;
 
 public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder> {
     List<CartDetailDTO> cartItems;
-    private final long userId = 4;
-
+    private final long userId = 1;
+    private long restaurantId;
     private CartService cartService;
+
+    public void setRestaurantId(long restaurantId) {
+        this.restaurantId = restaurantId;
+    }
 
     public CartAdapter(List<CartDetailDTO> cartItems) {
         this.cartItems = cartItems;
@@ -179,6 +187,15 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                     });
                 }
             }
+        });
+
+        holder.itemView.setOnClickListener(v -> {
+            Log.e("INFO", "Cart item clicked: " + item.getFoodName());
+            Intent intent = new Intent(holder.itemView.getContext(), PopUpFood.class);
+            intent.putExtra("selectedCartItem", item);
+            intent.putExtra("userId", userId);
+            intent.putExtra("restaurantIdFromCart", restaurantId);
+            ((Activity) holder.itemView.getContext()).startActivityForResult(intent, 1001);
         });
     }
 

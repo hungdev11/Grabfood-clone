@@ -33,6 +33,10 @@ public class AdditionalFoodAdapter extends BaseAdapter {
         return ids;
     }
 
+    public void setIds(Set<Long> newIds) {
+        this.ids = newIds;
+    }
+
     @Override
     public int getCount() {
         return foods.size();

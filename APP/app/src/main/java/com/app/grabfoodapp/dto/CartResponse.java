@@ -15,6 +15,8 @@ import lombok.Setter;
 @Builder
 public class CartResponse {
     private long cartId;
+    private Long restaurantId;
     private String restaurantName;
+    private boolean isRestaurantOpen;
     private List<CartDetailDTO> listItem;
 }

@@ -20,4 +20,17 @@ public class CartDTO {
         private List<Long> additionalItems;
         private String note;
     }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class CartUpdateRequest {
+        long userId;
+        long cartDetailId;
+        long foodId;
+        int newQuantity;
+        List<Long> additionFoodIds;
+    }
 }

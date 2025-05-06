@@ -1,5 +1,6 @@
 package com.app.grabfoodapp.dto;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -14,8 +15,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CartDetailDTO {
-    private long restaurantId;
+public class CartDetailDTO implements Serializable {
     private long id;
     private long foodId;
     private String foodName;

@@ -1,5 +1,6 @@
 package com.app.grabfoodapp.dto;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 import lombok.AllArgsConstructor;
@@ -13,7 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AdditionFood {
+public class AdditionFood implements Serializable {
     private long id;
     private String name;
     private BigDecimal price;
