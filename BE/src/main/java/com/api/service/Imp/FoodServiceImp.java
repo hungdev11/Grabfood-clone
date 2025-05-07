@@ -393,11 +393,10 @@ public class FoodServiceImp implements FoodService {
         });
 
         request.getAdditionalIds()
-                .filter(ids -> !ids.isEmpty())
                 .ifPresent(ids -> {
                     log.info("Updating additional food IDs to {}", ids);
 
-                    //clear Relations additional food before clear
+                    // Always clear existing relations, even if new list is empty
                     for (FoodMainAndAddition foodMainAndAddition : food.getMainFoods()) {
                         Food additionalFood = foodMainAndAddition.getAdditionFood();
                         additionalFood.getAdditionFoods().remove(foodMainAndAddition);
@@ -405,11 +404,13 @@ public class FoodServiceImp implements FoodService {
                     }
                     food.getMainFoods().clear();
 
-                    addAdditionalFoodToFoodOfRestaurant(AddAdditionalFoodsRequest.builder()
-                            .foodId(foodId)
-                            .restaurantId(restaurantId)
-                            .additionalFoodIds(ids)
-                            .build());
+                    if (!ids.isEmpty()) {
+                        addAdditionalFoodToFoodOfRestaurant(AddAdditionalFoodsRequest.builder()
+                                .foodId(foodId)
+                                .restaurantId(restaurantId)
+                                .additionalFoodIds(ids)
+                                .build());
+                    }
                 });
 
         if (request.getOldPrice().isPresent() && request.getNewPrice().isPresent()) {

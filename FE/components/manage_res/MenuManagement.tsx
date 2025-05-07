@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
-import { Food, AdditionalItem } from "../types/Types";
+import { Food, AdditionalFood } from "../types/Types";
 
 export default function MenuManagement() {
   const params = useParams();
@@ -17,7 +17,7 @@ export default function MenuManagement() {
   const [editData, setEditData] = useState<Partial<Food>>({});
 
   // Define the type for additional items
-  const [additionalItems, setAdditionalItems] = useState<AdditionalItem[]>([]);
+  const [additionalItems, setAdditionalItems] = useState<AdditionalFood[]>([]);
   const [isLoadingAdditionalItems, setIsLoadingAdditionalItems] = useState(false);
 
   useEffect(() => {
@@ -80,10 +80,33 @@ export default function MenuManagement() {
     }
   }, [restaurantId]);
 
-  const handleFoodClick = (food: Food) => {
-    setSelectedFood(food);
-    setEditData(food);
+  const handleFoodClick = async (food) => {
+    try {
+      const selectedAdditionalResponse = await axios.get(
+        `http://localhost:6969/grab/foods/additional/${food.id}?restaurantId=${restaurantId}&isForCustomer=false`
+      );
+  
+      const selectedAdditionalItems = selectedAdditionalResponse.data.data.items || [];
+      const selectedAdditionalIds = selectedAdditionalItems.map(item => item.id);
+  
+      setEditData({
+        ...food,
+        additionalFoods: selectedAdditionalItems,
+        additionalIds: selectedAdditionalIds,  // gán thêm mảng ID cho tiện update
+      });
+  
+      setSelectedFood(food);
+    } catch (error) {
+      console.error("Lỗi khi lấy đồ thêm đã gắn:", error);
+      setEditData({
+        ...food,
+        additionalFoods: [],
+        additionalIds: [],
+      });
+      setSelectedFood(food);
+    }
   };
+  
 
   const closePopup = () => {
     setSelectedFood(null);
@@ -101,7 +124,7 @@ export default function MenuManagement() {
       status: editData.status || undefined, 
       oldPrice: selectedFood.price, 
       newPrice: typeof editData.price === 'number' ? editData.price : selectedFood.price, 
-      additionalIds: Array.isArray(editData.additionalIds) ? editData.additionalIds : [], 
+      additionalIds: editData.additionalIds || [],
     };
 
     console.log("Payload to save:", payload); 
@@ -121,9 +144,9 @@ export default function MenuManagement() {
       alert("Cập nhật thất bại.");
     }
   };
-
+  
   // Define the function for handling the change of additional items
-  const handleAdditionalChange = (additionalId: string) => {
+  const handleAdditionalChange = (additionalId: number) => {
     if (editData.additionalIds?.includes(additionalId)) {
       setEditData({
         ...editData,
@@ -178,6 +201,69 @@ export default function MenuManagement() {
 
   return (
     <div className="p-4">
+    {isAddFoodModalOpen && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <h3 className="text-xl font-semibold mb-4">Thêm món ăn mới</h3>
+          <div className="space-y-2">
+            <input
+              type="text"
+              value={newFoodData.name}
+              onChange={(e) => setNewFoodData({ ...newFoodData, name: e.target.value })}
+              className="w-full border px-3 py-2 rounded"
+              placeholder="Tên món ăn"
+            />
+           <input
+              type="text"
+              value={newFoodData.image}
+              onChange={(e) => setNewFoodData({ ...newFoodData, image: e.target.value })}
+              className="w-full border px-3 py-2 rounded"
+              placeholder="URL ảnh"
+            />
+            {newFoodData.image && (
+              <img
+                src={newFoodData.image}
+                alt="Image preview"
+                className="w-16 h-16 object-cover rounded-md mt-2"
+              />
+            )}
+
+            <textarea
+              value={newFoodData.description}
+              onChange={(e) => setNewFoodData({ ...newFoodData, description: e.target.value })}
+              className="w-full border px-3 py-2 rounded"
+              placeholder="Mô tả"
+            />
+            <input
+              type="number"
+              value={newFoodData.price}
+              onChange={(e) => setNewFoodData({ ...newFoodData, price: Number(e.target.value) })}
+              className="w-full border px-3 py-2 rounded"
+              placeholder="Giá"
+            />
+            <select
+              value={newFoodData.type}
+              onChange={(e) => setNewFoodData({ ...newFoodData, type: e.target.value })}
+              className="w-full border px-3 py-2 rounded"
+            >
+              {types.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex justify-end space-x-2 mt-4">
+            <button onClick={handleAddNewFood} className="bg-green-600 text-white px-4 py-2 rounded">
+              Lưu món mới
+            </button>
+            <button onClick={() => setIsAddFoodModalOpen(false)} className="bg-gray-500 text-white px-4 py-2 rounded">
+              Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Quản lý Menu</h2>
         <button 
@@ -246,11 +332,18 @@ export default function MenuManagement() {
               />
               <input
                 type="text"
-                value={editData.image || ""}
+                value={editData.image}
                 onChange={(e) => setEditData({ ...editData, image: e.target.value })}
                 className="w-full border px-3 py-2 rounded"
                 placeholder="URL ảnh"
               />
+              {editData.image && (
+                <img
+                  src={editData.image}
+                  alt="Image preview"
+                  className="w-16 h-16 object-cover rounded-md mt-2"
+                />
+              )}
               <textarea
                 value={editData.description || ""}
                 onChange={(e) => setEditData({ ...editData, description: e.target.value })}
