@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
-import { Food } from "../types/Types";
+import { Food, AdditionalItem } from "../types/Types";
 
 export default function MenuManagement() {
   const params = useParams();
@@ -14,8 +14,47 @@ export default function MenuManagement() {
   const [activeType, setActiveType] = useState<string>("");
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<Food>>({});
+
+  // Define the type for additional items
+  const [additionalItems, setAdditionalItems] = useState<AdditionalItem[]>([]);
+  const [isLoadingAdditionalItems, setIsLoadingAdditionalItems] = useState(false);
+
+  useEffect(() => {
+    const fetchAdditionalItems = async () => {
+      if (!selectedFood) return;
+
+      setIsLoadingAdditionalItems(true);
+      try {
+        const response = await axios.get(`http://localhost:6969/grab/foods/additional`, {
+          params: {
+            page: 0,
+            pageSize: 10, 
+            restaurantId: restaurantId,
+            isForCustomer: false,
+          },
+        });
+        setAdditionalItems(response.data.data.items || []);
+      } catch (error) {
+        console.error("Lỗi khi lấy món ăn phụ:", error);
+      } finally {
+        setIsLoadingAdditionalItems(false);
+      }
+    };
+
+    fetchAdditionalItems();
+  }, [restaurantId, selectedFood]); // Run when selectedFood changes
+
+  const [newFoodData, setNewFoodData] = useState({
+    name: "",
+    image: "",
+    description: "",
+    kind: "MAIN",
+    type: "Bánh mì",
+    price: 0,
+  });
+
+  const [isAddFoodModalOpen, setIsAddFoodModalOpen] = useState(false);
 
   if (!restaurantId) {
     return <div>Restaurant ID not found</div>;
@@ -44,25 +83,57 @@ export default function MenuManagement() {
   const handleFoodClick = (food: Food) => {
     setSelectedFood(food);
     setEditData(food);
-    setIsEditing(false);
   };
 
   const closePopup = () => {
     setSelectedFood(null);
-    setIsEditing(false);
   };
 
   const handleSave = async () => {
+    if (!selectedFood) return;
+
+    const payload = {
+      name: editData.name || undefined,
+      image: editData.image || undefined,
+      foodType: editData.type || undefined,
+      foodKind: editData.kind || undefined, 
+      description: editData.description || undefined,
+      status: editData.status || undefined, 
+      oldPrice: selectedFood.price, 
+      newPrice: typeof editData.price === 'number' ? editData.price : selectedFood.price, 
+      additionalIds: Array.isArray(editData.additionalIds) ? editData.additionalIds : [], 
+    };
+
+    console.log("Payload to save:", payload); 
     try {
-      await axios.put(`http://localhost:6969/grab/foods/${selectedFood?.id}`, editData);
+      await axios.put(
+        `http://localhost:6969/grab/foods/info/${selectedFood.id}?restaurantId=${restaurantId}`,
+        payload
+      );
+
       alert("Cập nhật món ăn thành công!");
       setSelectedFood(null);
-      // Reload
+
       const response = await axios.get(`http://localhost:6969/grab/foods/restaurant/${restaurantId}`);
       setFoods(response.data.data.foods || []);
     } catch (error) {
       console.error("Lỗi khi lưu món ăn:", error);
       alert("Cập nhật thất bại.");
+    }
+  };
+
+  // Define the function for handling the change of additional items
+  const handleAdditionalChange = (additionalId: string) => {
+    if (editData.additionalIds?.includes(additionalId)) {
+      setEditData({
+        ...editData,
+        additionalIds: editData.additionalIds.filter((id) => id !== additionalId),
+      });
+    } else {
+      setEditData({
+        ...editData,
+        additionalIds: [...(editData.additionalIds || []), additionalId],
+      });
     }
   };
 
@@ -80,6 +151,27 @@ export default function MenuManagement() {
     }
   };
 
+  const handleAddNewFood = async () => {
+    try {
+      const response = await axios.post("http://localhost:6969/grab/foods", {
+        ...newFoodData,
+        restaurantId: Number(restaurantId),
+      });
+
+      if (response.data.code === 202) {
+        alert("Thêm món ăn thành công!");
+        setIsAddFoodModalOpen(false);
+        const fetchFoods = await axios.get(`http://localhost:6969/grab/foods/restaurant/${restaurantId}`);
+        setFoods(fetchFoods.data.data.foods || []);
+      } else {
+        alert("Có lỗi xảy ra khi thêm món ăn.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi thêm món ăn:", error);
+      alert("Thêm món ăn thất bại.");
+    }
+  };
+
   const filteredFoods = activeType ? foods.filter((food) => food.type === activeType) : foods;
 
   if (loading) return <p>Đang tải menu...</p>;
@@ -88,7 +180,9 @@ export default function MenuManagement() {
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Quản lý Menu</h2>
-        <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        <button 
+          onClick={() => setIsAddFoodModalOpen(true)} 
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
           + Thêm món ăn
         </button>
       </div>
@@ -106,7 +200,7 @@ export default function MenuManagement() {
           </button>
         ))}
       </div>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {filteredFoods.map((food) => (
           <div key={food.id} className="flex items-center p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition">
@@ -129,11 +223,7 @@ export default function MenuManagement() {
               </button>
             </div>
             <div className="ml-4 flex-1 relative">
-              <p
-                className={`absolute top-0 right-0 text-sm ${
-                  food.status === 'ACTIVE' ? 'text-green-500' : 'text-red-500'
-                }`}
-              >
+              <p className={`absolute top-0 right-0 text-sm ${food.status === 'ACTIVE' ? 'text-green-500' : 'text-red-500'}`}>
                 {food.status}
               </p>
             </div>
@@ -141,7 +231,7 @@ export default function MenuManagement() {
         ))}
       </div>
 
-      {/* Popup chi tiết món ăn */}
+      {/* Detail Modal */}
       {selectedFood && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-lg">
@@ -150,50 +240,64 @@ export default function MenuManagement() {
               <input
                 type="text"
                 value={editData.name || ""}
-                disabled={!isEditing}
                 onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                 className="w-full border px-3 py-2 rounded"
-                placeholder="Tên món"
+                placeholder="Tên món ăn"
               />
               <input
-                type="number"
-                value={editData.price || 0}
-                disabled={!isEditing}
-                onChange={(e) => setEditData({ ...editData, price: Number(e.target.value) })}
+                type="text"
+                value={editData.image || ""}
+                onChange={(e) => setEditData({ ...editData, image: e.target.value })}
                 className="w-full border px-3 py-2 rounded"
-                placeholder="Giá"
+                placeholder="URL ảnh"
               />
               <textarea
                 value={editData.description || ""}
-                disabled={!isEditing}
                 onChange={(e) => setEditData({ ...editData, description: e.target.value })}
                 className="w-full border px-3 py-2 rounded"
                 placeholder="Mô tả"
               />
+              <input
+                type="number"
+                value={editData.price || 0}
+                onChange={(e) => setEditData({ ...editData, price: Number(e.target.value) })}
+                className="w-full border px-3 py-2 rounded"
+                placeholder="Giá"
+              />
             </div>
-            <div className="flex justify-end space-x-2 mt-4">
-              {isEditing ? (
-                <>
-                  <button onClick={handleSave} className="bg-green-600 text-white px-4 py-2 rounded">
-                    Lưu
-                  </button>
-                  <button onClick={() => setIsEditing(false)} className="bg-gray-300 px-4 py-2 rounded">
-                    Hủy
-                  </button>
-                </>
+
+            {/* Chọn món phụ */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium">Chọn món ăn phụ</label>
+              {isLoadingAdditionalItems ? (
+                <p>Đang tải món phụ...</p>
               ) : (
-                <>
-                  <button onClick={() => setIsEditing(true)} className="bg-blue-600 text-white px-4 py-2 rounded">
-                    Sửa
-                  </button>
-                  <button onClick={handleDelete} className="bg-red-600 text-white px-4 py-2 rounded">
-                    Xóa
-                  </button>
-                  <button onClick={closePopup} className="bg-gray-300 px-4 py-2 rounded">
-                    Đóng
-                  </button>
-                </>
+                <div className="space-y-2">
+                  {additionalItems.map((item) => (
+                    <label key={item.id} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={editData.additionalIds?.includes(item.id)} // Kiểm tra món này đã được chọn chưa
+                        onChange={() => handleAdditionalChange(item.id)} // Hàm xử lý khi chọn món phụ
+                        className="mr-2"
+                      />
+                      {item.name}
+                    </label>
+                  ))}
+                </div>
               )}
+            </div>
+
+            <div className="flex justify-end space-x-2 mt-4">
+              <button onClick={handleSave} className="bg-blue-600 text-white px-4 py-2 rounded">
+                Lưu thay đổi
+              </button>
+              <button onClick={handleDelete} className="bg-red-600 text-white px-4 py-2 rounded">
+                Xóa món ăn
+              </button>
+              <button onClick={closePopup} className="bg-gray-500 text-white px-4 py-2 rounded">
+                Đóng
+              </button>
             </div>
           </div>
         </div>

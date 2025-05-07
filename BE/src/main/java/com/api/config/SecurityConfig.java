@@ -100,6 +100,8 @@ public class SecurityConfig {
                                 .requestMatchers("/reviews/**").permitAll()
                                 .requestMatchers("/ws/**").permitAll()
                                 .requestMatchers("/push-noti/**").permitAll()
+                                .requestMatchers("/cart/test").permitAll()
+
                                 //
                                 // Role-based endpoints
                                 .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
@@ -109,8 +111,8 @@ public class SecurityConfig {
                                 //.requestMatchers({HttpMethod.POST, HttpMethod.PUT}, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
                                 .requestMatchers(/*HttpMethod.GET,*/ "/restaurants/**", "/restaurants").permitAll()
                                 .requestMatchers("/login/oauth2/**", "/oauth2/**","/oauth2/authorization/google").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/foods/**").permitAll()
-                                .requestMatchers("/foods/**", "/food-types").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_RES")
+                                .requestMatchers("/foods/**").permitAll()
+                                .requestMatchers("/food-types").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_RES")
                                 .requestMatchers("/vouchers/**", "/voucherDetails/**").permitAll()
                                 .requestMatchers("/payments/**").permitAll()
                                 .requestMatchers("/location/**").permitAll()

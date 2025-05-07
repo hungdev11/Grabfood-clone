@@ -31,6 +31,9 @@ public class FoodController {
                 .build();
     }
 
+    // xóa food thì kiểm tra cart detailt chưa tạo order thì có quyền xóa
+    // ẩn/ hiện food -> chỉnh status
+
     @PostMapping("/adjust-price")
     public ApiResponse<Long> adjustFoodPrice(@RequestBody AdjustFoodPriceRequest request) {
         return ApiResponse.<Long>builder()
