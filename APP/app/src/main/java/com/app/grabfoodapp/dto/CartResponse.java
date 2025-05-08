@@ -1,5 +1,6 @@
 package com.app.grabfoodapp.dto;
 
+import java.io.Serializable;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -13,7 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CartResponse {
+public class CartResponse implements Serializable {
     private long cartId;
     private String restaurantName;
     private List<CartDetailDTO> listItem;

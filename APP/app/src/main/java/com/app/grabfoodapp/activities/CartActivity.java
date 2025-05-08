@@ -1,10 +1,13 @@
 package com.app.grabfoodapp.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,7 +43,7 @@ public class CartActivity extends AppCompatActivity {
 
     TextView txtTotalCartAmount;
     ImageButton btnCartBack;
-
+    Button btnOrder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +55,7 @@ public class CartActivity extends AppCompatActivity {
         txtCartRestaurantName = findViewById(R.id.restaurantCartName);
         txtTotalCartAmount = findViewById(R.id.totalCartAmount);
         btnCartBack = findViewById(R.id.btnCartBack);
+        btnOrder = findViewById(R.id.btnOrder);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new CartAdapter(cartItems);
         adapter.setOnCartChangeListener(new CartAdapter.OnCartChangeListener() {
@@ -104,6 +108,26 @@ public class CartActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 finish();
+            }
+        });
+
+        btnOrder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (cartItems == null || cartItems.isEmpty()) {
+                    Toast.makeText(CartActivity.this, "Giỏ hàng trống!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Log dữ liệu để kiểm tra
+                Log.d("CartActivity", "Số lượng món trong giỏ hàng: " + cartItems.size());
+                for (CartDetailDTO item : cartItems) {
+                    Log.d("CartActivity", "Món: " + item.getFoodName() + ", Giá: " + item.getPrice());
+                }
+                Intent intent = new Intent(CartActivity.this, CheckoutActivity.class);
+                intent.putExtra("cartItems", new ArrayList<>(cartItems));
+                intent.putExtra("restaurantName", txtCartRestaurantName.getText().toString());
+                startActivity(intent);
             }
         });
     }
