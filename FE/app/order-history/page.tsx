@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { CheckCircle } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import axiosInstance from '@/utils/axiosInstance';
-import { Loader2 } from 'lucide-react'; // Icon xoay tròn từ lucide-react
+import React, { useState, useEffect } from "react";
+import { CheckCircle } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import Header from "@/components/header";
+import { Button } from "@/components/ui/button";
+import axiosInstance from "@/utils/axiosInstance";
+import { Loader2 } from "lucide-react"; // Icon xoay tròn từ lucide-react
 
 // Interface cho dữ liệu API
 interface AdditionalFood {
@@ -37,7 +38,7 @@ interface Order {
   status: string;
   shippingFee: number;
   note: string;
-  review: boolean
+  review: boolean;
   payment_method: string | null;
   cartDetails: CartDetail[];
   discountShippingFee: number | null;
@@ -55,41 +56,46 @@ interface CartItem {
 }
 
 export default function HomePage() {
-  const [reviewInputs, setReviewInputs] = useState<{ [key: number]: { show: boolean; content: string; rating: number } }>({});
-  const [activeButton, setActiveButton] = useState<string>('Tất cả');
+  const [reviewInputs, setReviewInputs] = useState<{
+    [key: number]: { show: boolean; content: string; rating: number };
+  }>({});
+  const [activeButton, setActiveButton] = useState<string>("Tất cả");
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   // Ánh xạ button sang trạng thái API
   const statusMap: { [key: string]: string | undefined } = {
-    'Tất cả': undefined, // Không có status để lấy tất cả
-    'Chờ thanh toán': 'PENDING',
-    'Vận chuyển': 'PENDING', // Giả định, cần xác nhận với backend
-    'Chờ giao hàng': 'PENDING', // Giả định, cần xác nhận với backend
-    'Hoàn thành': 'COMPLETED',
-    'Đã hủy': 'REJECTED',
+    "Tất cả": undefined, // Không có status để lấy tất cả
+    "Chờ thanh toán": "PENDING",
+    "Vận chuyển": "PENDING", // Giả định, cần xác nhận với backend
+    "Chờ giao hàng": "PENDING", // Giả định, cần xác nhận với backend
+    "Hoàn thành": "COMPLETED",
+    "Đã hủy": "REJECTED",
   };
 
   // Hàm lấy dữ liệu từ API
   const fetchOrders = async (status?: string) => {
     try {
-      const response = await axiosInstance.get('http://localhost:6969/grab/order', {
-        params: {
-          status: status, // Truyền status qua params, undefined nếu không có
-        },
-      });
-      console.log('Dữ liệu đơn hàng:', response.data); // In dữ liệu nhận được từ API
-  
+      const response = await axiosInstance.get(
+        "http://localhost:6969/grab/order",
+        {
+          params: {
+            status: status, // Truyền status qua params, undefined nếu không có
+          },
+        }
+      );
+      console.log("Dữ liệu đơn hàng:", response.data); // In dữ liệu nhận được từ API
+
       if (response) {
         setOrders(response.data);
       } else {
-        setError('Không thể tải danh sách đơn hàng.');
+        setError("Không thể tải danh sách đơn hàng.");
       }
       setLoading(false);
     } catch (err) {
-      setError('Lỗi khi tải danh sách đơn hàng. Vui lòng thử lại.');
-      console.error('Lỗi khi gọi API đơn hàng:', err);
+      setError("Lỗi khi tải danh sách đơn hàng. Vui lòng thử lại.");
+      console.error("Lỗi khi gọi API đơn hàng:", err);
       setLoading(false);
     }
   };
@@ -104,66 +110,69 @@ export default function HomePage() {
 
   // Danh sách button điều hướng
   const navButtons = [
-    'Tất cả',
-    'Chờ thanh toán',
-    'Vận chuyển',
-    'Chờ giao hàng',
-    'Hoàn thành',
-    'Đã hủy',
+    "Tất cả",
+    "Chờ thanh toán",
+    "Vận chuyển",
+    "Chờ giao hàng",
+    "Hoàn thành",
+    "Đã hủy",
   ];
 
   // Hiển thị trạng thái đơn hàng
   const getStatusDisplay = (status: string) => {
     switch (status) {
-      case 'PENDING':
-        return { text: 'Chờ xử lý', color: 'text-yellow-500' };
-      case 'COMPLETED':
-        return { text: 'Hoàn thành', color: 'text-green-500' };
-      case 'REJECTED':
-        return { text: 'Đã hủy', color: 'text-red-500' };
-      case 'CANCELLED':
-        return { text: 'Đã hủy', color: 'text-red-500' };
+      case "PENDING":
+        return { text: "Chờ xử lý", color: "text-yellow-500" };
+      case "COMPLETED":
+        return { text: "Hoàn thành", color: "text-green-500" };
+      case "REJECTED":
+        return { text: "Đã hủy", color: "text-red-500" };
+      case "CANCELLED":
+        return { text: "Đã hủy", color: "text-red-500" };
       default:
-        return { text: status, color: 'text-gray-500' };
+        return { text: status, color: "text-gray-500" };
     }
   };
 
   const toggleReviewInput = (orderId: number) => {
-    setReviewInputs(prev => ({
+    setReviewInputs((prev) => ({
       ...prev,
       [orderId]: {
         show: !prev[orderId]?.show,
-        content: '',
+        content: "",
         rating: 5,
-      }
+      },
     }));
   };
-  
-  const handleReviewChange = (orderId: number, field: 'content' | 'rating', value: string | number) => {
-    setReviewInputs(prev => ({
+
+  const handleReviewChange = (
+    orderId: number,
+    field: "content" | "rating",
+    value: string | number
+  ) => {
+    setReviewInputs((prev) => ({
       ...prev,
       [orderId]: {
         ...prev[orderId],
         [field]: value,
-      }
+      },
     }));
   };
-  
+
   const submitReview = async (orderId: number) => {
     const { content, rating } = reviewInputs[orderId];
     try {
-      await axiosInstance.post('http://localhost:6969/grab/reviews', {
+      await axiosInstance.post("http://localhost:6969/grab/reviews", {
         orderId,
         reviewMessage: content, // Dùng reviewMessage thay vì content
         rating,
       });
-      alert('Đánh giá thành công!');
+      alert("Đánh giá thành công!");
       fetchOrders(statusMap[activeButton]); // refresh lại đơn hàng
     } catch (err) {
-      alert('Lỗi khi gửi đánh giá');
+      alert("Lỗi khi gửi đánh giá");
     }
   };
-  
 
   if (loading) {
     return (
@@ -180,22 +189,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white p-4 shadow-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center">
-            <div className="text-[#00B14F] font-bold text-xl">GrabFood</div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              className="px-4 py-2 border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
-              asChild
-            >
-              <Link href="/login">Đăng nhập/Đăng ký</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <div className="container mx-auto p-4 max-w-4xl">
         {/* Thanh điều hướng */}
@@ -207,8 +201,8 @@ export default function HomePage() {
                 onClick={() => setActiveButton(button)}
                 className={`px-3 py-1 rounded whitespace-nowrap ${
                   activeButton === button
-                    ? 'bg-green-500 text-white'
-                    : 'text-gray-700 hover:text-green-500'
+                    ? "bg-green-500 text-white"
+                    : "text-gray-700 hover:text-green-500"
                 }`}
               >
                 {button}
@@ -235,22 +229,34 @@ export default function HomePage() {
             </div>
           ) : (
             orders.map((order) => (
-              <div key={order.id} className="bg-white p-4 rounded-lg shadow mb-4">
+              <div
+                key={order.id}
+                className="bg-white p-4 rounded-lg shadow mb-4"
+              >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
                   <div className="flex items-center space-x-2 mb-2 sm:mb-0">
-                    <span className="text-gray-700 font-medium">{order.restaurantName||"Khong xac dinh"}</span>
+                    <span className="text-gray-700 font-medium">
+                      {order.restaurantName || "Khong xac dinh"}
+                    </span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <button 
-                    onClick={() => window.location.href=`http://localhost:3000/restaurant/${order.restaurantId}`}
-                    className="border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-100 text-sm">
+                    <button
+                      onClick={() =>
+                        (window.location.href = `http://localhost:3000/restaurant/${order.restaurantId}`)
+                      }
+                      className="border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-100 text-sm"
+                    >
                       Xem Shop
                     </button>
-                    <div className="flex items-center space-x-1"> 
-                      {order.status === 'COMPLETED' && (
+                    <div className="flex items-center space-x-1">
+                      {order.status === "COMPLETED" && (
                         <CheckCircle className="text-green-500 w-4 h-4" />
                       )}
-                      <span className={`font-semibold text-sm ${getStatusDisplay(order.status).color}`}>
+                      <span
+                        className={`font-semibold text-sm ${
+                          getStatusDisplay(order.status).color
+                        }`}
+                      >
                         {getStatusDisplay(order.status).text.toUpperCase()}
                       </span>
                     </div>
@@ -259,7 +265,10 @@ export default function HomePage() {
 
                 {/* Thông tin món ăn */}
                 {order.cartDetails.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between mb-3">
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between mb-3"
+                  >
                     <div className="flex items-center gap-2">
                       <Image
                         src={item.food_img}
@@ -269,7 +278,9 @@ export default function HomePage() {
                         className="rounded-md object-cover"
                       />
                       <div>
-                        <h3 className="text-base font-medium">{item.foodName}</h3>
+                        <h3 className="text-base font-medium">
+                          {item.foodName}
+                        </h3>
                         <div className="text-xs text-gray-600">
                           {item.additionFoods.map((food) => (
                             <p key={food.id}>+ {food.name}</p>
@@ -304,74 +315,91 @@ export default function HomePage() {
                   </div>
                   <div className="flex justify-between text-sm text-gray-600 mb-1">
                     <span>
-                      Phí vận chuyển <span className="text-blue-500 cursor-pointer">ⓘ</span>
+                      Phí vận chuyển{" "}
+                      <span className="text-blue-500 cursor-pointer">ⓘ</span>
                     </span>
                     <span>{order.shippingFee.toLocaleString()} đ</span>
                   </div>
-                  {(order.discountOrderPrice ?? 0 ) !== 0 && (
+                  {(order.discountOrderPrice ?? 0) !== 0 && (
                     <div className="flex justify-between text-sm text-gray-600 mb-1">
-                        <span>Giảm giá </span>
-                        <span>- {(order.discountOrderPrice??0).toLocaleString()} đ</span>
+                      <span>Giảm giá </span>
+                      <span>
+                        - {(order.discountOrderPrice ?? 0).toLocaleString()} đ
+                      </span>
                     </div>
-                  ) }
-                  {(order.discountShippingFee ?? 0 ) !== 0 && (
+                  )}
+                  {(order.discountShippingFee ?? 0) !== 0 && (
                     <div className="flex justify-between text-sm text-gray-600 mb-1">
-                        <span>Giảm giá vận chuyển</span>
-                        <span>- {(order.discountShippingFee??0).toLocaleString()} đ</span>
+                      <span>Giảm giá vận chuyển</span>
+                      <span>
+                        - {(order.discountShippingFee ?? 0).toLocaleString()} đ
+                      </span>
                     </div>
-                  ) }
+                  )}
                 </div>
 
                 {/* Nút hành động */}
                 <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-4">
-                {order.status === 'COMPLETED' && (
-  order.review ? (
-    <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-100 w-full sm:w-auto cursor-not-allowed">
-      Đã đánh giá
-    </button>
-  ) : (
-    <>
-      <button
-        onClick={() => toggleReviewInput(order.id)}
-        className="border border-gray-300 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full sm:w-auto"
-      >
-        {reviewInputs[order.id]?.show ? 'Đóng' : 'Đánh giá'}
-      </button>
+                  {order.status === "COMPLETED" &&
+                    (order.review ? (
+                      <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-100 w-full sm:w-auto cursor-not-allowed">
+                        Đã đánh giá
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => toggleReviewInput(order.id)}
+                          className="border border-gray-300 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full sm:w-auto"
+                        >
+                          {reviewInputs[order.id]?.show ? "Đóng" : "Đánh giá"}
+                        </button>
 
-      {reviewInputs[order.id]?.show && (
-        <div className="w-full mt-3 space-y-2">
-          <textarea
-            className="w-full border rounded px-3 py-2"
-            rows={3}
-            placeholder="Nhập đánh giá..."
-            value={reviewInputs[order.id].content}
-            onChange={(e) => handleReviewChange(order.id, 'content', e.target.value)}
-          />
-          <div className="flex items-center space-x-2">
-            <label className="text-sm">Số sao:</label>
-            <select
-              className="border px-2 py-1 rounded"
-              value={reviewInputs[order.id].rating}
-              onChange={(e) => handleReviewChange(order.id, 'rating', Number(e.target.value))}
-            >
-              {[5, 4, 3, 2, 1].map((star) => (
-                <option key={star} value={star}>{star}</option>
-              ))}
-            </select>
-            <button
-              onClick={() => submitReview(order.id)}
-              disabled={!reviewInputs[order.id].content}
-              className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 disabled:opacity-50"
-            >
-              Gửi đánh giá
-            </button>
-          </div>
-        </div>
-      )}
-    </>
-  )
-)}
-
+                        {reviewInputs[order.id]?.show && (
+                          <div className="w-full mt-3 space-y-2">
+                            <textarea
+                              className="w-full border rounded px-3 py-2"
+                              rows={3}
+                              placeholder="Nhập đánh giá..."
+                              value={reviewInputs[order.id].content}
+                              onChange={(e) =>
+                                handleReviewChange(
+                                  order.id,
+                                  "content",
+                                  e.target.value
+                                )
+                              }
+                            />
+                            <div className="flex items-center space-x-2">
+                              <label className="text-sm">Số sao:</label>
+                              <select
+                                className="border px-2 py-1 rounded"
+                                value={reviewInputs[order.id].rating}
+                                onChange={(e) =>
+                                  handleReviewChange(
+                                    order.id,
+                                    "rating",
+                                    Number(e.target.value)
+                                  )
+                                }
+                              >
+                                {[5, 4, 3, 2, 1].map((star) => (
+                                  <option key={star} value={star}>
+                                    {star}
+                                  </option>
+                                ))}
+                              </select>
+                              <button
+                                onClick={() => submitReview(order.id)}
+                                disabled={!reviewInputs[order.id].content}
+                                className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 disabled:opacity-50"
+                              >
+                                Gửi đánh giá
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ))}
                 </div>
               </div>
             ))

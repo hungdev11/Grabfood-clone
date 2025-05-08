@@ -10,6 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -45,6 +46,7 @@ public class CartActivity extends AppCompatActivity {
     ImageButton btnCartBack;
     Button btnOrder;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,19 +58,35 @@ public class CartActivity extends AppCompatActivity {
         txtTotalCartAmount = findViewById(R.id.totalCartAmount);
         btnCartBack = findViewById(R.id.btnCartBack);
         btnOrder = findViewById(R.id.btnOrder);
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new CartAdapter(cartItems);
-        adapter.setOnCartChangeListener(new CartAdapter.OnCartChangeListener() {
-            @Override
-            public void onCartChanged() {
-                updateTotalPrice();
-            }
-        });
+        adapter.setOnCartChangeListener(() -> updateTotalPrice());
         recyclerView.setAdapter(adapter);
 
-        CartService cartService = ApiClient.getClient().create(CartService.class);
+        reloadCartList();  // <- gọi API tách riêng
 
-        Call<ApiResponse<CartResponse>>  call = cartService.getCart();
+        btnCartBack.setOnClickListener(v -> finish());
+    }
+
+
+    private void updateTotalPrice() {
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        for (CartDetailDTO item : cartItems) {
+            BigDecimal itemPrice = item.getPrice();
+            for (int i = 0; i < item.getAdditionFoods().size(); i++) {
+                itemPrice = itemPrice.add(item.getAdditionFoods().get(i).getPrice());
+            }
+            totalPrice = totalPrice.add(itemPrice.multiply(BigDecimal.valueOf(item.getQuantity())));
+        }
+
+        NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+        txtTotalCartAmount.setText("Tổng cộng: " + formatter.format(totalPrice) + "đ");
+    }
+
+    private void reloadCartList() {
+        CartService cartService = ApiClient.getClient().create(CartService.class);
+        Call<ApiResponse<CartResponse>> call = cartService.getCart();
 
         call.enqueue(new Callback<ApiResponse<CartResponse>>() {
             @Override
@@ -79,8 +97,9 @@ public class CartActivity extends AppCompatActivity {
                         cartItems.clear();
                         cartItems.addAll(apiResponse.getData().getListItem());
                         txtCartRestaurantName.setText(apiResponse.getData().getRestaurantName());
+
                         BigDecimal totalPrice = BigDecimal.ZERO;
-                        for (CartDetailDTO item: cartItems) {
+                        for (CartDetailDTO item : cartItems) {
                             BigDecimal itemPrice = item.getPrice();
                             for (int i = 0; i < item.getAdditionFoods().size(); i++) {
                                 itemPrice = itemPrice.add(item.getAdditionFoods().get(i).getPrice());
@@ -90,10 +109,11 @@ public class CartActivity extends AppCompatActivity {
 
                         NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
                         txtTotalCartAmount.setText("Tổng cộng: " + formatter.format(totalPrice) + "đ");
+
+                        adapter.setRestaurantId(apiResponse.getData().getRestaurantId());
                         adapter.notifyDataSetChanged();
                     }
-                }
-                else {
+                } else {
                     Log.e("API", "Lỗi server: " + response.code());
                 }
             }
@@ -103,6 +123,7 @@ public class CartActivity extends AppCompatActivity {
                 Log.e("API", "Lỗi mạng hoặc URL: " + t.getMessage());
             }
         });
+
 
         btnCartBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -131,19 +152,13 @@ public class CartActivity extends AppCompatActivity {
             }
         });
     }
-
-    private void updateTotalPrice() {
-        BigDecimal totalPrice = BigDecimal.ZERO;
-        for (CartDetailDTO item : cartItems) {
-            BigDecimal itemPrice = item.getPrice();
-            for (int i = 0; i < item.getAdditionFoods().size(); i++) {
-                itemPrice = itemPrice.add(item.getAdditionFoods().get(i).getPrice());
-            }
-            totalPrice = totalPrice.add(itemPrice.multiply(BigDecimal.valueOf(item.getQuantity())));
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1001 && resultCode == RESULT_OK) {
+            reloadCartList();  // Viết hàm này để gọi API load giỏ hàng mới và gọi adapter.notifyDataSetChanged()
         }
-
-        NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
-        txtTotalCartAmount.setText("Tổng cộng: " + formatter.format(totalPrice) + "đ");
     }
+
 
 }

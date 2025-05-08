@@ -26,5 +26,5 @@ public interface FoodService {
     void addAdditionalFoodToFoodOfRestaurant(AddAdditionalFoodsRequest request);
     PageResponse<List<GetFoodResponse>> getAdditionalFoodsOfFood (long restaurantId, long foodId, boolean isForCustomer, int page, int pageSize);
     void updateFoodInfo(long restaurantId, long foodId, UpdateFoodInfoRequest request);
-    GetFoodGroupResponse getFoodGroupOfRestaurant(long restaurantId);
+    GetFoodGroupResponse getFoodGroupOfRestaurant(long restaurantId, boolean isForCustomer);
 }

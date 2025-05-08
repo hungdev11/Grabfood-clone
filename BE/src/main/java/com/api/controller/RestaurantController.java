@@ -5,6 +5,7 @@ import com.api.dto.response.ApiResponse;
 import com.api.dto.response.RestaurantResponse;
 import com.api.entity.Restaurant;
 import com.api.service.RestaurantService;
+import com.api.utils.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,12 +28,15 @@ public class RestaurantController {
                 .build();
     }
 
-    @GetMapping("/{restaurant_id}")
-    public ApiResponse<RestaurantResponse> getRestaurantById(@PathVariable long restaurant_id, @RequestParam double userLat, double userLon) {
+    @GetMapping("/{restaurantId}")
+    public ApiResponse<RestaurantResponse> getRestaurantById(
+            @PathVariable long restaurantId,
+            @RequestParam(defaultValue = "-1") double userLat,
+            @RequestParam(defaultValue = "-1") double userLon) {
         return ApiResponse.<RestaurantResponse>builder()
                 .code(200)
                 .message("Success")
-                .data(restaurantService.getRestaurantResponse(restaurant_id, userLat, userLon))
+                .data(restaurantService.getRestaurantResponse(restaurantId, userLat, userLon))
                 .build();
     }
 
@@ -57,6 +61,15 @@ public class RestaurantController {
                 .data(restaurantService.getNearbyRestaurants(userLat, userLon, radiusKm))
                 .message("Success")
                 .code(200)
+                .build();
+    }
+
+    @PutMapping("/{restaurantId}/handle-order/{orderId}")
+    public ApiResponse<?> handleOrder(@PathVariable long restaurantId, @PathVariable Long orderId, @RequestParam OrderStatus status) {
+        restaurantService.handlePendingOrder(restaurantId, orderId, status);
+        return ApiResponse.builder()
+                .code(200)
+                .message("Success")
                 .build();
     }
 }

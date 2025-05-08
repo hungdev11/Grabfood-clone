@@ -1,15 +1,12 @@
 package com.api.service.Imp;
 
-import com.api.controller.NotificationController;
 import com.api.dto.request.ApplyVoucherRequest;
 import com.api.dto.request.CreateOrderRequest;
 import com.api.dto.response.*;
 import com.api.entity.*;
 import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
-import com.api.mapper.OrderMapper;
 import com.api.repository.*;
-import com.api.service.CartService;
 import com.api.service.FoodService;
 import com.api.service.OrderService;
 import com.api.utils.OrderStatus;
@@ -18,13 +15,13 @@ import com.api.utils.VoucherStatus;
 import com.api.utils.VoucherType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,8 +48,6 @@ public class OrderServiceImp implements OrderService {
 
     private final FoodService foodService;
 
-    private final NotificationController notificationController;
-
     @Override
     @Transactional
     public Order createOrder(CreateOrderRequest request) {
@@ -68,6 +63,7 @@ public class OrderServiceImp implements OrderService {
                 .address(request.getAddress())
                 .shippingFee(request.getShippingFee())
                 .user(user)
+                .cartDetails(cartDetails)
                 .status(OrderStatus.PENDING)
                 .totalPrice(getTotalPrice(cartDetails))
                 .discountShippingFee(BigDecimal.ZERO)
@@ -134,7 +130,6 @@ public class OrderServiceImp implements OrderService {
             cartDetail.setOrder(order);
             cartDetailRepository.save(cartDetail);
         }
-        //notificationController.sendNewOrderNotification(f, null);
         return orderRepository.findById(order.getId()).orElseThrow(() ->
                 new AppException(ErrorCode.ORDER_NOT_FOUND)
         );
@@ -227,10 +222,15 @@ public class OrderServiceImp implements OrderService {
 
     @Override
     public Order getOrderById(Long orderId) {
-        return orderRepository.findById(orderId).orElseThrow(() -> {
+        log.info("IN ORDER SERVICE");
+         var order = orderRepository.findById(orderId).orElseThrow(() -> {
             log.error("Order {} not found", orderId);
             throw new AppException(ErrorCode.ORDER_NOT_FOUND);
         });
+        log.info("Order id {}", orderId);
+        log.info("Order loaded: {}", order);
+        log.info("CartDetails: {}", order.getCartDetails());
+         return order;
     }
 
     @Override
@@ -277,6 +277,32 @@ public class OrderServiceImp implements OrderService {
                 .isReview(reviewRepository.existsByOrder(order))
                 .cartDetails(order.getCartDetails().stream().map(this::toCartDetailResponse).toList())
                 .build()).toList();
+    }
+
+    @Override
+    public GetOrderGroupResponse getRestaurantOrders(long restaurantId) {
+        List<String> statusList = Arrays.stream(OrderStatus.values())
+                .map(Enum::name)
+                .collect(Collectors.toList());
+        List<Order> orders = listAllOrdersOfRestaurant(restaurantId);
+        List<OrderResponse> responses = orders.stream().map(order -> OrderResponse.builder()
+                .id(order.getId())
+                .userName(order.getUser().getName())
+                .address(order.getAddress())
+                .status(order.getStatus())
+                .note(order.getNote())
+                .totalPrice(order.getTotalPrice())
+                .shippingFee(order.getShippingFee())
+                .discountOrderPrice(order.getDiscountOrderPrice())
+                .discountShippingFee(order.getDiscountShippingFee())
+                .createdAt(order.getOrderDate())
+                .isReview(reviewRepository.existsByOrder(order) || order.getOrderDate().plusDays(10).isBefore(LocalDateTime.now()))
+                .cartDetails(order.getCartDetails().stream().map(this::toCartDetailResponse).toList())
+                .build()).toList();
+        return GetOrderGroupResponse.builder()
+                .statusList(statusList)
+                .orders(responses)
+                .build();
     }
 
     private BigDecimal getTotalPrice(List<CartDetail> cartDetails) {

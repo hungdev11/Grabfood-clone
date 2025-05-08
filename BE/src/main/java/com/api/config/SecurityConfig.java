@@ -97,9 +97,11 @@ public class SecurityConfig {
                                 // Public endpoints
                                 .requestMatchers("/auth/welcome", "/auth/addNewAccount", "/auth/generateToken").permitAll()
                                 //
-                                .requestMatchers("reviews/**").permitAll()
+                                .requestMatchers("/reviews/**").permitAll()
                                 .requestMatchers("/ws/**").permitAll()
                                 .requestMatchers("/push-noti/**").permitAll()
+                                .requestMatchers("/cart/test").permitAll()
+
                                 //
                                 // Role-based endpoints
                                 .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
@@ -108,11 +110,15 @@ public class SecurityConfig {
                                 .requestMatchers("/order/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/restaurants/**", "/restaurants").permitAll()
+                                .requestMatchers("/cart/**").hasAuthority("ROLE_USER")
+                                .requestMatchers("/order/**").permitAll()//hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                                //.requestMatchers({HttpMethod.POST, HttpMethod.PUT}, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
+                                .requestMatchers(/*HttpMethod.GET,*/ "/restaurants/**", "/restaurants").permitAll()
                                 .requestMatchers("/login/oauth2/**", "/oauth2/**","/oauth2/authorization/google").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/foods/**").permitAll()
-                                .requestMatchers("/foods/**", "/food-types").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_RES")
+                                .requestMatchers("/foods/**").permitAll()
+                                .requestMatchers("/food-types").permitAll()
                                 .requestMatchers("/vouchers/**", "/voucherDetails/**").permitAll()
-                                .requestMatchers("payments/**").permitAll()
+                                .requestMatchers("/payments/**").permitAll()
                                 .requestMatchers("/location/**").permitAll()
 //                        .requestMatchers("/cart/**", "/order/**", "/restaurants/**").permitAll()
 //                        .requestMatchers("/foods/**","food-types").permitAll()

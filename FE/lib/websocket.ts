@@ -5,31 +5,49 @@ let stompClient: Client | null = null;
 let orderSubscription: any = null;
 
 export const connectWebSocket = (
-  restaurantId: string,
+  channelId: string,
   onOrderReceived: (order: any) => void,
 ) => {
-  const socket = new SockJS('http://localhost:6969/grab/ws'); // Backend WebSocket URL
+  const socketUrl = 'http://localhost:6969/grab/ws'; // Update theo backend URL
 
   stompClient = new Client({
-    webSocketFactory: () => socket,
-    debug: (str: string) => {
-      console.log('STOMP Debug: ', str); // Log debug để kiểm tra kết nối
-    },
-    onConnect: () => {
-      console.log('Connected to WebSocket'); // Log khi kết nối thành công
+    webSocketFactory: () => new SockJS(socketUrl),
+    debug: (str: string) => console.log('STOMP Debug: ', str),
+    reconnectDelay: 5000, // Tự động reconnect sau 5s
+    heartbeatIncoming: 4000, // Nhận ping mỗi 4s
+    heartbeatOutgoing: 4000, // Gửi ping mỗi 4s
 
-      // Subcribe đơn hàng mới
-      const topic = `/topic/restaurant/${restaurantId}`;
+    onConnect: () => {
+      console.log('✅ Connected to WebSocket');
+      const topic = `/topic/${channelId}`;
+
+      // Clear subscription cũ (nếu có)
+      if (orderSubscription) {
+        orderSubscription.unsubscribe();
+      }
+
       orderSubscription = stompClient?.subscribe(topic, (message: IMessage) => {
-        // Kiểm tra nếu bạn nhận được chuỗi văn bản, không cần phải parse
-        const orderMessage = message.body; // Đây là chuỗi văn bản, không phải JSON
-        console.log('Received order message:', orderMessage); // Để kiểm tra
-        onOrderReceived(orderMessage); // Gọi callback
-    });
-    
+        try {
+          const orderObject = JSON.parse(message.body);
+          console.log('📦 Received order object:', orderObject);
+          onOrderReceived(orderObject);
+        } catch (e) {
+          console.error('❌ Failed to parse order message', e);
+        }
+      });
     },
+
     onDisconnect: () => {
-      console.log('Disconnected from WebSocket'); // Log khi mất kết nối
+      console.log('⚠️ Disconnected from WebSocket');
+    },
+
+    onStompError: (frame) => {
+      console.error('❗ Broker reported error: ' + frame.headers['message']);
+      console.error('❗ Additional details: ' + frame.body);
+    },
+
+    onWebSocketError: (event) => {
+      console.error('❗ WebSocket error', event);
     },
   });
 
@@ -39,9 +57,9 @@ export const connectWebSocket = (
 export const disconnectWebSocket = () => {
   if (stompClient) {
     if (orderSubscription) {
-      orderSubscription.unsubscribe(); // Ngừng subscribe khi không cần nữa
+      orderSubscription.unsubscribe();
     }
     stompClient.deactivate();
-    console.log('WebSocket disconnected'); // Log khi kết nối bị hủy
+    console.log('❎ WebSocket disconnected');
   }
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import ForgotPassword from "@/components/ForgotPassword";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
@@ -21,54 +22,58 @@ import Link from "next/link";
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
-// Check for token when component mounts (for OAuth redirect)
-useEffect(() => {
+  // Check for token when component mounts (for OAuth redirect)
+  useEffect(() => {
+    try {
+      console.log("Full URL:", window.location.href);
+      const queryParams = new URLSearchParams(window.location.search);
+      let token = queryParams.get("token");
 
-  try {
-    console.log("Full URL:", window.location.href);
-    const queryParams = new URLSearchParams(window.location.search);
-    let token = queryParams.get('token');
-    
-    console.log("Token from query params:", token);
+      console.log("Token from query params:", token);
 
-    const fragment = window.location.hash.substring(1);
-    console.log("URL fragment:", fragment);
-    
-    // Combine token and fragment to get the full token
-    if (token && fragment) {
-      token = token + "#" + fragment;
-      console.log("Combined token:", token);
-    }
+      const fragment = window.location.hash.substring(1);
+      console.log("URL fragment:", fragment);
 
-    if (token) {
-      // Process the token in the same format as regular login (UserId#token)
-      const [userIdPart, jwtPart] = token.split('#');
-      
-      console.log("Token parts:", { userIdPart, jwtPart }); // Debug token parsing
-      
-      if (!userIdPart || !jwtPart) {
-        alert("Invalid token format received from OAuth login");
-        return;
+      // Combine token and fragment to get the full token
+      if (token && fragment) {
+        token = token + "#" + fragment;
+        console.log("Combined token:", token);
       }
-      
-      // Store token parts in localStorage
-      localStorage.setItem("grabToken", jwtPart);
-      localStorage.setItem("grabUserId", userIdPart);
-      
-      // Clean URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-      
-      // Notify user and redirect
-      alert("Google login successful!");
-      window.location.href = "/";
+
+      if (token) {
+        // Process the token in the same format as regular login (UserId#token)
+        const [userIdPart, jwtPart] = token.split("#");
+
+        console.log("Token parts:", { userIdPart, jwtPart }); // Debug token parsing
+
+        if (!userIdPart || !jwtPart) {
+          alert("Invalid token format received from OAuth login");
+          return;
+        }
+
+        // Store token parts in localStorage
+        localStorage.setItem("grabToken", jwtPart);
+        localStorage.setItem("grabUserId", userIdPart);
+
+        // Clean URL
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
+
+        // Notify user and redirect
+        alert("Google login successful!");
+        window.location.href = "/";
+      }
+    } catch (error) {
+      console.error("Error processing OAuth redirect:", error);
+      alert("Something went wrong with the login process. Please try again.");
     }
-  } catch (error) {
-    console.error("Error processing OAuth redirect:", error);
-    alert("Something went wrong with the login process. Please try again.");
-  }
-}, []);
-  
+  }, []);
+
   // Login form state
   const [loginData, setLoginData] = useState({
     username: "", // Changed from email to username for flexibility
@@ -102,7 +107,8 @@ useEffect(() => {
   // Handle Google OAuth login
   const handleGoogleLogin = () => {
     console.log("Redirecting to Google OAuth...");
-    window.location.href = "http://localhost:6969/grab/oauth2/authorization/google";
+    window.location.href =
+      "http://localhost:6969/grab/oauth2/authorization/google";
   };
   // Handle login submission
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -110,41 +116,42 @@ useEffect(() => {
     setIsLoading(true);
 
     try {
-      
       const requestBody = {
         username: loginData.username,
         password: loginData.password,
       };
       console.log("Sending auth request:", requestBody);
-      const response = await fetch("http://localhost:6969/grab/auth/generateToken", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
-
+      const response = await fetch(
+        "http://localhost:6969/grab/auth/generateToken",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
-      throw new Error(errorText || "Login failed");
+        throw new Error(errorText || "Login failed");
       }
 
       // Get response as text since the backend returns a plain string token
-    const token = await response.text();
-    
-    const [userIdPart, jwtPart] = token.split('#');
+      const token = await response.text();
 
-    if (!userIdPart || !jwtPart) {
-      throw new Error("Invalid token format received from server");
-    }
+      const [userIdPart, jwtPart] = token.split("#");
 
-    // Lưu vào localStorage
-    localStorage.setItem("grabToken", jwtPart);
-    localStorage.setItem("grabUserId", userIdPart);
-    
-    // Success message
-    alert("Login successful!");
+      if (!userIdPart || !jwtPart) {
+        throw new Error("Invalid token format received from server");
+      }
+
+      // Lưu vào localStorage
+      localStorage.setItem("grabToken", jwtPart);
+      localStorage.setItem("grabUserId", userIdPart);
+
+      // Success message
+      alert("Login successful!");
       // Redirect to home page
       window.location.href = "/";
     } catch (error: any) {
@@ -167,37 +174,43 @@ useEffect(() => {
     }
 
     try {
-      const response = await fetch("http://localhost:6969/grab/auth/addNewAccount", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: registerData.name,
-          email: registerData.email,
-          password: registerData.password,
-          phone: registerData.phone,
-        }),
-      });
+      const response = await fetch(
+        "http://localhost:6969/grab/auth/addNewAccount",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: registerData.name,
+            email: registerData.email,
+            password: registerData.password,
+            phone: registerData.phone,
+          }),
+        }
+      );
 
       // Get text response instead of trying to parse JSON
-    const responseText = await response.text();
+      const responseText = await response.text();
 
-    if (!response.ok) {
-      throw new Error(responseText || "Registration failed");
-    }
+      if (!response.ok) {
+        throw new Error(responseText || "Registration failed");
+      }
 
-    // Check if registration was successful based on response text
-    if (responseText.includes("Account Added") || responseText.includes("Success")) {
-      alert("Registration successful! Please log in.");
-      // Switch to login tab
-      document.getElementById("login-tab")?.click();
-    } else {
-      // If we got an OK response but unexpected message
-      console.warn("Unexpected response:", responseText);
-      alert("Registration completed. Please log in.");
-      document.getElementById("login-tab")?.click();
-    }
+      // Check if registration was successful based on response text
+      if (
+        responseText.includes("Account Added") ||
+        responseText.includes("Success")
+      ) {
+        alert("Registration successful! Please log in.");
+        // Switch to login tab
+        document.getElementById("login-tab")?.click();
+      } else {
+        // If we got an OK response but unexpected message
+        console.warn("Unexpected response:", responseText);
+        alert("Registration completed. Please log in.");
+        document.getElementById("login-tab")?.click();
+      }
     } catch (error: any) {
       console.error("Registration error:", error);
       alert("Registration failed. Please try again.");
@@ -249,13 +262,14 @@ useEffect(() => {
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="password">Password</Label>
-                        <a
-                          href="#"
+                        <Label htmlFor="password">Mật khẩu</Label>
+                        <button
+                          type="button"
                           className="text-sm text-green-600 hover:underline"
+                          onClick={() => setForgotPasswordOpen(true)}
                         >
-                          Forgot password?
-                        </a>
+                          Quên mật khẩu?
+                        </button>
                       </div>
                       <Input
                         id="password"
@@ -362,22 +376,22 @@ useEffect(() => {
                 </div>
 
                 <div className="mt-4 flex justify-center">
-                    <Button 
-                      variant="outline" 
-                      type="button" 
-                      className="w-1/2"
-                      onClick={handleGoogleLogin}
+                  <Button
+                    variant="outline"
+                    type="button"
+                    className="w-1/2"
+                    onClick={handleGoogleLogin}
+                  >
+                    <svg
+                      className="mr-2 h-4 w-4"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      <svg
-                        className="mr-2 h-4 w-4"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.907 8.907 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z"></path>
-                      </svg>
-                      Google
-                    </Button>
-                  </div>
+                      <path d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.907 8.907 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z"></path>
+                    </svg>
+                    Google
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -385,6 +399,10 @@ useEffect(() => {
       </main>
 
       <Footer />
+      <ForgotPassword
+        isOpen={forgotPasswordOpen}
+        onClose={() => setForgotPasswordOpen(false)}
+      />
     </div>
   );
 }

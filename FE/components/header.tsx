@@ -39,6 +39,10 @@ export default function Header() {
         } else {
           setIsLoggedIn(false);
           setUsername("");
+            // Reset cart state when logged out
+            setItemCount(0);
+            setTotalPrice(0);
+            setIsCartOpen(false);
         }
       };
       
@@ -58,6 +62,9 @@ export default function Header() {
       localStorage.removeItem("grabUserId");
       setIsLoggedIn(false);
       setUsername("");
+        setItemCount(0);
+        setTotalPrice(0);
+        setIsCartOpen(false);
       window.location.href = "/";
     };
   
@@ -80,33 +87,45 @@ export default function Header() {
           </div>
           <div className="flex items-center gap-3">
             <NotificationBell />
-            {itemCount > 0 ? (
-              <Button id="cart-button"
-                className="bg-green-500 hover:bg-green-600 text-white rounded-md px-4 py-2 flex items-center gap-2 relative"
-                onClick={() => setIsCartOpen(!isCartOpen)}
-              >
-                <span className="absolute -top-2 -left-2 bg-white text-green-500 rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold border border-green-500">
-                  {itemCount}
-                </span>
-                <ShoppingBag className="h-5 w-5 text-white" />
-                <span>{totalPrice.toLocaleString("vi-VN")} đ</span>
-              </Button>
-            ) : (
-              <Button id="cart-button"
-                variant="outline"
-                className="p-2 border-gray-300 rounded-md"
-                onClick={() => setIsCartOpen(!isCartOpen)}
-              >
-                <ShoppingCart className="h-5 w-5 text-gray-600" />
-              </Button>
-            )}
-            
+              {isLoggedIn && (
+                  <>
+                      {itemCount > 0 ? (
+                          <Button
+                              id="cart-button"
+                              className="bg-green-500 hover:bg-green-600 text-white rounded-md px-4 py-2 flex items-center gap-2 relative"
+                              onClick={() => setIsCartOpen(!isCartOpen)}
+                          >
+                    <span className="absolute -top-2 -left-2 bg-white text-green-500 rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold border border-green-500">
+                      {itemCount}
+                    </span>
+                              <ShoppingBag className="h-5 w-5 text-white" />
+                              <span>{totalPrice.toLocaleString("vi-VN")} đ</span>
+                          </Button>
+                      ) : (
+                          <Button
+                              id="cart-button"
+                              variant="outline"
+                              className="p-2 border-gray-300 rounded-md"
+                              onClick={() => setIsCartOpen(!isCartOpen)}
+                          >
+                              <ShoppingCart className="h-5 w-5 text-gray-600" />
+                          </Button>
+                      )}
+                  </>
+              )}
+
             {isLoggedIn ? (
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full">
+                <Link
+                  href="/account"
+                  className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full hover:text-green-600 transition-colors"
+                >
                   <User className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm font-medium">{username}</span>
-                </div>
+                  <span className="text-sm font-medium">
+                    {username || "Tài khoản"}
+                  </span>
+                </Link>
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -123,20 +142,20 @@ export default function Header() {
                 className="px-4 py-2 border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
                 asChild
               >
-                <Link href="/login">
-                  Login/Sign Up
-                </Link>
+                <Link href="/login">Login/Sign Up</Link>
               </Button>
             )}
           </div>
         </div>
       </header>
 
-      <Cart
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        onCartChange={handleCartChange}
-      />
+      {isLoggedIn && (
+        <Cart
+          isOpen={isCartOpen}
+          onClose={() => setIsCartOpen(false)}
+          onCartChange={handleCartChange}
+        />
+      )}
     </>
   );
 }

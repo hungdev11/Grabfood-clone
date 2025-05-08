@@ -29,4 +29,9 @@ public interface CartService {
             @Header("Authorization") String bearerToken,
             @Query("userId") Long userId,
             @Body CartDTO.AddToCartRequest request);
+
+    @PUT("cart/update")
+    Call<Void> updateWholeItem(
+            @Header("Authorization") String bearerToken,
+            @Body CartUpdateRequest request);
 }

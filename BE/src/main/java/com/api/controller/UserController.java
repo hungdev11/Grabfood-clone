@@ -1,14 +1,20 @@
 package com.api.controller;
 
-import com.api.dto.request.AddUserRequest;
-import com.api.dto.request.AuthRequest;
+import com.api.dto.request.*;
+import com.api.dto.response.UserResponse;
+import com.api.entity.Account;
+import com.api.entity.User;
+import com.api.exception.AppException;
 import com.api.service.AccountService;
 import com.api.jwt.JwtService;
 import com.api.jwt.UserInfoService;
+import com.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
@@ -23,20 +29,97 @@ public class UserController {
     private final AuthenticationManager authenticationManager;
     private final AccountService accountService;
     private final UserInfoService userInfoService;
+    private final UserService userService;
     @Autowired
-    public UserController(UserInfoService userInfoService,
+    public UserController(UserService userService,
+                          UserInfoService userInfoService,
                           JwtService jwtService,
                           AuthenticationManager authenticationManager,
                           AccountService accountService) {
+        this.userService = userService;
         this.userInfoService = userInfoService;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
         this.accountService = accountService;
     }
 
-    @GetMapping("/welcome")
-    public String welcome() {
-        return "Welcome to unsecured endpoint";
+    @GetMapping("/user/me")
+    public ResponseEntity<UserResponse> getCurrentUserInfo() {
+        // Get authenticated username from SecurityContext
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        // Get account and user information
+        Account account = accountService.getAccountByUsername(username);
+        User user = userService.getUserByAccountId(account.getId());
+
+        // Create response DTO
+        UserResponse response = UserResponse.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .username(account.getUsername())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/user/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) {
+        // Get authenticated username
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        // Verify passwords match
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            return ResponseEntity.badRequest().body("New password and confirmation do not match");
+        }
+
+        // Change password
+        try {
+            accountService.changePassword(username, request.getCurrentPassword(), request.getNewPassword());
+            return ResponseEntity.ok("Password changed successfully");
+        } catch (AppException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        try {
+            accountService.generatePasswordResetToken(request.getEmail());
+            return ResponseEntity.ok("Password reset email sent");
+        } catch (AppException e) {
+            log.error("Error in forgot password request", e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/validate-reset-token")
+    public ResponseEntity<?> validateResetToken(@RequestParam String token) {
+        try {
+            boolean valid = accountService.validatePasswordResetToken(token);
+            return ResponseEntity.ok().build();
+        } catch (AppException e) {
+            log.error("Invalid reset token", e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            return ResponseEntity.badRequest().body("New password and confirmation do not match");
+        }
+
+        try {
+            accountService.resetPassword(request.getToken(), request.getNewPassword());
+            return ResponseEntity.ok("Password reset successful");
+        } catch (AppException e) {
+            log.error("Error resetting password", e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/addNewAccount")

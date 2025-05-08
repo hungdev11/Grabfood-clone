@@ -5,6 +5,15 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public enum ErrorCode {
+    // Add to ErrorCode.java
+    GOOGLE_ACCOUNT_NO_PASSWORD(1003, "Google account cannot reset password", HttpStatus.BAD_REQUEST),
+    NOT_FOUND(404, "Resource not found", HttpStatus.NOT_FOUND),
+    //RESET PASSWORD
+    INVALID_TOKEN(1000, "Invalid token", HttpStatus.BAD_REQUEST),
+    EXPIRED_TOKEN(1001, "Token has expired", HttpStatus.BAD_REQUEST),
+    INVALID_PASSWORD(1002, "Invalid password", HttpStatus.BAD_REQUEST),
+    // JWT
+    FORBIDDEN(403, "Access forbidden", HttpStatus.FORBIDDEN),
     UNAUTHORIZED(401, "Unauthorized access", HttpStatus.UNAUTHORIZED),
     SOME_THING_WENT_WRONG(9999, "Not OK", HttpStatus.BAD_REQUEST),
     RESOURCE_NOT_FOUND(404, "Not Found", HttpStatus.NOT_FOUND),
@@ -39,8 +48,10 @@ public enum ErrorCode {
     INVALID_TIME(0700, "Invalid time", HttpStatus.BAD_REQUEST),
 
     ORDER_NOT_FOUND(0400, "Order not found", HttpStatus.BAD_REQUEST),
+    ORDER_NOT_BELONG_TO_RES(0400, "Order not belong to restaurant", HttpStatus.BAD_REQUEST),
     REVIEW_NOT_FOUND(0450, "Review not found", HttpStatus.BAD_REQUEST),
     CANNOT_WRITE_REVIEW_DUE_DATE(0451, "Can't write review due date", HttpStatus.BAD_REQUEST),
+    HANDLE_NOT_PENDING_ORDER(0452, "Can not handle order not pending", HttpStatus.BAD_REQUEST),
     ;
     private final int code;
     private final String message;

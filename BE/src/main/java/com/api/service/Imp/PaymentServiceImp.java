@@ -16,7 +16,6 @@ import com.api.service.VNPayPaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -102,8 +101,8 @@ public class PaymentServiceImp implements PaymentService {
         PaymentInfo paymentInfo = PaymentInfo.builder()
                 .create_at(LocalDateTime.now())
                 .paymentAmount(amount)
+                .paymentCode(UUID.randomUUID().toString())
                 .paymentName("VNPAY")
-                .paymentCode(code)
                 .status("SUCCESS")
                 .order(order)
                 .build();

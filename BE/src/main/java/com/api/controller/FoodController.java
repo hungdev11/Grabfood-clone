@@ -31,6 +31,9 @@ public class FoodController {
                 .build();
     }
 
+    // xóa food thì kiểm tra cart detailt chưa tạo order thì có quyền xóa
+    // ẩn/ hiện food -> chỉnh status
+
     @PostMapping("/adjust-price")
     public ApiResponse<Long> adjustFoodPrice(@RequestBody AdjustFoodPriceRequest request) {
         return ApiResponse.<Long>builder()
@@ -63,9 +66,10 @@ public class FoodController {
 //    }
 
     @GetMapping("/restaurant/{restaurantId}")
-    public ApiResponse<?> getFoodsOfRestaurant(@PathVariable long restaurantId){
+    public ApiResponse<?> getFoodsOfRestaurant(@PathVariable long restaurantId,
+                                               @RequestParam(defaultValue = "false") boolean isForCustomer) {
         return ApiResponse.builder()
-                .data(foodService.getFoodGroupOfRestaurant(restaurantId))
+                .data(foodService.getFoodGroupOfRestaurant(restaurantId, isForCustomer))
                 .message("Success")
                 .code(200)
                 .build();

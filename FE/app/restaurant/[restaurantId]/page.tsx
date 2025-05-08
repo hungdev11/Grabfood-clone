@@ -7,7 +7,6 @@ import { fetchWithAuth } from "@/utils/api";
 import {ReviewList} from "@/components/ReviewList";
 import { CartProvider } from "@/app/context/CartContext";
 import { parse, isAfter, isBefore } from "date-fns";
-import { MyComponent } from "@/components/TestNoti";
 
 interface Params {
   restaurantId: string;
@@ -15,7 +14,7 @@ interface Params {
 
 async function getRestaurantData(id: string): Promise<{ types: string[]; foods: Food[] }> {
   const res = await fetchWithAuth(
-    `http://localhost:6969/grab/foods/restaurant/${id}`,
+    `http://localhost:6969/grab/foods/restaurant/${id}?isForCustomer=true`,
     { cache: "no-store" }
   );
 
@@ -114,17 +113,17 @@ export default async function RestaurantPage({ params, searchParams}: { params: 
         </div>
 
         {/* Promotions */}
-        <div className="mt-4 space-y-2">
+        {/* <div className="mt-4 space-y-2">
           <div className="bg-green-50 p-2 rounded flex items-center text-sm text-green-800 border border-green-200">
             🏷️ Giảm 5.000₫ phí giao hàng khi đặt đơn tối thiểu 150.000₫
           </div>
           <div className="bg-green-50 p-2 rounded flex items-center text-sm text-green-800 border border-green-200">
             🎁 Tận hưởng ưu đãi hôm nay!
           </div>
-        </div>
+        </div> */}
 
         {/* Delivery date/time - giả lập dropdown */}
-        <div className="flex flex-wrap gap-4 mt-4">
+        {/* <div className="flex flex-wrap gap-4 mt-4">
           <div className="flex items-center gap-2">
             <span className="font-medium">📅 Ngày giao hàng:</span>
             <span>Hôm nay</span>
@@ -133,14 +132,12 @@ export default async function RestaurantPage({ params, searchParams}: { params: 
             <span className="font-medium">⏰ Thời gian giao:</span>
             <span>Ngay bây giờ</span>
           </div>
-        </div>
-      </div>
+        </div> */}
+      </div> 
 
       {/* Food list */}
       <FoodList types={types} foods={foods} restaurantId={restaurantId} isOpen={isOpen} />
       <ReviewList restaurantId = {restaurantId}/>
-      
-      {/* <MyComponent restaurantId = {restaurantId}/> */}
       <Footer />
     </div>
     </CartProvider>
