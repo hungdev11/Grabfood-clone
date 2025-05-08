@@ -1,6 +1,7 @@
 package com.api.controller;
 
 import com.api.dto.request.*;
+import com.api.dto.response.LoginResponse;
 import com.api.dto.response.UserResponse;
 import com.api.entity.Account;
 import com.api.entity.User;
@@ -152,5 +153,47 @@ public class UserController {
         }
 
         throw new UsernameNotFoundException("Authentication failed");
+    }
+    @PostMapping("/generateToken2")
+    public ResponseEntity<LoginResponse> authenticateAndGetToken2(@RequestBody AuthRequest authRequest) {
+        log.debug("Authentication attempt for user: {}", authRequest.getUsername());
+
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            authRequest.getUsername(),
+                            authRequest.getPassword()
+                    )
+            );
+
+            if (authentication.isAuthenticated()) {
+                log.debug("Authentication successful for user: {}", authRequest.getUsername());
+                String generatedToken = jwtService.generateToken(authRequest.getUsername());
+
+                LoginResponse response = LoginResponse.builder()
+                        .token(generatedToken)
+                        .message("Authentication successful")
+                        .username(authRequest.getUsername())
+                        .build();
+
+                return ResponseEntity.ok(response);
+            } else {
+                log.error("Authentication failed for user: {}", authRequest.getUsername());
+                return ResponseEntity.status(401).body(
+                        LoginResponse.builder()
+                                .message("Authentication failed")
+                                .username(authRequest.getUsername())
+                                .build()
+                );
+            }
+        } catch (Exception e) {
+            log.error("Authentication failed for user: {}", authRequest.getUsername(), e);
+            return ResponseEntity.status(401).body(
+                    LoginResponse.builder()
+                            .message("Invalid username or password")
+                            .username(authRequest.getUsername())
+                            .build()
+            );
+        }
     }
 }
