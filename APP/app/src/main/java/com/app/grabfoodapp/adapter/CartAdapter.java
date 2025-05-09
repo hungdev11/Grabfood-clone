@@ -205,7 +205,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         holder.itemView.setOnClickListener(v -> {
             Log.e("INFO", "Cart item clicked: " + item.getFoodName());
             Intent intent = new Intent(holder.itemView.getContext(), PopUpFood.class);
-            intent.putExtra("selectedCartItem", item.getQuantity());
+            intent.putExtra("selectedCartItem", item);
             intent.putExtra("userId", userId);
             intent.putExtra("restaurantIdFromCart", restaurantId);
             ((Activity) holder.itemView.getContext()).startActivityForResult(intent, 1001);
