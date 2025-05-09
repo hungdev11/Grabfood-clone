@@ -16,6 +16,11 @@ import com.app.grabfoodapp.dto.LoginResponse;
 import com.app.grabfoodapp.dto.request.LoginRequest;
 import com.app.grabfoodapp.utils.TokenManager;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -82,8 +87,26 @@ public class LoginActivity extends AppCompatActivity {
                             Toast.LENGTH_SHORT).show();
                     navigateToMain();
                 } else {
-                    Toast.makeText(LoginActivity.this, "Login failed: Invalid credentials",
-                            Toast.LENGTH_SHORT).show();
+                    try {
+                        // Parse error response
+                        if (response.errorBody() != null) {
+                            String errorBodyStr = response.errorBody().string();
+                            try {
+                                JSONObject errorJson = new JSONObject(errorBodyStr);
+                                String errorMessage = errorJson.optString("message", "Login failed");
+                                Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                            } catch (JSONException e) {
+                                Toast.makeText(LoginActivity.this, "Login failed: Invalid credentials",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(LoginActivity.this, "Login failed: " + response.code(),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (IOException e) {
+                        Toast.makeText(LoginActivity.this, "Login failed: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
