@@ -128,7 +128,7 @@ public class CartActivity extends AppCompatActivity {
                         NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
                         txtTotalCartAmount.setText("Tổng cộng: " + formatter.format(totalPrice) + "đ");
 
-                        //adapter.setRestaurantId(apiResponse.getData().getRestaurantId());
+                        adapter.setRestaurantId(apiResponse.getData().getRestaurantId());
                         adapter.notifyDataSetChanged();
                     }
                 } else {

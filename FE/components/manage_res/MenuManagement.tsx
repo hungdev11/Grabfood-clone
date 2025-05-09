@@ -80,7 +80,7 @@ export default function MenuManagement() {
     }
   }, [restaurantId]);
 
-  const handleFoodClick = async (food) => {
+  const handleFoodClick = async (food : Food) => {
     try {
       const selectedAdditionalResponse = await axios.get(
         `http://localhost:6969/grab/foods/additional/${food.id}?restaurantId=${restaurantId}&isForCustomer=false`
