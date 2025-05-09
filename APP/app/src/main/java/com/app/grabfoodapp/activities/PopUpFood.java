@@ -26,6 +26,7 @@ import com.app.grabfoodapp.dto.CartDetailDTO;
 import com.app.grabfoodapp.dto.FoodDTO;
 import com.app.grabfoodapp.dto.PageResponse;
 import com.app.grabfoodapp.dto.request.CartUpdateRequest;
+import com.app.grabfoodapp.utils.TokenManager;
 import com.app.grabfoodapp.utils.Util;
 import com.bumptech.glide.Glide;
 import java.math.BigDecimal;
@@ -56,6 +57,7 @@ public class PopUpFood extends AppCompatActivity {
     private CartDetailDTO selectedCartItem;
     private Long userId;
     private AdditionalFoodAdapter adapter;
+    private TokenManager tokenManager;
 
     private String formatTotalPrice(BigDecimal discountPrice, int quantity) {
         BigDecimal newTotalPrice = discountPrice.multiply(BigDecimal.valueOf(quantity));
@@ -137,6 +139,8 @@ public class PopUpFood extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.popup_food);
 
+        // Initialize TokenManager once
+        tokenManager = new TokenManager(this);
         // for food popup
         selectedFood = (FoodDTO.GetFoodResponse) getIntent().getSerializableExtra("selectedFood");
         Long restaurantId = (Long) getIntent().getSerializableExtra("restaurantId");
@@ -191,6 +195,7 @@ public class PopUpFood extends AppCompatActivity {
         }
     }
     private void updateWholeCartItem() {
+        String authToken = "Bearer " + tokenManager.getToken();
         CartUpdateRequest request = CartUpdateRequest.builder()
                 .userId(userId)
                 .cartDetailId(selectedCartItem.getId())
@@ -199,7 +204,7 @@ public class PopUpFood extends AppCompatActivity {
                 .additionFoodIds(new ArrayList<>(adapter.getIds()))
                 .build();
         CartService cartService = ApiClient.getClient().create(CartService.class);
-        cartService.updateWholeItem(token, request).enqueue(new Callback<Void>() {
+        cartService.updateWholeItem(authToken, request).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, @NonNull Response<Void> response) {
                 if (response.isSuccessful()) {
@@ -218,6 +223,13 @@ public class PopUpFood extends AppCompatActivity {
     }
 
     private void addToCart() {
+
+        if (!tokenManager.hasToken()) {
+            // Redirect to login
+            Intent intent = new Intent(this, LoginActivity.class); // Use 'this' instead of 'context'
+            startActivity(intent); // Use directly without context
+            return;
+        }
         CartService cartService = ApiClient.getClient().create(CartService.class);
 
         CartDTO.AddToCartRequest request = CartDTO.AddToCartRequest.builder()
@@ -226,8 +238,8 @@ public class PopUpFood extends AppCompatActivity {
                 .note(note.getText().toString())
                 .quantity(Integer.parseInt(tvQuantity.getText().toString()))
                 .build();
-
-        cartService.addToCart(token, 1L, request).enqueue(new Callback<Void>() {
+        String authToken = "Bearer " + tokenManager.getToken();
+        cartService.addToCart(authToken, 1L, request).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
