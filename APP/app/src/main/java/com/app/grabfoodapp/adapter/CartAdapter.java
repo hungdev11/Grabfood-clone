@@ -23,6 +23,7 @@ import com.app.grabfoodapp.dto.CartDetailDTO;
 import com.app.grabfoodapp.dto.CartResponse;
 import com.app.grabfoodapp.dto.request.CartUpdateRequest;
 import com.app.grabfoodapp.dto.request.DeleteCartItemRequest;
+import com.app.grabfoodapp.utils.TokenManager;
 import com.bumptech.glide.Glide;
 
 import java.math.BigDecimal;
@@ -37,9 +38,21 @@ import retrofit2.Response;
 
 public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder> {
     List<CartDetailDTO> cartItems;
-    private final long userId = 1;
+    private long userId;
     private long restaurantId;
     private CartService cartService;
+
+    private TokenManager tokenManager;
+    private String authHeader;
+
+    public void setTokenManager(TokenManager tokenManager) {
+        this.tokenManager = tokenManager;
+        authHeader = "Bearer " + tokenManager.getToken();
+    }
+
+    public void setUserId(long userId) {
+        this.userId = userId;
+    }
 
     public void setRestaurantId(long restaurantId) {
         this.restaurantId = restaurantId;
@@ -102,7 +115,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                             .additionFoodIds(new ArrayList<>())
                             .foodId(0)
                             .build();
-                    cartService.updateQuantity(request).enqueue(new Callback<Void>() {
+                    cartService.updateQuantity(authHeader, request).enqueue(new Callback<Void>() {
                         @Override
                         public void onResponse(Call<Void> call, @NonNull Response<Void> response) {
                             if (response.isSuccessful()) {
@@ -139,7 +152,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                             .additionFoodIds(new ArrayList<>())
                             .foodId(0)
                             .build();
-                    cartService.updateQuantity(request).enqueue(new Callback<Void>() {
+                    cartService.updateQuantity(authHeader, request).enqueue(new Callback<Void>() {
                         @Override
                         public void onResponse(Call<Void> call, @NonNull Response<Void> response) {
                             if (response.isSuccessful()) {
@@ -166,7 +179,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                 int currentPosition = holder.getAdapterPosition();
                 if (currentPosition != RecyclerView.NO_POSITION) {
                     CartDetailDTO currentItem = cartItems.get(currentPosition);
-                    cartService.deleteCartItem(currentItem.getId()).enqueue(new Callback<Void>() {
+                    cartService.deleteCartItem(authHeader, currentItem.getId()).enqueue(new Callback<Void>() {
                         @Override
                         public void onResponse(Call<Void> call, Response<Void> response) {
                             if (response.isSuccessful()) {

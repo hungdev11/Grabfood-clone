@@ -41,7 +41,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class PopUpFood extends AppCompatActivity {
-    private final String token = "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTExMTExMTExMSIsImlhdCI6MTc0NjUxNzcyNCwiZXhwIjoxNzQ2Njk3NzI0fQ.gY5QEMb3qz4XDLAyaC8OQrFqIHQM9IUKdUclv_vt7FY"; // Tùy bạn lưu token ở đâu
     private ImageView foodImage;
     private TextView foodName;
     private TextView foodPrice;
@@ -239,7 +238,9 @@ public class PopUpFood extends AppCompatActivity {
                 .quantity(Integer.parseInt(tvQuantity.getText().toString()))
                 .build();
         String authToken = "Bearer " + tokenManager.getToken();
-        cartService.addToCart(authToken, 1L, request).enqueue(new Callback<Void>() {
+        long userId = Long.parseLong(tokenManager.getUserId());
+
+        cartService.addToCart(authToken, userId, request).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
