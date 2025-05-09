@@ -29,6 +29,8 @@ import com.app.grabfoodapp.dto.request.CartUpdateRequest;
 import com.app.grabfoodapp.utils.TokenManager;
 import com.app.grabfoodapp.utils.Util;
 import com.bumptech.glide.Glide;
+import com.google.gson.Gson;
+
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -156,7 +158,6 @@ public class PopUpFood extends AppCompatActivity {
             adapter = new AdditionalFoodAdapter(PopUpFood.this, addiList);
             lvAdditionalFoods.setAdapter(adapter);
             updateTotalPrice();
-
         } else if (selectedCartItem != null && userId != null && restaurantIdFromCart != null) {
             initForCartItem(selectedCartItem);
             getAdditionalFoodsOfFood(restaurantIdFromCart, selectedCartItem.getFoodId());
