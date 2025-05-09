@@ -274,7 +274,7 @@ public class OrderServiceImp implements OrderService {
                 .restaurantName(getRestaurantByOrder(order).getName())
                 .discountOrderPrice(order.getDiscountOrderPrice())
                 .discountShippingFee(order.getDiscountShippingFee())
-                .isReview(reviewRepository.existsByOrder(order))
+                .isReview(reviewRepository.existsByOrder(order) || order.getOrderDate().plusDays(10).isBefore(LocalDateTime.now()))
                 .cartDetails(order.getCartDetails().stream().map(this::toCartDetailResponse).toList())
                 .build()).toList();
     }

@@ -341,11 +341,7 @@ export default function HomePage() {
                 {/* Nút hành động */}
                 <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-4">
                   {order.status === "COMPLETED" &&
-                    (order.review ? (
-                      <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-100 w-full sm:w-auto cursor-not-allowed">
-                        Đã đánh giá
-                      </button>
-                    ) : (
+                    (!order.review && (
                       <>
                         <button
                           onClick={() => toggleReviewInput(order.id)}

@@ -62,7 +62,7 @@ public class CartController {
         return ApiResponse.<CartResponse>builder()
                 .code(200)
                 .message("Success")
-                .data(cartService.getAllCartDetailUser(1L))
+                .data(cartService.getAllCartDetailUser(2L))
                 .build();
     }
 
