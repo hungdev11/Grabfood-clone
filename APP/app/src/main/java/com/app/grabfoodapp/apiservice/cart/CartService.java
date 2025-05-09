@@ -19,11 +19,14 @@ public interface CartService {
     @GET("cart/test")
     Call<ApiResponse<CartResponse>> getCart();
 
+    @GET("cart")
+    Call<ApiResponse<CartResponse>> getAllCartDetailUser(@Header("Authorization") String authHeader);
+
     @PUT("cart/update-quantity")
-    Call<Void> updateQuantity(@Body CartUpdateRequest request);
+    Call<Void> updateQuantity(@Header("Authorization") String authHeader, @Body CartUpdateRequest request);
 
     @DELETE("cart")
-    Call<Void> deleteCartItem(@Query("cartDetailId") long cartDetailId);
+    Call<Void> deleteCartItem(@Header("Authorization") String authHeader, @Query("cartDetailId") long cartDetailId);
     @POST("cart/add")
     Call<Void> addToCart(
             @Header("Authorization") String bearerToken,

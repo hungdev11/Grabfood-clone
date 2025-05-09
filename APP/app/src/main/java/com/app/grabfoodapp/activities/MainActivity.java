@@ -1,7 +1,10 @@
 package com.app.grabfoodapp.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,6 +12,7 @@ import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 import com.app.grabfoodapp.R;
 import com.app.grabfoodapp.adapter.ViewPageAdapter;
+import com.app.grabfoodapp.utils.TokenManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -59,14 +63,31 @@ public class MainActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int itemId = item.getItemId();
                 if (itemId == R.id.home) {
-                    viewPager.setCurrentItem(0);
+                    navigateToPage(0);
                 } else if (itemId == R.id.search) {
-                    viewPager.setCurrentItem(1);
+                    navigateToPage(1);
                 } else if (itemId == R.id.profile) {
-                    viewPager.setCurrentItem(2);
+                    navigateToPage(2);
                 }
                 return true;
             }
         });
+    }
+    private void navigateToPage(int pageIndex) {
+        TokenManager tokenManager = new TokenManager(this);
+
+        // Check if trying to access profile page without authentication
+        if (pageIndex == 2 && !tokenManager.hasToken()) {
+            // Show message that login is required
+            Toast.makeText(this, "You need to log in to access your profile", Toast.LENGTH_SHORT).show();
+
+            // Navigate to login screen
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            return;
+        }
+
+        // Otherwise proceed with normal navigation
+        viewPager.setCurrentItem(pageIndex);
     }
 }

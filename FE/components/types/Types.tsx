@@ -44,17 +44,18 @@ export interface ApiResponse<T> {
     id: number;
     name: string;
     price: number;
-    discountPrice: number,
+    discountPrice: number;
     image: string;
     description?: string;
     rating?: number;
     quantity?: number;
     cartDetailId?: number;
     status?: string;
-    additionalFoods?: AdditionalFood[];
+    additionalFoods?: AdditionalFood[];  // danh sách object
+    additionalIds?: number[];            // danh sách ID, phục vụ update
     note?: string;
     type: string;
-  }
+  }  
 
   export interface GroupedFood {
     types: string[];

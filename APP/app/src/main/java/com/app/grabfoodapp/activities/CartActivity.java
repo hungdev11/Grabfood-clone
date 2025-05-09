@@ -25,6 +25,7 @@ import com.app.grabfoodapp.config.ApiClient;
 import com.app.grabfoodapp.dto.ApiResponse;
 import com.app.grabfoodapp.dto.CartDetailDTO;
 import com.app.grabfoodapp.dto.CartResponse;
+import com.app.grabfoodapp.utils.TokenManager;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -47,11 +48,15 @@ public class CartActivity extends AppCompatActivity {
     Button btnOrder;
 
 
+    private TokenManager tokenManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_cart);
+
+        tokenManager = new TokenManager(this);
 
         recyclerView = findViewById(R.id.recyclerView);
         txtCartRestaurantName = findViewById(R.id.restaurantCartName);
@@ -61,6 +66,15 @@ public class CartActivity extends AppCompatActivity {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new CartAdapter(cartItems);
+
+        if (!tokenManager.hasToken()) {
+            Toast.makeText(this, "Not logged in", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        adapter.setUserId(Long.parseLong(tokenManager.getUserId()));
+        adapter.setTokenManager(tokenManager);
+
         adapter.setOnCartChangeListener(() -> updateTotalPrice());
         recyclerView.setAdapter(adapter);
 
@@ -86,7 +100,15 @@ public class CartActivity extends AppCompatActivity {
 
     private void reloadCartList() {
         CartService cartService = ApiClient.getClient().create(CartService.class);
-        Call<ApiResponse<CartResponse>> call = cartService.getCart();
+
+        if (!tokenManager.hasToken()) {
+            Toast.makeText(this, "Not logged in", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        String token = tokenManager.getToken();
+
+        Call<ApiResponse<CartResponse>> call = cartService.getAllCartDetailUser("Bearer " + token);
 
         call.enqueue(new Callback<ApiResponse<CartResponse>>() {
             @Override
@@ -110,7 +132,7 @@ public class CartActivity extends AppCompatActivity {
                         NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
                         txtTotalCartAmount.setText("Tổng cộng: " + formatter.format(totalPrice) + "đ");
 
-                        adapter.setRestaurantId(apiResponse.getData().getRestaurantId());
+                        //adapter.setRestaurantId(apiResponse.getData().getRestaurantId());
                         adapter.notifyDataSetChanged();
                     }
                 } else {
