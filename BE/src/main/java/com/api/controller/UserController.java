@@ -129,6 +129,43 @@ public class UserController {
         return userInfoService.addAccount(request);
     }
 
+    @PostMapping("/addNewAccount2")
+    public ResponseEntity<LoginResponse> addNewAccount2(@RequestBody AddUserRequest request) {
+        try {
+            // Create the account using the existing service
+            userInfoService.addAccount(request);
+
+            // Generate token for the new user (using phone as username)
+            String generatedToken = jwtService.generateToken(request.getPhone());
+
+            // Create and return login response
+            LoginResponse response = LoginResponse.builder()
+                    .token(generatedToken)
+                    .message("Account created successfully")
+                    .username(request.getPhone())
+                    .build();
+
+            return ResponseEntity.ok(response);
+        } catch (AppException e) {
+            // Handle application exceptions (like duplicate username)
+            return ResponseEntity.badRequest().body(
+                    LoginResponse.builder()
+                            .message(e.getMessage())
+                            .username(request.getPhone())
+                            .build()
+            );
+        } catch (Exception e) {
+            // Handle unexpected exceptions
+            log.error("Error creating account", e);
+            return ResponseEntity.status(500).body(
+                    LoginResponse.builder()
+                            .message("Error creating account: " + e.getMessage())
+                            .username(request.getPhone())
+                            .build()
+            );
+        }
+    }
+
     @PostMapping("/generateToken")
     public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
         // Debug logging (nên dùng logger thay vì System.out)
