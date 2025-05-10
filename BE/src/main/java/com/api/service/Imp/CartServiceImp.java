@@ -285,13 +285,6 @@ public class CartServiceImp implements CartService {
         // Lấy toàn bộ món ăn chính trong giỏ hàng
         List<CartDetail> cartDetails = cartDetailRepository.findByCartIdAndOrderIsNull(cart.getId());
 
-        if (cartDetails.isEmpty()) {
-            return CartResponse.builder()
-                    .cartId(cart.getId())
-                    .listItem(Collections.emptyList())
-                    .build();
-        }
-
         List<Food> mainFoods = cartDetails.stream()
                 .map(CartDetail::getFood)
                 .filter(food -> food.getStatus().equals(FoodStatus.ACTIVE))
@@ -305,6 +298,13 @@ public class CartServiceImp implements CartService {
         if (!inactiveCartDetails.isEmpty()) {
             cartDetailRepository.deleteAll(inactiveCartDetails);
             cartDetails.removeAll(inactiveCartDetails);
+        }
+
+        if (cartDetails.isEmpty()) {
+            return CartResponse.builder()
+                    .cartId(cart.getId())
+                    .listItem(Collections.emptyList())
+                    .build();
         }
 
         // Lấy danh sách voucher có hiệu lực
