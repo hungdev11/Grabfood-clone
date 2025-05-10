@@ -1,5 +1,6 @@
 package com.api.service.Imp;
 
+import com.api.dto.response.FoodTypeResponse;
 import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
 import com.api.entity.FoodType;
@@ -9,6 +10,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,4 +41,16 @@ public class FoodTypeServiceImp implements FoodTypeService {
             return new AppException(ErrorCode.FOODTYPE_NAME_NOT_EXISTED);
         });
     }
+
+    @Override
+    public List<FoodTypeResponse> getAllFoodTypes() {
+        return foodTypeRepository.findAll().stream()
+                .map(ft ->
+                        FoodTypeResponse.builder()
+                                .name(ft.getName())
+                                .build())
+                .collect(Collectors.toList());
+    }
+
+
 }

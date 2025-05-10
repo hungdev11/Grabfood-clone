@@ -54,6 +54,7 @@ export interface ApiResponse<T> {
     additionalFoods?: AdditionalFood[];  // danh sách object
     additionalIds?: number[];            // danh sách ID, phục vụ update
     note?: string;
+    kind?: string;
     type: string;
   }  
 

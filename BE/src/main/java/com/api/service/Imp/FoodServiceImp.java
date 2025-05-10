@@ -490,6 +490,7 @@ public class FoodServiceImp implements FoodService {
                             .discountPrice(discountPrice)
                             .rating(BigDecimal.ZERO)
                             .type(f.getType().getName())
+                            .kind(f.getKind().name())
                             .build();
                     if (!isForCustomer) {
                         foodResponse.setStatus(f.getStatus());

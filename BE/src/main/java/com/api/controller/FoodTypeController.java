@@ -1,10 +1,14 @@
 package com.api.controller;
 
 import com.api.dto.response.ApiResponse;
+import com.api.dto.response.FoodTypeResponse;
+import com.api.entity.FoodType;
 import com.api.service.FoodTypeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -19,6 +23,15 @@ public class FoodTypeController {
                 .code(200)
                 .message("Success")
                 .data(foodTypeService.addNewFoodType(name))
+                .build();
+    }
+
+    @GetMapping
+    public ApiResponse<List<FoodTypeResponse>> getAllFoodTypes() {
+        return ApiResponse.<List<FoodTypeResponse>>builder()
+                .code(200)
+                .message("Success")
+                .data(foodTypeService.getAllFoodTypes())
                 .build();
     }
 }

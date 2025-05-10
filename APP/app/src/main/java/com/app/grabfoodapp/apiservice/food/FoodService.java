@@ -14,7 +14,8 @@ import retrofit2.http.Query;
 public interface FoodService {
     @GET("foods/restaurant/{restaurantId}")
     Call<ApiResponse<FoodDTO.GetFoodGroupResponse>> getFoodRestaurantHome(
-            @Path("restaurantId") long restaurantId
+            @Path("restaurantId") long restaurantId,
+            @Query("isForCustomer") boolean isForCustomer
     );
 
     @GET("foods/additional/{foodId}")

@@ -112,7 +112,7 @@ public class SecurityConfig {
                                 .requestMatchers(/*HttpMethod.GET,*/ "/restaurants/**", "/restaurants").permitAll()
                                 .requestMatchers("/login/oauth2/**", "/oauth2/**","/oauth2/authorization/google").permitAll()
                                 .requestMatchers("/foods/**").permitAll()
-                                .requestMatchers("/food-types").permitAll()
+                                .requestMatchers("/food-types/**").permitAll()
                                 .requestMatchers("/vouchers/**", "/voucherDetails/**").permitAll()
                                 .requestMatchers("/payments/**").permitAll()
                                 .requestMatchers("/location/**").permitAll()

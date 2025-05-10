@@ -68,7 +68,7 @@ public class RestaurantDetailActivity extends AppCompatActivity {
 
     private void getFoodRestaurantHome(long restaurantId) {
         FoodService foodService = ApiClient.getClient().create(FoodService.class);
-        Call<ApiResponse<FoodDTO.GetFoodGroupResponse>> call = foodService.getFoodRestaurantHome(restaurantId);
+        Call<ApiResponse<FoodDTO.GetFoodGroupResponse>> call = foodService.getFoodRestaurantHome(restaurantId, true);
 
         call.enqueue(new Callback<ApiResponse<FoodDTO.GetFoodGroupResponse>>() {
             @Override
