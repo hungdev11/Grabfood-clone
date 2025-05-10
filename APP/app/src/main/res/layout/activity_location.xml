@@ -9,6 +9,7 @@
         android:id="@+id/btnUseCurrentLocation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:backgroundTint="@color/quantum_googgreen"
         android:text="Sử dụng vị trí hiện tại" />
 
     <EditText
@@ -29,4 +30,11 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:layout_marginTop="8dp" />
+    <Button
+        android:id="@+id/btnConfirmLocation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/quantum_googgreen"
+        android:text="Confirm" />
+
 </LinearLayout>

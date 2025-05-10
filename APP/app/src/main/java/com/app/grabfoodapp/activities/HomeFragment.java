@@ -19,6 +19,7 @@ import com.app.grabfoodapp.apiservice.restaurant.RestaurantService;
 import com.app.grabfoodapp.config.ApiClient;
 import com.app.grabfoodapp.dto.ApiResponse;
 import com.app.grabfoodapp.dto.RestaurantDTO;
+import com.app.grabfoodapp.utils.LocationStorage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +65,8 @@ public class HomeFragment extends Fragment {
         RestaurantService restaurantService = ApiClient.getClient().create(RestaurantService.class);
 
         Call<ApiResponse<List<RestaurantDTO.RestaurantResponse>>> call =
-                restaurantService.getRestaurants("name", 13.9747, 108.0117);
+                restaurantService.getRestaurants("name", LocationStorage.getLatitude(requireContext()),
+                        LocationStorage.getLongitude(requireContext()));
 
         call.enqueue(new Callback<ApiResponse<List<RestaurantDTO.RestaurantResponse>>>() {
             @Override
