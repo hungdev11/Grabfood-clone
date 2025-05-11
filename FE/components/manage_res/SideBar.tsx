@@ -64,6 +64,14 @@ const Sidebar = ({ setSelectedMenu }: SidebarProps) => {
             Voucher
           </button>
         </li>
+        <li>
+          <button
+            onClick={() => setSelectedMenu("report")}
+            className="w-full text-left py-2 px-4 hover:bg-gray-700 rounded"
+          >
+            Báo cáo
+          </button>
+        </li>
       </ul>
     </div>
   );

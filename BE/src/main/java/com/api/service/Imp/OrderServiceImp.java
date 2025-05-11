@@ -9,12 +9,13 @@ import com.api.exception.ErrorCode;
 import com.api.repository.*;
 import com.api.service.FoodService;
 import com.api.service.OrderService;
-import com.api.utils.OrderStatus;
-import com.api.utils.VoucherApplyType;
-import com.api.utils.VoucherStatus;
-import com.api.utils.VoucherType;
+import com.api.utils.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -280,12 +282,25 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public GetOrderGroupResponse getRestaurantOrders(long restaurantId) {
+    public PageResponse<GetOrderGroupResponse> getRestaurantOrders(long restaurantId, int page, int size, String status) {
         List<String> statusList = Arrays.stream(OrderStatus.values())
                 .map(Enum::name)
                 .collect(Collectors.toList());
         List<Order> orders = listAllOrdersOfRestaurant(restaurantId);
-        List<OrderResponse> responses = orders.stream().map(order -> OrderResponse.builder()
+
+        if (status != null && !status.isBlank()) {
+            orders = orders.stream()
+                    .filter(order -> order.getStatus().name().equalsIgnoreCase(status))
+                    .collect(Collectors.toList());
+        }
+
+        orders.sort(Comparator.comparing(Order::getOrderDate).reversed());
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> orderPage = PageUtils.convertListToPage(orders, pageable);
+
+        List<OrderResponse> responses = orderPage.getContent().stream()
+                .map(order -> OrderResponse.builder()
                 .id(order.getId())
                 .userName(order.getUser().getName())
                 .address(order.getAddress())
@@ -296,12 +311,18 @@ public class OrderServiceImp implements OrderService {
                 .discountOrderPrice(order.getDiscountOrderPrice())
                 .discountShippingFee(order.getDiscountShippingFee())
                 .createdAt(order.getOrderDate())
-                .isReview(reviewRepository.existsByOrder(order) || order.getOrderDate().plusDays(10).isBefore(LocalDateTime.now()))
+                //.isReview(reviewRepository.existsByOrder(order) || order.getOrderDate().plusDays(10).isBefore(LocalDateTime.now()))
                 .cartDetails(order.getCartDetails().stream().map(this::toCartDetailResponse).toList())
                 .build()).toList();
-        return GetOrderGroupResponse.builder()
-                .statusList(statusList)
-                .orders(responses)
+
+        return PageResponse.<GetOrderGroupResponse>builder()
+                .page(orderPage.getNumber())
+                .items(
+                        GetOrderGroupResponse.builder()
+                                .statusList(statusList)
+                                .orders(responses)
+                                .build())
+                .total(orderPage.getTotalElements())
                 .build();
     }
 

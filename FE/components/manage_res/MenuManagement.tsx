@@ -22,6 +22,8 @@ export default function MenuManagement() {
   const [additionalItems, setAdditionalItems] = useState<AdditionalFood[]>([]);
   const [isLoadingAdditionalItems, setIsLoadingAdditionalItems] = useState(false);
 
+  const [searchTerm, setSearchTerm] = useState("");
+
   useEffect(() => {
     const fetchAdditionalItems = async () => {
       if (!selectedFood) return;
@@ -227,7 +229,14 @@ export default function MenuManagement() {
   };
 
 
-  const filteredFoods = activeType ? foods.filter((food) => food.type === activeType) : foods;
+  const getFilteredFoods = () => {
+    return foods.filter((food) => {
+      const matchType = !activeType || food.type === activeType;
+      const matchSearch = food.name.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchType && matchSearch;
+    });
+  };
+
 
   if (loading) return <p>Đang tải menu...</p>;
 
@@ -316,7 +325,13 @@ export default function MenuManagement() {
     )}
 
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Quản lý Menu</h2>
+        <input
+          type="text"
+          placeholder="Tìm món ăn..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="p-2 border rounded mr-4 w-2/3"
+        />
         <button 
           onClick={() => setIsAddFoodModalOpen(true)} 
           className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
@@ -325,6 +340,16 @@ export default function MenuManagement() {
       </div>
 
       <div className="border-b mb-4 flex space-x-4 overflow-x-auto">
+        {/* Nút "Tất cả" */}
+        <button
+          onClick={() => setActiveType("")}
+          className={`px-4 py-2 whitespace-nowrap ${
+            activeType === "" ? "border-b-2 border-green-600 text-green-600 font-semibold" : "text-gray-500"
+          }`}
+        >
+          Tất cả
+        </button>
+        {/* Các nút theo loại món ăn */}
         {types.map((type) => (
           <button
             key={type}
@@ -338,8 +363,9 @@ export default function MenuManagement() {
         ))}
       </div>
 
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {filteredFoods.map((food) => (
+        {getFilteredFoods().map((food) => (
           <div key={food.id} className="flex items-center p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition">
             <img src={food.image || "/placeholder.svg"} alt={food.name} className="w-24 h-24 object-cover rounded-md" />
             <div className="ml-4 flex-1">

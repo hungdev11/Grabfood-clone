@@ -101,7 +101,7 @@ public class SecurityConfig {
                                 .requestMatchers("/ws/**").permitAll()
                                 .requestMatchers("/push-noti/**").permitAll()
                                 .requestMatchers("/cart/test").permitAll()
-
+                                .requestMatchers("/report/**").permitAll()
                                 //
                                 // Role-based endpoints
                                 .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")

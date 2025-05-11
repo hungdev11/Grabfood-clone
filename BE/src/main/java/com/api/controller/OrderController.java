@@ -1,10 +1,7 @@
 package com.api.controller;
 
 import com.api.dto.request.ApplyVoucherRequest;
-import com.api.dto.response.ApiResponse;
-import com.api.dto.response.ApplyVoucherResponse;
-import com.api.dto.response.GetOrderGroupResponse;
-import com.api.dto.response.OrderResponse;
+import com.api.dto.response.*;
 import com.api.entity.CartDetail;
 import com.api.entity.Order;
 import com.api.exception.AppException;
@@ -46,9 +43,14 @@ public class OrderController {
     }
 
     @GetMapping("/restaurant/{restaurantId}")
-    public ApiResponse<GetOrderGroupResponse> getListOrdersOfRestaurant(@PathVariable Long restaurantId) {
-        return ApiResponse.<GetOrderGroupResponse>builder()
-                .data(orderService.getRestaurantOrders(restaurantId))
+    public ApiResponse<PageResponse<GetOrderGroupResponse>> getListOrdersOfRestaurant(
+            @PathVariable Long restaurantId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "15") int size,
+            @RequestParam(required = false) String status
+    ) {
+        return ApiResponse.<PageResponse<GetOrderGroupResponse>>builder()
+                .data(orderService.getRestaurantOrders(restaurantId, page, size, status))
                 .message("Get orders of restaurant successfully")
                 .code(200)
                 .build();
