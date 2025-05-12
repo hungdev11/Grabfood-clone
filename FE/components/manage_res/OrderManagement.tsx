@@ -11,6 +11,9 @@ export default function OrdersManagement() {
     const [error, setError] = useState("");
     const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
     const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null); // Track expanded order ID
+    const [page, setPage] = useState(0);
+    const [size] = useState(5); // mỗi trang 5 đơn
+    const [total, setTotal] = useState(0);
 
     const params = useParams();
     const restaurantId = params?.restaurantId as string;
@@ -22,12 +25,18 @@ export default function OrdersManagement() {
     const fetchOrders = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:6969/grab/order/restaurant/${restaurantId}`
+          `http://localhost:6969/grab/order/restaurant/${restaurantId}?page=${page}&size=${size}${
+            selectedStatus ? `&status=${selectedStatus}` : ""
+          }`
         );
-        console.log(response.data.data);
-        const { orders, statusList } = response.data.data;
-        setOrders(orders || []);
-        setStatusList(statusList || []);
+
+        const resData = response.data?.data;
+        const items = resData?.items;
+        const total = resData?.total || 0;
+
+        setOrders(items?.orders || []);
+        setStatusList(items?.statusList || []);
+        setTotal(total);
       } catch (err) {
         setError("Không thể tải thông tin đơn hàng.");
         console.error("Lỗi khi lấy đơn hàng:", err);
@@ -36,10 +45,15 @@ export default function OrdersManagement() {
       }
     };
 
+
+    useEffect(() => {
+      setPage(0); // Reset lại page khi status thay đổi
+    }, [selectedStatus]);
+
     useEffect(() => {
       if (!restaurantId) return;
       fetchOrders();
-    }, [restaurantId]);
+    }, [restaurantId, page, selectedStatus]);
   
     const filteredOrders = selectedStatus
       ? orders.filter((o) => o.status === selectedStatus)
@@ -222,7 +236,25 @@ export default function OrdersManagement() {
           )}
         </tbody>
       </table>
+      <div className="mt-4 flex justify-center gap-2">
+        <button
+          onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+          disabled={page === 0}
+          className="px-3 py-1 rounded bg-gray-300 disabled:opacity-50"
+        >
+          Trang trước
+        </button>
+        <span className="px-2 py-1">Trang {page + 1}</span>
+        <button
+          onClick={() => setPage((prev) => (prev + 1) * size < total ? prev + 1 : prev)}
+          disabled={(page + 1) * size >= total}
+          className="px-3 py-1 rounded bg-gray-300 disabled:opacity-50"
+        >
+          Trang sau
+        </button>
+      </div>
     </div>
+    
   );
 }
 

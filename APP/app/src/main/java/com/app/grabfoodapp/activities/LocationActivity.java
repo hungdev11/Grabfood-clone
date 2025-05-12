@@ -1,5 +1,7 @@
 package com.app.grabfoodapp.activities;
 
+import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
@@ -22,6 +24,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.grabfoodapp.R;
+import com.app.grabfoodapp.utils.LocationStorage;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
@@ -41,7 +44,7 @@ public class LocationActivity extends AppCompatActivity {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
 
-    private Button btnUseCurrentLocation;
+    private Button btnUseCurrentLocation, btnConfirmLocation;
     private EditText editTextAddress;
     private RecyclerView recyclerViewSuggestions;
     private WebView mapWebView;
@@ -49,7 +52,7 @@ public class LocationActivity extends AppCompatActivity {
     private boolean webViewReady = false;
     private SuggestionAdapter adapter;
     private List<String> suggestionList = new ArrayList<>();
-    private boolean isAddressSelected = false;  // Đánh dấu khi người dùng chọn địa chỉ
+    private boolean isAddressSelected = false;
 
     private Timer timer = new Timer();
     private final long DELAY = 1000;
@@ -62,6 +65,7 @@ public class LocationActivity extends AppCompatActivity {
         setContentView(R.layout.activity_location);
 
         btnUseCurrentLocation = findViewById(R.id.btnUseCurrentLocation);
+        btnConfirmLocation = findViewById(R.id.btnConfirmLocation);
         editTextAddress = findViewById(R.id.editTextAddress);
         recyclerViewSuggestions = findViewById(R.id.recyclerViewSuggestions);
         mapWebView = findViewById(R.id.mapWebView);
@@ -74,26 +78,27 @@ public class LocationActivity extends AppCompatActivity {
         adapter = new SuggestionAdapter();
         recyclerViewSuggestions.setAdapter(adapter);
 
+        btnConfirmLocation.setEnabled(false);
+        btnConfirmLocation.setVisibility(View.GONE);
+
         editTextAddress.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
             @Override
             public void afterTextChanged(Editable s) {
-                // Nếu đã chọn địa chỉ, ta sẽ đặt lại isAddressSelected thành false khi bắt đầu gõ
                 if (isAddressSelected) {
-                    isAddressSelected = false; // Người dùng bắt đầu chỉnh sửa lại địa chỉ
-                    return;
+                    isAddressSelected = false;
+                    btnConfirmLocation.setEnabled(false);
+                    btnConfirmLocation.setVisibility(View.GONE);
                 }
 
-                // Không gọi API nếu chuỗi nhập là rỗng
                 if (s.length() == 0) {
                     suggestionList.clear();
                     adapter.notifyDataSetChanged();
                     return;
                 }
 
-                // Gọi API để lấy gợi ý sau khi người dùng gõ
                 timer.cancel();
                 timer = new Timer();
                 timer.schedule(new TimerTask() {
@@ -115,6 +120,10 @@ public class LocationActivity extends AppCompatActivity {
                 getCurrentLocation();
             }
         });
+
+        btnConfirmLocation.setOnClickListener(v -> {
+            saveLocationAndGoToMain(LocationStorage.getLatitude(this), LocationStorage.getLongitude(this));
+        });
     }
 
     private void setupWebView() {
@@ -135,9 +144,7 @@ public class LocationActivity extends AppCompatActivity {
     }
 
     private void fetchAddressSuggestions(String query) {
-        if (query.isEmpty()) {
-            return;
-        }
+        if (query.isEmpty()) return;
 
         new Thread(() -> {
             try {
@@ -195,8 +202,10 @@ public class LocationActivity extends AppCompatActivity {
                 if (jsonArray.length() > 0) {
                     double lat = jsonArray.getJSONObject(0).getDouble("lat");
                     double lon = jsonArray.getJSONObject(0).getDouble("lon");
-
-                    runOnUiThread(() -> updateMapLocation(lat, lon));
+                    runOnUiThread(() -> {
+                        LocationStorage.saveLocation(this, lat, lon);
+                        updateMapLocation(lat, lon);
+                    });
                 }
 
             } catch (Exception e) {
@@ -213,15 +222,35 @@ public class LocationActivity extends AppCompatActivity {
     }
 
     private void getCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, location -> {
                     if (location != null) {
                         double latitude = location.getLatitude();
                         double longitude = location.getLongitude();
-                        updateMapLocation(latitude, longitude);
+                        saveLocationAndGoToMain(latitude, longitude);
+                        //updateMapLocation(latitude, longitude);
                     }
                 });
     }
+
+    private void saveLocationAndGoToMain(double lat, double lon) {
+        LocationStorage.saveLocation(this, lat, lon);
+
+        Intent intent = new Intent(LocationActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -248,11 +277,12 @@ public class LocationActivity extends AppCompatActivity {
             String item = suggestionList.get(position);
             holder.textView.setText(item);
             holder.itemView.setOnClickListener(v -> {
-                // Cập nhật ô nhập và ẩn gợi ý sau khi chọn
                 editTextAddress.setText(item);
                 suggestionList.clear();
                 notifyDataSetChanged();
-                isAddressSelected = true;  // Đánh dấu đã chọn địa chỉ
+                isAddressSelected = true;
+                btnConfirmLocation.setEnabled(true);
+                btnConfirmLocation.setVisibility(View.VISIBLE);
                 fetchLatLonFromDisplayName(item);
             });
         }

@@ -4,11 +4,13 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import { Food, AdditionalFood } from "../types/Types";
+import { number } from "framer-motion";
 
 export default function MenuManagement() {
+  const kinds = ["MAIN", "ADDITIONAL", "BOTH"];
   const params = useParams();
   const restaurantId = params?.restaurantId as string;
-
+  const [typeList, setTypeList] = useState<string[]>([]);
   const [foods, setFoods] = useState<Food[]>([]);
   const [types, setTypes] = useState<string[]>([]);
   const [activeType, setActiveType] = useState<string>("");
@@ -19,6 +21,8 @@ export default function MenuManagement() {
   // Define the type for additional items
   const [additionalItems, setAdditionalItems] = useState<AdditionalFood[]>([]);
   const [isLoadingAdditionalItems, setIsLoadingAdditionalItems] = useState(false);
+
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchAdditionalItems = async () => {
@@ -49,8 +53,8 @@ export default function MenuManagement() {
     name: "",
     image: "",
     description: "",
-    kind: "MAIN",
-    type: "Bánh mì",
+    kind: "",
+    type: "",
     price: 0,
   });
 
@@ -59,6 +63,10 @@ export default function MenuManagement() {
   if (!restaurantId) {
     return <div>Restaurant ID not found</div>;
   }
+
+  useEffect(() => {
+    loadTypeList();
+  }, []);
 
   useEffect(() => {
     const fetchFoods = async () => {
@@ -145,6 +153,15 @@ export default function MenuManagement() {
     }
   };
   
+  const loadTypeList = async () => {
+    try {
+      const response = await axios.get(`http://localhost:6969/grab/food-types`);
+      setTypeList((response.data.data || []).map((item) => item.name));
+    } catch (error) {
+      console.error("Lỗi khi load food types:", error);
+    }
+  };
+
   // Define the function for handling the change of additional items
   const handleAdditionalChange = (additionalId: number) => {
     if (editData.additionalIds?.includes(additionalId)) {
@@ -195,7 +212,31 @@ export default function MenuManagement() {
     }
   };
 
-  const filteredFoods = activeType ? foods.filter((food) => food.type === activeType) : foods;
+  const toggleFoodStatus = async (foodId : number, restaurantId : string, currentStatus : string, refreshCallback : any) => {
+    const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+    try {
+      // Cập nhật trạng thái món ăn thông qua PUT request
+      const response = await axios.put(
+        `http://localhost:6969/grab/foods/${foodId}`,  // Đảm bảo URL đúng với API bạn đang sử dụng
+        null,
+        { params: { restaurantId, foodStatus: newStatus } }
+      );
+      console.log(response.data);
+      refreshCallback();  // Gọi lại dữ liệu sau khi cập nhật trạng thái
+    } catch (error) {
+      console.error("Failed to update food status:", error);
+    }
+  };
+
+
+  const getFilteredFoods = () => {
+    return foods.filter((food) => {
+      const matchType = !activeType || food.type === activeType;
+      const matchSearch = food.name.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchType && matchSearch;
+    });
+  };
+
 
   if (loading) return <p>Đang tải menu...</p>;
 
@@ -241,15 +282,34 @@ export default function MenuManagement() {
               className="w-full border px-3 py-2 rounded"
               placeholder="Giá"
             />
-            <select
-              value={newFoodData.type}
-              onChange={(e) => setNewFoodData({ ...newFoodData, type: e.target.value })}
-              className="w-full border px-3 py-2 rounded"
-            >
-              {types.map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
+           <div className="flex justify-between mb-4 space-x-4">
+            <div className="w-1/2">
+              <label className="block text-sm font-medium mb-1">Loại món (Kind)</label>
+              <select 
+                value={newFoodData.kind} 
+                className="w-full border px-3 py-2 rounded"
+                onChange={(e) => setNewFoodData({ ...newFoodData, kind: e.target.value })}>
+                {kinds.map((kind) => (
+                  <option key={kind} value={kind}>{kind}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="w-1/2">
+              <label className="block text-sm font-medium mb-1">Phân loại (Type)</label>
+              <select 
+                value={newFoodData.type} 
+                className="w-full border px-3 py-2 rounded"
+                onChange={(e) => setNewFoodData({ ...newFoodData, type: e.target.value })}>
+                {typeList.map((type) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+
+
           </div>
 
           <div className="flex justify-end space-x-2 mt-4">
@@ -265,7 +325,13 @@ export default function MenuManagement() {
     )}
 
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Quản lý Menu</h2>
+        <input
+          type="text"
+          placeholder="Tìm món ăn..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="p-2 border rounded mr-4 w-2/3"
+        />
         <button 
           onClick={() => setIsAddFoodModalOpen(true)} 
           className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
@@ -274,6 +340,16 @@ export default function MenuManagement() {
       </div>
 
       <div className="border-b mb-4 flex space-x-4 overflow-x-auto">
+        {/* Nút "Tất cả" */}
+        <button
+          onClick={() => setActiveType("")}
+          className={`px-4 py-2 whitespace-nowrap ${
+            activeType === "" ? "border-b-2 border-green-600 text-green-600 font-semibold" : "text-gray-500"
+          }`}
+        >
+          Tất cả
+        </button>
+        {/* Các nút theo loại món ăn */}
         {types.map((type) => (
           <button
             key={type}
@@ -287,8 +363,9 @@ export default function MenuManagement() {
         ))}
       </div>
 
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {filteredFoods.map((food) => (
+        {getFilteredFoods().map((food) => (
           <div key={food.id} className="flex items-center p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition">
             <img src={food.image || "/placeholder.svg"} alt={food.name} className="w-24 h-24 object-cover rounded-md" />
             <div className="ml-4 flex-1">
@@ -308,10 +385,22 @@ export default function MenuManagement() {
                 Xem chi tiết
               </button>
             </div>
-            <div className="ml-4 flex-1 relative">
-              <p className={`absolute top-0 right-0 text-sm ${food.status === 'ACTIVE' ? 'text-green-500' : 'text-red-500'}`}>
-                {food.status}
+            <div className="ml-4 flex-1 space-y-2">
+              <p className={`text-sm ${food.status === 'ACTIVE' ? 'text-green-500' : 'text-red-500'}`}>
+                {food.status} - {food.kind === 'MAIN' ? 'Món chính' : 'Linh hoạt'}
               </p>
+              
+              <div className="flex justify-between mt-2">
+                <button
+                className={`px-4 py-2 mt-2 ${food.status === 'ACTIVE' ? 'bg-red-500' : 'bg-green-500'} text-white rounded`}
+                onClick={() => toggleFoodStatus(food.id, restaurantId, food.status, () => {
+                  // Làm mới danh sách món ăn sau khi cập nhật trạng thái
+                  setFoods(foods.map(f => f.id === food.id ? { ...f, status: food.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' } : f));
+                })}
+              >
+                {food.status === "ACTIVE" ? "Ẩn món" : "Hiện món"}
+              </button>
+              </div>
             </div>
           </div>
         ))}

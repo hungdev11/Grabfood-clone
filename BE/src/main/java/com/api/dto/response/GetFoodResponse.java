@@ -23,4 +23,5 @@ public class GetFoodResponse {
     private BigDecimal discountPrice;
     private BigDecimal rating;
     private String type;
+    private String kind;
 }

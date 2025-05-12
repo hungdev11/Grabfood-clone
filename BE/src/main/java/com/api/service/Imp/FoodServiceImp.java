@@ -162,7 +162,8 @@ public class FoodServiceImp implements FoodService {
             if (time.isBefore(vd.getStartDate()) || time.isAfter(vd.getEndDate())) continue;
 
             Voucher voucher = vd.getVoucher();
-            if (voucher.getStatus() != VoucherStatus.ACTIVE) continue;
+            // nếu trong lúc đặt order vẫn hiệu lực nhưng sau đó k còn hiệu lực thì vẫn áp dụng, nên xét status k hợp lý
+            //if (voucher.getStatus() != VoucherStatus.ACTIVE) continue;
             if (!food.getRestaurant().equals(voucher.getRestaurant())) continue;
 
             if (voucher.getType() == VoucherType.PERCENTAGE) {
@@ -490,6 +491,7 @@ public class FoodServiceImp implements FoodService {
                             .discountPrice(discountPrice)
                             .rating(BigDecimal.ZERO)
                             .type(f.getType().getName())
+                            .kind(f.getKind().name())
                             .build();
                     if (!isForCustomer) {
                         foodResponse.setStatus(f.getStatus());

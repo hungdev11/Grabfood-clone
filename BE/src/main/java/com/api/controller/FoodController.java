@@ -97,7 +97,7 @@ public class FoodController {
     public ApiResponse<?> getAdditionalFoodsOfRestaurant(
             @RequestParam long restaurantId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int pageSize,
+            @RequestParam(defaultValue = "100") int pageSize,
             @RequestParam(defaultValue = "false") boolean isForCustomer
     ) {
         return ApiResponse.builder()

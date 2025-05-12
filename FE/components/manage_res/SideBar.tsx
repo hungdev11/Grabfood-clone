@@ -53,23 +53,23 @@ const Sidebar = ({ setSelectedMenu }: SidebarProps) => {
                   Món phụ
                 </button>
               </li>
-              <li>
-                <button
-                  onClick={() => setSelectedMenu("combo")}
-                  className="w-full text-left py-1 px-4 hover:bg-gray-700 rounded"
-                >
-                  Chính + phụ
-                </button>
-              </li>
             </ul>
           )}
         </li>
         <li>
           <button
-            onClick={() => setSelectedMenu("employees")}
+            onClick={() => setSelectedMenu("vouchers")}
             className="w-full text-left py-2 px-4 hover:bg-gray-700 rounded"
           >
-            Nhân Viên
+            Voucher
+          </button>
+        </li>
+        <li>
+          <button
+            onClick={() => setSelectedMenu("report")}
+            className="w-full text-left py-2 px-4 hover:bg-gray-700 rounded"
+          >
+            Báo cáo
           </button>
         </li>
       </ul>
