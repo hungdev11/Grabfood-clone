@@ -46,6 +46,7 @@ public class CartActivity extends AppCompatActivity {
     TextView txtTotalCartAmount;
     ImageButton btnCartBack;
     Button btnOrder;
+    private Long cartId;
 
 
     private TokenManager tokenManager;
@@ -115,11 +116,16 @@ public class CartActivity extends AppCompatActivity {
             public void onResponse(Call<ApiResponse<CartResponse>> call, Response<ApiResponse<CartResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     ApiResponse<CartResponse> apiResponse = response.body();
-                    if (apiResponse.getData() != null && apiResponse.getData().getListItem() != null) {
+                    if (apiResponse.getData() != null && apiResponse.getData().getListItem().isEmpty()) {
+                        Toast.makeText(CartActivity.this, "Giỏ hàng trống!", Toast.LENGTH_SHORT).show();
+                        finish();
+                        return;
+                    }
+                    if (apiResponse.getData() != null) {
                         cartItems.clear();
                         cartItems.addAll(apiResponse.getData().getListItem());
                         txtCartRestaurantName.setText(apiResponse.getData().getRestaurantName());
-
+                        cartId = apiResponse.getData().getCartId();
                         BigDecimal totalPrice = BigDecimal.ZERO;
                         for (CartDetailDTO item : cartItems) {
                             BigDecimal itemPrice = item.getPrice();
@@ -170,7 +176,9 @@ public class CartActivity extends AppCompatActivity {
                 Intent intent = new Intent(CartActivity.this, CheckoutActivity.class);
                 intent.putExtra("cartItems", new ArrayList<>(cartItems));
                 intent.putExtra("restaurantName", txtCartRestaurantName.getText().toString());
+                intent.putExtra("cartId", cartId);
                 startActivity(intent);
+                finish();
             }
         });
     }

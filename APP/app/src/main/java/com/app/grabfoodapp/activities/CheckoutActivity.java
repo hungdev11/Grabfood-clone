@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,12 +24,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.app.grabfoodapp.R;
 import com.app.grabfoodapp.adapter.CartAdapter;
 import com.app.grabfoodapp.apiservice.order.OrderService;
+import com.app.grabfoodapp.apiservice.payment.PaymentService;
 import com.app.grabfoodapp.config.ApiClient;
 import com.app.grabfoodapp.dto.ApiResponse;
 import com.app.grabfoodapp.dto.CartDetailDTO;
 import com.app.grabfoodapp.dto.request.ApplyVoucherRequest;
+import com.app.grabfoodapp.dto.request.CreateOrderRequest;
 import com.app.grabfoodapp.dto.response.ApplyVoucherResponse;
+import com.app.grabfoodapp.dto.response.OrderResponse;
 import com.app.grabfoodapp.dto.response.VoucherResponse;
+import com.app.grabfoodapp.utils.TokenManager;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -50,21 +55,23 @@ public class CheckoutActivity extends AppCompatActivity {
     TextView txtTotalCartAmount;
     TextView deliveryFeeText;
     TextView totalPriceText;
-
     TextView discountAmount;
-
     TextView discountShipping;
     LinearLayout voucherLayout;
     BigDecimal totalPrice = BigDecimal.ZERO;
     private static final int REQUEST_CODE_VOUCHER = 100;
+    private Long cartId;
 
+    private List<String> voucherCodes = new ArrayList<>();
 
+    Button btnPayment;
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_checkout);
+        btnPayment = findViewById(R.id.btn_payment);
         voucherLayout  = findViewById(R.id.discount_layout);
         txtTotalCartAmount = findViewById(R.id.txtTotalCartAmount);
         deliveryFeeText = findViewById(R.id.delivery_fee_text);
@@ -72,6 +79,7 @@ public class CheckoutActivity extends AppCompatActivity {
         discountAmount = findViewById(R.id.txtDiscountAmount);
         discountShipping = findViewById(R.id.txtDiscountShipping);
         cartItems = (ArrayList<CartDetailDTO>) getIntent().getSerializableExtra("cartItems");
+        cartId = getIntent().getLongExtra("cartId", 0);
         updateTotalPrice();
         restaurantName = getIntent().getStringExtra("restaurantName");
         // Kiểm tra dữ liệu nhận được
@@ -108,6 +116,7 @@ public class CheckoutActivity extends AppCompatActivity {
                 startActivityForResult(intent, REQUEST_CODE_VOUCHER);
             }
         });
+        handleBtnPaymentClick();
     }
 
     @Override
@@ -117,10 +126,10 @@ public class CheckoutActivity extends AppCompatActivity {
             // Retrieve selected vouchers
             ArrayList<VoucherResponse> selectedVouchers = (ArrayList<VoucherResponse>) data.getSerializableExtra(VoucherActivity.EXTRA_SELECTED_VOUCHERS);
             if (selectedVouchers != null) {
-                List<String> voucherCodes = new ArrayList<>();
                 for (VoucherResponse voucher : selectedVouchers) {
                     voucherCodes.add(voucher.getCode());
                 }
+
                 ApplyVoucherRequest request = ApplyVoucherRequest.builder()
                         .listCode(voucherCodes)
                         .shippingFee(BigDecimal.valueOf(25000))
@@ -188,5 +197,49 @@ public class CheckoutActivity extends AppCompatActivity {
         totalPriceText.setText(formatter.format(totalPrice.add(BigDecimal.valueOf(25000))) + "đ");
         discountAmount.setText("");
         discountShipping.setText("");
+    }
+
+    private void handleBtnPaymentClick() {
+        btnPayment.setOnClickListener(new View.OnClickListener() {
+            TokenManager tokenManager = new TokenManager(CheckoutActivity.this);
+
+            @Override
+            public void onClick(View v) {
+                if (!tokenManager.hasToken()) {
+                    Toast.makeText(CheckoutActivity.this, "Not logged in", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
+                String token = tokenManager.getToken();
+                CreateOrderRequest request = CreateOrderRequest.builder()
+                        .cartId(cartId)
+                        .note("App Order")
+                        .address("Address App")
+                        .shippingFee(BigDecimal.valueOf(25000))
+                        .voucherCode(voucherCodes)
+                        .build();
+
+
+                PaymentService paymentService = ApiClient.getClient().create(PaymentService.class);
+                Call<ApiResponse<OrderResponse>> call = paymentService.createCodOrder("Bearer " + token, request);
+                call.enqueue(new Callback<ApiResponse<OrderResponse>>() {
+                    @Override
+                    public void onResponse(Call<ApiResponse<OrderResponse>> call, Response<ApiResponse<OrderResponse>> response) {
+                        if(response.isSuccessful() && response.body() != null) {
+                            ApiResponse<OrderResponse> apiResponse = response.body();
+                            if (apiResponse.getData() != null) {
+                                Toast.makeText(CheckoutActivity.this, "Đặt đơn thành công!", Toast.LENGTH_SHORT).show();
+                                finish();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiResponse<OrderResponse>> call, Throwable t) {
+                        Log.e("API", "Lỗi mạng hoặc URL: " + t.getMessage());
+                    }
+                });
+            }
+        });
     }
 }
