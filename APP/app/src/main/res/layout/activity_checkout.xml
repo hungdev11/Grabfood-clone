@@ -133,13 +133,10 @@
                 android:textStyle="bold"
                 android:textColor="#000000" />
         </LinearLayout>
-
-
-
         <!-- Place Order Button -->
         <Button
             android:layout_marginBottom="20dp"
-            android:id="@+id/confirm_button"
+            android:id="@+id/btn_payment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Đặt đơn"
@@ -234,7 +231,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Tiền mặt"
-                    android:checked="true"
                     android:textSize="14sp"
                     android:textColor="#000000" />
 
