@@ -40,6 +40,7 @@ export interface ApiResponse<T> {
     price: number;
   }
 
+  type FoodKind = "MAIN" | "ADDITIONAL" | "BOTH";
   export interface Food {
     id: number;
     name: string;
@@ -54,7 +55,7 @@ export interface ApiResponse<T> {
     additionalFoods?: AdditionalFood[];  // danh sách object
     additionalIds?: number[];            // danh sách ID, phục vụ update
     note?: string;
-    kind?: string;
+    kind: FoodKind;
     type: string;
   }  
 

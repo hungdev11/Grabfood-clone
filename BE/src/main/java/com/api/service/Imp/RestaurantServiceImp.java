@@ -123,22 +123,25 @@ public class RestaurantServiceImp implements RestaurantService {
     }
 
     @Override
-    public void handlePendingOrder(long restaurantId, long orderId, OrderStatus status) {
-        log.info("Handle PendingOrder");
+    public void handleOrder(long restaurantId, long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
         if (order.getCartDetails().get(0).getFood().getRestaurant().getId() != restaurantId) {
             log.error("Order {} not belong to restaurant {}", orderId, restaurantId);
             throw new AppException(ErrorCode.ORDER_NOT_BELONG_TO_RES);
         }
-        if (!order.getStatus().equals(OrderStatus.PENDING)) {
-            log.error("Order id {} is not PENDING", orderId);
+        if (!order.getStatus().equals(OrderStatus.PENDING) && !order.getStatus().equals(OrderStatus.PROCESSING)) {
+            log.error("Restaurant can not handle order {} with status", orderId, order.getStatus());
             throw new AppException(ErrorCode.HANDLE_NOT_PENDING_ORDER);
         }
         if (status.equals(OrderStatus.PROCESSING) || status.equals(OrderStatus.REJECTED)) {
             log.info("Change order {} status from PENDING to {}", orderId, status);
             order.setStatus(status);
+        } else if (status.equals(OrderStatus.SHIPPING)) {
+            log.info("Change order {} status from PROCESSING to {}", orderId, status);
+            order.setStatus(status);
         }
+        // tạo thông báo push tại đây đến /topic/client/{clientId}
         orderRepository.save(order);
     }
 

@@ -244,6 +244,12 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
+    public void updateOrderStatus(Order order, OrderStatus status) {
+        order.setStatus(status);
+        orderRepository.save(order);
+    }
+
+    @Override
     public List<OrderResponse> getUserOrderByStatus(Long userId, OrderStatus status) {
         List<Order> orderList = orderRepository.getOrderByUserIdAndStatus(userId, status);
         return orderList.stream().map(order -> OrderResponse.builder()

@@ -66,7 +66,7 @@ public class RestaurantController {
 
     @PutMapping("/{restaurantId}/handle-order/{orderId}")
     public ApiResponse<?> handleOrder(@PathVariable long restaurantId, @PathVariable Long orderId, @RequestParam OrderStatus status) {
-        restaurantService.handlePendingOrder(restaurantId, orderId, status);
+        restaurantService.handleOrder(restaurantId, orderId, status);
         return ApiResponse.builder()
                 .code(200)
                 .message("Success")

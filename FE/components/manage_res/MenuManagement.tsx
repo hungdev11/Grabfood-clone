@@ -8,6 +8,11 @@ import { number } from "framer-motion";
 
 export default function MenuManagement() {
   const kinds = ["MAIN", "ADDITIONAL", "BOTH"];
+  const kindsMap = {
+    "MAIN": "Món chính",
+    "ADDITIONAL": "Món phụ",
+    "BOTH": "Linh hoạt",
+  };
   const params = useParams();
   const restaurantId = params?.restaurantId as string;
   const [typeList, setTypeList] = useState<string[]>([]);
@@ -68,41 +73,54 @@ export default function MenuManagement() {
     loadTypeList();
   }, []);
 
-  useEffect(() => {
-    const fetchFoods = async () => {
-      try {
-        const response = await axios.get(`http://localhost:6969/grab/foods/restaurant/${restaurantId}`);
-        const fetchedFoods = response.data.data.foods || [];
-        setFoods(fetchedFoods);
-        const fetchedTypes = response.data.data.types || [];
-        setTypes(fetchedTypes);
-      } catch (error) {
-        console.error("Lỗi khi lấy món ăn:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchFoods = async () => {
+    try {
+      const response = await axios.get(`http://localhost:6969/grab/foods/restaurant/${restaurantId}`);
+      const response1 = await axios.get(`http://localhost:6969/grab/foods/additional?restaurantId=${restaurantId}`);
 
+      const fetchedFoods = response.data.data.foods || [];
+      const additionalFoods = (response1.data.data.items || []).filter(
+        (item: Food) => item.kind === "ADDITIONAL"
+      );
+
+      const combinedFoods = [...fetchedFoods, ...additionalFoods];
+      setFoods(combinedFoods);
+
+      const fetchedTypes = response.data.data.types || [];
+      setTypes(fetchedTypes);
+    } catch (error) {
+      console.error("Lỗi khi lấy món ăn:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (restaurantId) {
       fetchFoods();
     }
   }, [restaurantId]);
 
-  const handleFoodClick = async (food : Food) => {
+  const handleFoodClick = async (food: Food) => {
     try {
       const selectedAdditionalResponse = await axios.get(
         `http://localhost:6969/grab/foods/additional/${food.id}?restaurantId=${restaurantId}&isForCustomer=false`
       );
-  
-      const selectedAdditionalItems = selectedAdditionalResponse.data.data.items || [];
-      const selectedAdditionalIds = selectedAdditionalItems.map(item => item.id);
-  
+
+      let selectedAdditionalItems: Food[] = [];
+      let selectedAdditionalIds: number[] = [];
+
+      if (food.kind !== "ADDITIONAL") {
+        selectedAdditionalItems = selectedAdditionalResponse.data.data.items || [];
+        selectedAdditionalIds = selectedAdditionalItems.map(item => item.id);
+      }
+
       setEditData({
         ...food,
         additionalFoods: selectedAdditionalItems,
-        additionalIds: selectedAdditionalIds,  // gán thêm mảng ID cho tiện update
+        additionalIds: selectedAdditionalIds,
       });
-  
+
       setSelectedFood(food);
     } catch (error) {
       console.error("Lỗi khi lấy đồ thêm đã gắn:", error);
@@ -114,7 +132,6 @@ export default function MenuManagement() {
       setSelectedFood(food);
     }
   };
-  
 
   const closePopup = () => {
     setSelectedFood(null);
@@ -145,8 +162,7 @@ export default function MenuManagement() {
       alert("Cập nhật món ăn thành công!");
       setSelectedFood(null);
 
-      const response = await axios.get(`http://localhost:6969/grab/foods/restaurant/${restaurantId}`);
-      setFoods(response.data.data.foods || []);
+      await fetchFoods();
     } catch (error) {
       console.error("Lỗi khi lưu món ăn:", error);
       alert("Cập nhật thất bại.");
@@ -156,7 +172,7 @@ export default function MenuManagement() {
   const loadTypeList = async () => {
     try {
       const response = await axios.get(`http://localhost:6969/grab/food-types`);
-      setTypeList((response.data.data || []).map((item) => item.name));
+      setTypeList((response.data.data || []).map((item : Food) => item.name));
     } catch (error) {
       console.error("Lỗi khi load food types:", error);
     }
@@ -183,8 +199,7 @@ export default function MenuManagement() {
       await axios.delete(`http://localhost:6969/grab/foods/${selectedFood?.id}`);
       alert("Đã xóa món ăn!");
       setSelectedFood(null);
-      const response = await axios.get(`http://localhost:6969/grab/foods/restaurant/${restaurantId}`);
-      setFoods(response.data.data.foods || []);
+      await fetchFoods();
     } catch (error) {
       console.error("Lỗi khi xóa món ăn:", error);
       alert("Xóa thất bại.");
@@ -230,9 +245,11 @@ export default function MenuManagement() {
 
 
   const getFilteredFoods = () => {
-    return foods.filter((food) => {
+    return foods.filter((food : Food) => {
       const matchType = !activeType || food.type === activeType;
-      const matchSearch = food.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchSearch =
+        food.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        kindsMap[food.kind]?.toLowerCase().includes(searchTerm.toLowerCase());
       return matchType && matchSearch;
     });
   };
@@ -307,8 +324,6 @@ export default function MenuManagement() {
               </select>
             </div>
           </div>
-
-
 
           </div>
 
@@ -387,7 +402,7 @@ export default function MenuManagement() {
             </div>
             <div className="ml-4 flex-1 space-y-2">
               <p className={`text-sm ${food.status === 'ACTIVE' ? 'text-green-500' : 'text-red-500'}`}>
-                {food.status} - {food.kind === 'MAIN' ? 'Món chính' : 'Linh hoạt'}
+                {food.status} - {food.kind === 'MAIN' ? 'Món chính' : food.kind === 'BOTH' ? 'Linh hoạt' : "Món phụ"}
               </p>
               
               <div className="flex justify-between mt-2">
@@ -450,25 +465,30 @@ export default function MenuManagement() {
 
             {/* Chọn món phụ */}
             <div className="mt-4">
-              <label className="block text-sm font-medium">Chọn món ăn phụ</label>
-              {isLoadingAdditionalItems ? (
-                <p>Đang tải món phụ...</p>
-              ) : (
-                <div className="space-y-2">
-                  {additionalItems.map((item) => (
-                    <label key={item.id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={editData.additionalIds?.includes(item.id)} // Kiểm tra món này đã được chọn chưa
-                        onChange={() => handleAdditionalChange(item.id)} // Hàm xử lý khi chọn món phụ
-                        className="mr-2"
-                      />
-                      {item.name}
-                    </label>
-                  ))}
-                </div>
+              {selectedFood.kind !== "ADDITIONAL" && (
+                <>
+                  <label className="block text-sm font-medium">Chọn món ăn phụ</label>
+                  {isLoadingAdditionalItems ? (
+                    <p>Đang tải món phụ...</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {additionalItems.map((item) => (
+                        <label key={item.id} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={editData.additionalIds?.includes(item.id)}
+                            onChange={() => handleAdditionalChange(item.id)}
+                            className="mr-2"
+                          />
+                          {item.name}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
+
 
             <div className="flex justify-end space-x-2 mt-4">
               <button onClick={handleSave} className="bg-blue-600 text-white px-4 py-2 rounded">

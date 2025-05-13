@@ -5,8 +5,6 @@ type SidebarProps = {
 };
 
 const Sidebar = ({ setSelectedMenu }: SidebarProps) => {
-  const [menuOpen, setMenuOpen] = useState(false);
-
   return (
     <div className="w-64 bg-gray-800 text-white h-full p-6">
       <h2 className="text-2xl font-semibold mb-6">Danh Mục Quản Lý</h2>
@@ -29,32 +27,11 @@ const Sidebar = ({ setSelectedMenu }: SidebarProps) => {
         </li>
         <li>
           <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="w-full text-left py-2 px-4 hover:bg-gray-700 rounded flex justify-between items-center"
+            onClick={() => setSelectedMenu("main")}
+            className="w-full text-left py-1 px-4 hover:bg-gray-700 rounded"
           >
             Menu
-            <span>{menuOpen ? "▲" : "▼"}</span>
           </button>
-          {menuOpen && (
-            <ul className="ml-4 mt-2">
-              <li>
-                <button
-                  onClick={() => setSelectedMenu("main")}
-                  className="w-full text-left py-1 px-4 hover:bg-gray-700 rounded"
-                >
-                  Món chính
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => setSelectedMenu("side")}
-                  className="w-full text-left py-1 px-4 hover:bg-gray-700 rounded"
-                >
-                  Món phụ
-                </button>
-              </li>
-            </ul>
-          )}
         </li>
         <li>
           <button

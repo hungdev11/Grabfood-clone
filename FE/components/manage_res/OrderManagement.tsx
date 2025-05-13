@@ -66,7 +66,7 @@ export default function OrdersManagement() {
         // Toggle expanded state for each order
         setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
       };
-    const changeStatus = async (order: Order, status: "PROCESSING" | "REJECTED") => {
+    const changeStatus = async (order: Order, status: "PROCESSING" | "REJECTED" | "SHIPPING") => {
       try {
         const restaurantId = params?.restaurantId as string;
     
@@ -188,6 +188,14 @@ export default function OrdersManagement() {
                             </button>
                           </>
                         )}
+                        {order.status === "PROCESSING" && (
+                          <button
+                            onClick={() => changeStatus(order, "SHIPPING")}
+                            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                          >
+                            Hoàn thành
+                          </button>
+                        )}
                       </div>
                         <table className="min-w-full table-auto">
                           <thead>
@@ -242,15 +250,15 @@ export default function OrdersManagement() {
           disabled={page === 0}
           className="px-3 py-1 rounded bg-gray-300 disabled:opacity-50"
         >
-          Trang trước
+          Trước
         </button>
-        <span className="px-2 py-1">Trang {page + 1}</span>
+        <span className="px-2 py-1">{page + 1}</span>
         <button
           onClick={() => setPage((prev) => (prev + 1) * size < total ? prev + 1 : prev)}
           disabled={(page + 1) * size >= total}
           className="px-3 py-1 rounded bg-gray-300 disabled:opacity-50"
         >
-          Trang sau
+          Sau
         </button>
       </div>
     </div>
