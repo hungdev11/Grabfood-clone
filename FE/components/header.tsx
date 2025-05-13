@@ -86,7 +86,7 @@ export default function Header() {
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <NotificationBell />
+            {/* <NotificationBell /> */}
               {isLoggedIn && (
                   <>
                       {itemCount > 0 ? (

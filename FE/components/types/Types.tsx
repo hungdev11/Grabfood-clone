@@ -110,3 +110,11 @@ export interface Order {
     discountShippingFee: number | null;
     discountOrderPrice: number | null;
 }
+
+export interface Notification {
+    id: string;
+    subject: string;
+    body: string;
+    timeArrived: string;
+    read: boolean;
+  }

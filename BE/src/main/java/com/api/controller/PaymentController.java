@@ -4,11 +4,13 @@ import com.api.dto.request.CreateOrderRequest;
 import com.api.dto.request.MomoNotifyRequest;
 import com.api.dto.response.ApiResponse;
 import com.api.dto.response.OrderResponse;
+import com.api.entity.Account;
 import com.api.entity.Order;
 import com.api.service.MomoPaymentService;
 import com.api.service.NotificationService;
 import com.api.service.OrderService;
 import com.api.service.PaymentService;
+import com.api.utils.NotificationType;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -243,8 +245,15 @@ public class PaymentController {
     }
 
     private void sendOrderNotifyToRestaurant(Order order) {
-        notificationService.sendNewOrderNotification(
-                order.getCartDetails().get(0).getFood().getRestaurant().getId(), order);
+        var restaurant = order.getCartDetails().get(0).getFood().getRestaurant();
+        long restaurantId = restaurant.getId();
+        Account account = restaurant.getAccount();
+        // create notification here
+        String subject = "Đơn hàng mới";
+        String body = "Mã đơn #" + order.getId() + " , kiểm tra ngay!!!";
+        notificationService.createNewNotification(account, subject, body, NotificationType.NEW_ORDER);
+
+        notificationService.sendNewOrderNotification(restaurantId);
         log.info("send order notify to restaurant");
     }
 }

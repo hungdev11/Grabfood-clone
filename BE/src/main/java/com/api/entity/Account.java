@@ -3,6 +3,9 @@ package com.api.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -24,4 +27,8 @@ public class Account extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "id_role", nullable = false)
     private Role role;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "receivedAccount", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AccountNotification> notificationDetails = new ArrayList<>();
 }

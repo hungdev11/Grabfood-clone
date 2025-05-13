@@ -102,6 +102,8 @@ public class SecurityConfig {
                                 .requestMatchers("/push-noti/**").permitAll()
                                 .requestMatchers("/cart/test").permitAll()
                                 .requestMatchers("/report/**").permitAll()
+                                .requestMatchers("/notifications/**").permitAll()
+
                                 //
                                 // Role-based endpoints
                                 .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
