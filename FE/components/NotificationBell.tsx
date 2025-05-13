@@ -28,7 +28,7 @@ export const NotificationBell = ({
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    const handleOrderReceived = (data: string) => {
+    const handleOrderReceived = () => {
       onTrigger(); // Trigger khi có thông báo mới
     };
 
@@ -71,7 +71,12 @@ export const NotificationBell = ({
               <li className="p-2 text-sm text-gray-500">Không có thông báo</li>
             ) : (
               notifications.map((n) => (
-                <li key={n.id} className="flex justify-between items-start p-2 text-sm hover:bg-gray-50">
+                <li
+                  key={n.id}
+                  className={`flex justify-between items-start p-2 text-sm hover:bg-gray-50 ${
+                    n.read ? "bg-white" : "bg-blue-50"
+                  }`}
+                >
                   <div className="flex-1">
                     <p className={`${n.read ? "text-gray-500" : "text-black font-semibold"}`}>
                       {n.subject}: {n.body}
@@ -97,6 +102,7 @@ export const NotificationBell = ({
                     </button>
                   </div>
                 </li>
+
               ))
             )}
           </ul>

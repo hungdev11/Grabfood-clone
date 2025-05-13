@@ -2,6 +2,7 @@ package com.api.service.Imp;
 
 import com.api.dto.response.NotificationResponse;
 import com.api.entity.*;
+import com.api.repository.AccountNotificationRepository;
 import com.api.service.NotificationService;
 import com.api.service.RestaurantService;
 import com.api.service.strategy.NotificationStrategy;
@@ -19,8 +20,8 @@ import java.util.List;
 public class NotificationServiceImp implements NotificationService {
 
     private final SimpMessagingTemplate messagingTemplate;
-    private final RestaurantService restaurantService;
     private final List<NotificationStrategy> strategies;
+    private final AccountNotificationRepository accountNotificationRepository;
 
     @Override
     public long createNewNotification(Account account, String subject, String body, NotificationType type) {
@@ -43,12 +44,49 @@ public class NotificationServiceImp implements NotificationService {
     }
 
     @Override
-    public List<NotificationResponse> fetchNotificationsPopup(long restaurantId) {
-        log.info("Fetching notifications for restaurant {}", restaurantId);
-        Restaurant restaurant = restaurantService.getRestaurant(restaurantId);
-        log.info("fff {}", restaurant.getAccount().getNotificationDetails().size());
-        return restaurant.getAccount().getNotificationDetails()
+    public void markAsRead(long accountNotificationId) {
+        accountNotificationRepository.findById(accountNotificationId).ifPresent(an -> {
+            an.setRead(true);
+            accountNotificationRepository.save(an);
+        });
+    }
+
+    @Override
+    public void markDeleted(long accountNotificationId) {
+        accountNotificationRepository.findById(accountNotificationId).ifPresent(an -> {
+            an.setRead(true);
+            an.setDeleted(true);
+            accountNotificationRepository.save(an);
+        });
+    }
+
+    @Override
+    public void markAllAsRead(Account account) {
+        List<AccountNotification> unread = account.getNotificationDetails().stream()
+                .filter(an -> !an.isDeleted() && !an.isRead())
+                .peek(an -> an.setRead(true))
+                .toList();
+        accountNotificationRepository.saveAll(unread);
+    }
+
+
+    @Override
+    public void markAllAsDeleted(Account account) {
+        List<AccountNotification> undeleted = account.getNotificationDetails().stream()
+                .filter(an -> !an.isDeleted())
+                .peek(an -> {
+                    an.setDeleted(true);
+                    an.setRead(true);
+                })
+                .toList();
+        accountNotificationRepository.saveAll(undeleted);
+    }
+
+    @Override
+    public List<NotificationResponse> fetchNotificationsPopup(Account account) {
+        return account.getNotificationDetails()
                 .stream()
+                .filter(an ->  !an.isDeleted())
                 .sorted((a,b) ->
                         b.getNotification().getDate().compareTo(a.getNotification().getDate()))
                 .limit(7)

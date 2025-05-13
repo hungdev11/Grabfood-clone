@@ -31,22 +31,23 @@ export default function RestaurantPage() {
   }, [restaurantId]);
 
   const handleMarkAsRead = async (id: string) => {
-    await axios.patch(`/grab/notifications/${id}/read`);
+    await axios.patch(`http://localhost:6969/grab/notifications/${id}/read`);
     fetchNotifications();
   };
 
+
   const handleMarkAllAsRead = async () => {
-    await axios.patch(`/grab/notifications/restaurant/${restaurantId}/read-all`);
+    await axios.patch(`http://localhost:6969/grab/notifications/restaurant/${restaurantId}/read-all`);
     fetchNotifications();
   };
 
   const handleDeleteNotification = async (id: string) => {
-    await axios.delete(`/grab/notifications/${id}`);
+    await axios.delete(`http://localhost:6969/grab/notifications/${id}`);
     fetchNotifications();
   };
 
   const handleDeleteAll = async () => {
-    await axios.delete(`/grab/notifications/restaurant/${restaurantId}`);
+    await axios.delete(`http://localhost:6969/grab/notifications/restaurant/${restaurantId}`);
     fetchNotifications();
   };
 

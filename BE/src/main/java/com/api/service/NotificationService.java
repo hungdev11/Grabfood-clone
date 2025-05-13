@@ -11,5 +11,9 @@ import java.util.List;
 public interface NotificationService {
     long createNewNotification(Account account, String subject, String body, NotificationType type);
     void sendNewOrderNotification(long restaurantId);
-    List<NotificationResponse> fetchNotificationsPopup(long restaurantId);
+    List<NotificationResponse> fetchNotificationsPopup(Account account);
+    void markAsRead(long accountNotificationId);
+    void markDeleted(long accountNotificationId);
+    void markAllAsRead(Account account);
+    void markAllAsDeleted(Account account);
 }
