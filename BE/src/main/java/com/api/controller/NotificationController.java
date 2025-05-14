@@ -3,8 +3,10 @@ package com.api.controller;
 import com.api.dto.response.ApiResponse;
 import com.api.dto.response.NotificationResponse;
 import com.api.entity.Restaurant;
+import com.api.entity.User;
 import com.api.service.NotificationService;
 import com.api.service.RestaurantService;
+import com.api.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
     private final RestaurantService restaurantService;
+    private final UserService userService;
 
     @GetMapping("/restaurant/{restaurantId}")
     public ApiResponse<List<NotificationResponse>> getNotificationsOfRestaurant(@PathVariable long restaurantId) {
@@ -28,6 +31,17 @@ public class NotificationController {
                 .code(200)
                 .message("fetching notifications of restaurant")
                 .data(notificationService.fetchNotificationsPopup(restaurant.getAccount()))
+                .build();
+    }
+
+    @GetMapping("/user/{userId}")
+    public ApiResponse<List<NotificationResponse>> getNotificationsOfClient(@PathVariable long userId) {
+        log.info("Fetching notifications for user {}", userId);
+        User user = userService.getUserById(userId);
+        return ApiResponse.<List<NotificationResponse>>builder()
+                .code(200)
+                .message("fetching notifications of restaurant")
+                .data(notificationService.fetchNotificationsPopup(user.getAccount()))
                 .build();
     }
 
@@ -69,6 +83,28 @@ public class NotificationController {
         notificationService.markAllAsDeleted(restaurant.getAccount());
         return ApiResponse.builder()
                 .message("marking notification all deleted for restaurant" + restaurantId)
+                .code(200)
+                .build();
+    }
+
+    @PatchMapping("/user/{userId}/read-all")
+    public ApiResponse<?> clientMarkAsReadAll(@PathVariable long userId) {
+        log.info("Marking notification all read for user {}", userId);
+        User user = userService.getUserById(userId);
+        notificationService.markAllAsRead(user.getAccount());
+        return ApiResponse.builder()
+                .message("marking notification all read for restaurant" + userId)
+                .code(200)
+                .build();
+    }
+
+    @DeleteMapping("/user/{userId}")
+    public ApiResponse<?> clientMarkAsDeleteAll(@PathVariable long userId) {
+        log.info("Marking notification all deleted for user {}", userId);
+        User user = userService.getUserById(userId);
+        notificationService.markAllAsDeleted(user.getAccount());
+        return ApiResponse.builder()
+                .message("marking notification all deleted for user" + userId)
                 .code(200)
                 .build();
     }

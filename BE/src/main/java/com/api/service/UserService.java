@@ -7,4 +7,5 @@ public interface UserService {
     Long getUserIdByPhoneOrEmail(String username);
     Boolean checkUserExistByEmail(String email);
     User getUserByAccountId(Long accountId);
+    User getUserById(Long userId);
 }

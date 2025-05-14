@@ -48,4 +48,11 @@ public class UserServiceImp implements UserService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND,
                         "User not found with account ID: " + accountId));
     }
+
+    @Override
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND,
+                        "User not found with ID: " + userId));
+    }
 }

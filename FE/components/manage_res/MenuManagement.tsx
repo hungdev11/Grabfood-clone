@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import { Food, AdditionalFood } from "../types/Types";
-import { number } from "framer-motion";
 
 export default function MenuManagement() {
   const kinds = ["MAIN", "ADDITIONAL", "BOTH"];

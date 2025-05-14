@@ -38,9 +38,16 @@ public class NotificationServiceImp implements NotificationService {
                 });
     }
 
+    @Override
     public void sendNewOrderNotification(long restaurantId) {
         log.info("Sending message to restaurant {}", restaurantId);
         messagingTemplate.convertAndSend("/topic/restaurant/" + restaurantId, "");
+    }
+
+    @Override
+    public void sendUserNotificationWhenOrderStatusChanged(long userId) {
+        log.info("Sending message to user {}", userId);
+        messagingTemplate.convertAndSend("/topic/client/" + userId, "");
     }
 
     @Override

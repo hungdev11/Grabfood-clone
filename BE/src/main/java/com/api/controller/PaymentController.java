@@ -10,6 +10,8 @@ import com.api.service.MomoPaymentService;
 import com.api.service.NotificationService;
 import com.api.service.OrderService;
 import com.api.service.PaymentService;
+import com.api.service.strategy.OrderNotificationStrategyFactory;
+import com.api.service.strategy.OrderStatusNotificationStrategy;
 import com.api.utils.NotificationType;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -249,8 +251,9 @@ public class PaymentController {
         long restaurantId = restaurant.getId();
         Account account = restaurant.getAccount();
         // create notification here
-        String subject = "Đơn hàng mới";
-        String body = "Mã đơn #" + order.getId() + " , kiểm tra ngay!!!";
+        OrderStatusNotificationStrategy strategy = OrderNotificationStrategyFactory.getStrategy(order.getStatus());
+        String subject = strategy.getSubject(order);
+        String body = strategy.getBody(order);
         notificationService.createNewNotification(account, subject, body, NotificationType.NEW_ORDER);
 
         notificationService.sendNewOrderNotification(restaurantId);

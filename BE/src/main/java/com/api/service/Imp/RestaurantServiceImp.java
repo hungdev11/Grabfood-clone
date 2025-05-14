@@ -5,6 +5,7 @@ import com.api.dto.request.AddressRequest;
 import com.api.dto.response.GetFoodResponse;
 import com.api.dto.response.PageResponse;
 import com.api.dto.response.RestaurantResponse;
+import com.api.entity.Account;
 import com.api.entity.Address;
 import com.api.entity.Order;
 import com.api.exception.AppException;
@@ -13,6 +14,8 @@ import com.api.entity.Restaurant;
 import com.api.repository.OrderRepository;
 import com.api.repository.RestaurantRepository;
 import com.api.service.*;
+import com.api.service.strategy.OrderNotificationStrategyFactory;
+import com.api.service.strategy.OrderStatusNotificationStrategy;
 import com.api.utils.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +45,7 @@ public class RestaurantServiceImp implements RestaurantService {
     private final LocationService locationService;
     private final ReviewService reviewService;
     private final OrderRepository orderRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -141,8 +145,23 @@ public class RestaurantServiceImp implements RestaurantService {
             log.info("Change order {} status from PROCESSING to {}", orderId, status);
             order.setStatus(status);
         }
-        // tạo thông báo push tại đây đến /topic/client/{clientId}
         orderRepository.save(order);
+        // tạo thông báo push tại đây đến /topic/client/{userId}
+        sendNotifyToUserWhenResChangeOrderStatus(order);
+    }
+
+    private void sendNotifyToUserWhenResChangeOrderStatus(Order order) {
+        var user = order.getUser();
+        long userId = user.getId();
+        Account account = user.getAccount();
+        // create notification here
+        OrderStatusNotificationStrategy strategy = OrderNotificationStrategyFactory.getStrategy(order.getStatus());
+        String subject = strategy.getSubject(order);
+        String body = strategy.getBody(order);
+        notificationService.createNewNotification(account, subject, body, NotificationType.ORDER_STATUS_CHANGED);
+
+        notificationService.sendUserNotificationWhenOrderStatusChanged(userId);
+        log.info("send order notify to user {}", userId);
     }
 
     @Override
