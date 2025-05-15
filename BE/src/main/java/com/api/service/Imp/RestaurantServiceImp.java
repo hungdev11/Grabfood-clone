@@ -5,6 +5,7 @@ import com.api.dto.request.AddressRequest;
 import com.api.dto.response.GetFoodResponse;
 import com.api.dto.response.PageResponse;
 import com.api.dto.response.RestaurantResponse;
+import com.api.entity.Account;
 import com.api.entity.Address;
 import com.api.entity.Order;
 import com.api.exception.AppException;
@@ -13,6 +14,8 @@ import com.api.entity.Restaurant;
 import com.api.repository.OrderRepository;
 import com.api.repository.RestaurantRepository;
 import com.api.service.*;
+import com.api.service.strategy.OrderNotificationStrategyFactory;
+import com.api.service.strategy.OrderStatusNotificationStrategy;
 import com.api.utils.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +45,7 @@ public class RestaurantServiceImp implements RestaurantService {
     private final LocationService locationService;
     private final ReviewService reviewService;
     private final OrderRepository orderRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -123,23 +127,41 @@ public class RestaurantServiceImp implements RestaurantService {
     }
 
     @Override
-    public void handlePendingOrder(long restaurantId, long orderId, OrderStatus status) {
-        log.info("Handle PendingOrder");
+    public void handleOrder(long restaurantId, long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
         if (order.getCartDetails().get(0).getFood().getRestaurant().getId() != restaurantId) {
             log.error("Order {} not belong to restaurant {}", orderId, restaurantId);
             throw new AppException(ErrorCode.ORDER_NOT_BELONG_TO_RES);
         }
-        if (!order.getStatus().equals(OrderStatus.PENDING)) {
-            log.error("Order id {} is not PENDING", orderId);
+        if (!order.getStatus().equals(OrderStatus.PENDING) && !order.getStatus().equals(OrderStatus.PROCESSING)) {
+            log.error("Restaurant can not handle order {} with status", orderId, order.getStatus());
             throw new AppException(ErrorCode.HANDLE_NOT_PENDING_ORDER);
         }
         if (status.equals(OrderStatus.PROCESSING) || status.equals(OrderStatus.REJECTED)) {
             log.info("Change order {} status from PENDING to {}", orderId, status);
             order.setStatus(status);
+        } else if (status.equals(OrderStatus.SHIPPING)) {
+            log.info("Change order {} status from PROCESSING to {}", orderId, status);
+            order.setStatus(status);
         }
         orderRepository.save(order);
+        // tạo thông báo push tại đây đến /topic/client/{userId}
+        sendNotifyToUserWhenResChangeOrderStatus(order);
+    }
+
+    private void sendNotifyToUserWhenResChangeOrderStatus(Order order) {
+        var user = order.getUser();
+        long userId = user.getId();
+        Account account = user.getAccount();
+        // create notification here
+        OrderStatusNotificationStrategy strategy = OrderNotificationStrategyFactory.getStrategy(order.getStatus());
+        String subject = strategy.getSubject(order);
+        String body = strategy.getBody(order);
+        notificationService.createNewNotification(account, subject, body, NotificationType.ORDER_STATUS_CHANGED);
+
+        notificationService.sendUserNotificationWhenOrderStatusChanged(userId);
+        log.info("send order notify to user {}", userId);
     }
 
     @Override

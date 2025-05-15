@@ -544,6 +544,7 @@ public class FoodServiceImp implements FoodService {
                             .rating(BigDecimal.ZERO);
 
                     if (!isForCustomer) {
+                        responseBuilder.kind(food.getKind().name());
                         responseBuilder.status(food.getStatus());
                     }
 

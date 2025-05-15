@@ -1,7 +1,5 @@
-// components/Header.tsx
 'use client';
 
-import Image from "next/image";
 import { ShoppingBag, ShoppingCart, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -9,6 +7,8 @@ import Cart from "@/components/cart";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {NotificationBell} from "@/components/NotificationBell";
+import axios from "axios";
+import { Notification } from "@/components/types/Types";
 
 export default function Header() {
     const router = useRouter();
@@ -17,14 +17,50 @@ export default function Header() {
     const [totalPrice, setTotalPrice] = useState<number>(0);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
     const [username, setUsername] = useState<string>("");
-  
+    const [userId, setUserId] = useState<string | null>(null);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    
+    const fetchNotifications = async () => {
+      try {
+        const res = await axios.get(`http://localhost:6969/grab/notifications/user/${userId}`);
+        setNotifications(res.data.data || []);
+      } catch (error) {
+        console.error("Lỗi khi tải thông báo:", error);
+      }
+    };
+
+    useEffect(() => {
+      if (userId) fetchNotifications();
+    }, [userId]);
+
+    const handleMarkAsRead = async (id: string) => {
+      await axios.patch(`http://localhost:6969/grab/notifications/${id}/read`);
+      fetchNotifications();
+    };
+
+    const handleMarkAllAsRead = async () => {
+      await axios.patch(`http://localhost:6969/grab/notifications/user/${userId}/read-all`);
+      fetchNotifications();
+    };
+
+    const handleDeleteNotification = async (id: string) => {
+      await axios.delete(`http://localhost:6969/grab/notifications/${id}`);
+      fetchNotifications();
+    };
+
+    const handleDeleteAll = async () => {
+      await axios.delete(`http://localhost:6969/grab/notifications/user/${userId}`);
+      fetchNotifications();
+    };
+
     // Check authentication status on load and when localStorage changes
     useEffect(() => {
       const checkAuth = () => {
         const token = localStorage.getItem("grabToken");
+        const userId = localStorage.getItem("grabUserId");
         if (token) {
           setIsLoggedIn(true);
-          
+          setUserId(userId);
           // Try to extract username from the JWT token
           try {
             const tokenParts = token.split('.');
@@ -37,9 +73,10 @@ export default function Header() {
             console.warn("Could not decode token:", e);
           }
         } else {
-          setIsLoggedIn(false);
-          setUsername("");
-            // Reset cart state when logged out
+            setIsLoggedIn(false);
+            setUserId(null);
+            setUsername("");
+              // Reset cart state when logged out
             setItemCount(0);
             setTotalPrice(0);
             setIsCartOpen(false);
@@ -62,9 +99,10 @@ export default function Header() {
       localStorage.removeItem("grabUserId");
       setIsLoggedIn(false);
       setUsername("");
-        setItemCount(0);
-        setTotalPrice(0);
-        setIsCartOpen(false);
+      setUserId(null);
+      setItemCount(0);
+      setTotalPrice(0);
+      setIsCartOpen(false);
       window.location.href = "/";
     };
   
@@ -86,7 +124,17 @@ export default function Header() {
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <NotificationBell />
+            {isLoggedIn && userId && (
+              <NotificationBell
+              channelId={`client/${userId}`}
+              notifications={notifications}
+              onTrigger={fetchNotifications}
+              onMarkAsRead={handleMarkAsRead}
+              onMarkAllAsRead={handleMarkAllAsRead}
+              onDeleteNotification={handleDeleteNotification}
+              onDeleteAll={handleDeleteAll}
+            />
+            )}
               {isLoggedIn && (
                   <>
                       {itemCount > 0 ? (

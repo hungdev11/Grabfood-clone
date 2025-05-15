@@ -1,32 +1,20 @@
 package com.api.service;
 
-import com.api.dto.response.OrderResponse;
+import com.api.dto.response.NotificationResponse;
+import com.api.entity.Account;
 import com.api.entity.Order;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.api.entity.Restaurant;
+import com.api.utils.NotificationType;
 
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Service;
+import java.util.List;
 
-import java.time.LocalDateTime;
-
-@Service
-@Slf4j
-@RequiredArgsConstructor
-public class NotificationService {
-
-    private final SimpMessagingTemplate messagingTemplate;
-
-    public void sendNewOrderNotification(long restaurantId, Order order) {
-        log.info("Sending message to order id {} to restaurant {}", order.getId(), restaurantId);
-        log.info("Order id {}", order.getId());
-        log.info("Restaurant id {}", restaurantId);
-        var x = OrderResponse.builder()
-                .id(order.getId())
-                .address(order.getAddress())
-                .note(order.getNote())
-                .totalPrice(order.getTotalPrice())
-                .build();
-        messagingTemplate.convertAndSend("/topic/restaurant/" + restaurantId, x);
-    }
+public interface NotificationService {
+    long createNewNotification(Account account, String subject, String body, NotificationType type);
+    void sendNewOrderNotification(long restaurantId);
+    void sendUserNotificationWhenOrderStatusChanged(long userId);
+    List<NotificationResponse> fetchNotificationsPopup(Account account);
+    void markAsRead(long accountNotificationId);
+    void markDeleted(long accountNotificationId);
+    void markAllAsRead(Account account);
+    void markAllAsDeleted(Account account);
 }

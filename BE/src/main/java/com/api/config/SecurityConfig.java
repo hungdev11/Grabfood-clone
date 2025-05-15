@@ -69,7 +69,7 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
         config.setAllowedOrigins(List.of("http://localhost:3000")); // Frontend URL
         config.setAllowedHeaders(List.of("Origin", "Content-Type", "Accept", "Authorization"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -102,6 +102,7 @@ public class SecurityConfig {
                                 .requestMatchers("/push-noti/**").permitAll()
                                 .requestMatchers("/cart/test").permitAll()
                                 .requestMatchers("/report/**").permitAll()
+                                .requestMatchers("/notifications/**").permitAll()
                                 //
                                 // Role-based endpoints
                                 .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")

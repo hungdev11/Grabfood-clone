@@ -21,5 +21,5 @@ public interface RestaurantService {
 
     PageResponse<List<RestaurantResponse>> getRestaurantsForAdmin(String sortBy, int page, int pageSize);
 
-    void handlePendingOrder(long restaurantId, long orderId, OrderStatus status);
+    void handleOrder(long restaurantId, long orderId, OrderStatus status);
 }

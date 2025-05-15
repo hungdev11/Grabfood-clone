@@ -23,4 +23,5 @@ public interface OrderService {
     PageResponse<GetOrderGroupResponse> getRestaurantOrders(long restaurantId, int page, int size, String status);
     Order getOrderById(Long orderId);
     List<Order> listAllOrdersOfRestaurant(Long restaurantId);
+    void updateOrderStatus(Order order, OrderStatus status);
 }
