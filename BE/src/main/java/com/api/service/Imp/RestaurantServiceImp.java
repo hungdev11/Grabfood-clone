@@ -2,6 +2,7 @@ package com.api.service.Imp;
 
 import com.api.dto.request.AddRestaurantRequest;
 import com.api.dto.request.AddressRequest;
+import com.api.dto.request.UpdateRestaurantRequest;
 import com.api.dto.response.GetFoodResponse;
 import com.api.dto.response.PageResponse;
 import com.api.dto.response.RestaurantResponse;
@@ -149,6 +150,23 @@ public class RestaurantServiceImp implements RestaurantService {
         // tạo thông báo push tại đây đến /topic/client/{userId}
         sendNotifyToUserWhenResChangeOrderStatus(order);
     }
+
+    @Override
+    public void updateRestaurantInfo(long restaurantId, UpdateRestaurantRequest request) {
+        log.info("Update Restaurant info: {}", request);
+
+        Restaurant restaurant = getRestaurant(restaurantId);
+
+        if (request.getName() != null) restaurant.setName(request.getName());
+        if (request.getImage() != null && !request.getImage().isBlank()) restaurant.setImage(request.getImage());
+        if (request.getDescription() != null) restaurant.setDescription(request.getDescription());
+        if (request.getOpeningHour() != null) restaurant.setOpeningHour(request.getOpeningHour());
+        if (request.getClosingHour() != null) restaurant.setClosingHour(request.getClosingHour());
+        if (request.getPhone() != null) restaurant.setPhone(request.getPhone());
+
+        restaurantRepository.save(restaurant);
+    }
+
 
     private void sendNotifyToUserWhenResChangeOrderStatus(Order order) {
         var user = order.getUser();
