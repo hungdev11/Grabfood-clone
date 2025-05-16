@@ -277,7 +277,6 @@ public class RestaurantServiceImp implements RestaurantService {
                     );
 
                     String formattedDistance = TimeUtil.formatDistance(distanceInMeters);
-
                     return RestaurantResponse.builder()
                             .id(restaurant.getId())
                             .name(restaurant.getName())

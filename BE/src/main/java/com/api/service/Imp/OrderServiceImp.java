@@ -9,6 +9,7 @@ import com.api.exception.ErrorCode;
 import com.api.repository.*;
 import com.api.service.FoodService;
 import com.api.service.OrderService;
+import com.api.service.ReviewService;
 import com.api.utils.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,10 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,6 +47,7 @@ public class OrderServiceImp implements OrderService {
     private final ReviewRepository reviewRepository;
 
     private final FoodService foodService;
+    private final ReviewService reviewService;
 
     @Override
     @Transactional
@@ -305,21 +304,44 @@ public class OrderServiceImp implements OrderService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Order> orderPage = PageUtils.convertListToPage(orders, pageable);
 
-        List<OrderResponse> responses = orderPage.getContent().stream()
-                .map(order -> OrderResponse.builder()
-                .id(order.getId())
-                .userName(order.getUser().getName())
-                .address(order.getAddress())
-                .status(order.getStatus())
-                .note(order.getNote())
-                .totalPrice(order.getTotalPrice())
-                .shippingFee(order.getShippingFee())
-                .discountOrderPrice(order.getDiscountOrderPrice())
-                .discountShippingFee(order.getDiscountShippingFee())
-                .createdAt(order.getOrderDate())
-                //.isReview(reviewRepository.existsByOrder(order) || order.getOrderDate().plusDays(10).isBefore(LocalDateTime.now()))
-                .cartDetails(order.getCartDetails().stream().map(this::toCartDetailResponse).toList())
-                .build()).toList();
+        Map<Long, Review> reviewMap;
+        if (OrderStatus.COMPLETED.name().equalsIgnoreCase(status)) {
+            List<Review> reviews = reviewRepository.findAllByOrderIn(orderPage.getContent());
+            reviewMap = reviews.stream()
+                    .collect(Collectors.toMap(
+                            review -> review.getOrder().getId(),
+                            review -> review
+                    ));
+        } else {
+            reviewMap = Map.of();
+        }
+
+        List<OrderResponse> responses = orderPage.getContent()
+                .stream()
+                .map(order -> {
+                    OrderResponse reponse = OrderResponse.builder()
+                            .id(order.getId())
+                            .userName(order.getUser().getName())
+                            .address(order.getAddress())
+                            .status(order.getStatus())
+                            .note(order.getNote())
+                            .totalPrice(order.getTotalPrice())
+                            .shippingFee(order.getShippingFee())
+                            .discountOrderPrice(order.getDiscountOrderPrice())
+                            .discountShippingFee(order.getDiscountShippingFee())
+                            .createdAt(order.getOrderDate())
+                            //.isReview(reviewRepository.existsByOrder(order) || order.getOrderDate().plusDays(10).isBefore(LocalDateTime.now()))
+                            .cartDetails(order.getCartDetails()
+                                    .stream()
+                                    .map(this::toCartDetailResponse)
+                                    .toList())
+                            .build();
+                    if (!reviewMap.isEmpty() && reviewMap.containsKey(order.getId())) {
+                        reponse.setReviewResponse(reviewService.buildReviewResponse(reviewMap.get(order.getId())));
+                    }
+                    return reponse;
+                })
+                .toList();
 
         return PageResponse.<GetOrderGroupResponse>builder()
                 .page(orderPage.getNumber())

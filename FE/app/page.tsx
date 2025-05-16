@@ -35,7 +35,7 @@ export default function Home() {
 			
 			console.log("API Response:", data); // Log response của API
 	
-			if (data?.data?.items && Array.isArray(data.data.items) && data.data.items.length > 0) {
+			if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
 				console.log(data.data);
 				setRestaurants(data.data);
 			} else {
@@ -84,9 +84,6 @@ export default function Home() {
 							>
 								Tìm kiếm
 							</Button>
-
-
-
 						</div>
 					</div>
 				</div>

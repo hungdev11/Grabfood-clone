@@ -1,5 +1,6 @@
 package com.api.dto.response;
 
+import com.api.dto.request.ReviewDTO;
 import com.api.entity.CartDetail;
 import com.api.utils.OrderStatus;
 import lombok.*;
@@ -29,5 +30,6 @@ public class OrderResponse {
     private String payment_method;
     private List<CartDetailResponse> cartDetails;
     private boolean isReview;
+    private ReviewDTO.ReviewResponse reviewResponse;
     private LocalDateTime createdAt;
 }
