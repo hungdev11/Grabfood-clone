@@ -48,6 +48,7 @@ public class RestaurantServiceImp implements RestaurantService {
     private final OrderRepository orderRepository;
     private final NotificationService notificationService;
 
+    private static final double MOVING_SPEED_PER_HOUR = 50;
     @Override
     @Transactional
     public long addRestaurant(AddRestaurantRequest request) {
@@ -209,9 +210,9 @@ public class RestaurantServiceImp implements RestaurantService {
 
     private RestaurantResponse addDistance(double userLat, double userLon, Restaurant restaurant, RestaurantResponse response) {
         if (userLat != -1 && userLon != -1) {
-            var distance = locationService.getDistance(userLat, userLon,
+            var distance = GeoUtils.haversine(userLat, userLon,
                     restaurant.getAddress().getLat(), restaurant.getAddress().getLon());
-            double distanceInMeters = distance.getDistance();
+            double distanceInMeters = distance*1000;
             String formattedDistance;
 
             if (distanceInMeters < 1000) {
@@ -223,7 +224,7 @@ public class RestaurantServiceImp implements RestaurantService {
 
             response.setDistance(formattedDistance);
             response.setTimeDistance(
-                    TimeUtil.formatDurationFromSeconds(distance.getDuration())
+                    TimeUtil.formatDurationFromSeconds(GeoUtils.estimateTravelTime(distance, MOVING_SPEED_PER_HOUR) * 3600)
             );
         }
         return response;
