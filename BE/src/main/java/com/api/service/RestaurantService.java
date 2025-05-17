@@ -1,6 +1,7 @@
 package com.api.service;
 
 import com.api.dto.request.AddRestaurantRequest;
+import com.api.dto.request.UpdateRestaurantRequest;
 import com.api.dto.response.PageResponse;
 import com.api.dto.response.RestaurantResponse;
 import com.api.entity.Restaurant;
@@ -22,4 +23,6 @@ public interface RestaurantService {
     PageResponse<List<RestaurantResponse>> getRestaurantsForAdmin(String sortBy, int page, int pageSize);
 
     void handleOrder(long restaurantId, long orderId, OrderStatus status);
+
+    void updateRestaurantInfo(long restaurantId, UpdateRestaurantRequest request);
 }

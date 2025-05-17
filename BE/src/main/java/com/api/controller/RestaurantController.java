@@ -1,6 +1,7 @@
 package com.api.controller;
 
 import com.api.dto.request.AddRestaurantRequest;
+import com.api.dto.request.UpdateRestaurantRequest;
 import com.api.dto.response.ApiResponse;
 import com.api.dto.response.RestaurantResponse;
 import com.api.entity.Restaurant;
@@ -68,6 +69,15 @@ public class RestaurantController {
     public ApiResponse<?> handleOrder(@PathVariable long restaurantId, @PathVariable Long orderId, @RequestParam OrderStatus status) {
         restaurantService.handleOrder(restaurantId, orderId, status);
         return ApiResponse.builder()
+                .code(200)
+                .message("Success")
+                .build();
+    }
+
+    @PutMapping("/{restaurantId}")
+    public ApiResponse<RestaurantResponse> updateRestaurantInfo(@PathVariable long restaurantId, @RequestBody UpdateRestaurantRequest request) {
+        restaurantService.updateRestaurantInfo(restaurantId, request);
+        return ApiResponse.<RestaurantResponse>builder()
                 .code(200)
                 .message("Success")
                 .build();

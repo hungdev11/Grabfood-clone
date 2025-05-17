@@ -2,6 +2,7 @@ package com.api.service.Imp;
 
 import com.api.dto.request.AddRestaurantRequest;
 import com.api.dto.request.AddressRequest;
+import com.api.dto.request.UpdateRestaurantRequest;
 import com.api.dto.response.GetFoodResponse;
 import com.api.dto.response.PageResponse;
 import com.api.dto.response.RestaurantResponse;
@@ -47,6 +48,7 @@ public class RestaurantServiceImp implements RestaurantService {
     private final OrderRepository orderRepository;
     private final NotificationService notificationService;
 
+    private static final double MOVING_SPEED_PER_HOUR = 50;
     @Override
     @Transactional
     public long addRestaurant(AddRestaurantRequest request) {
@@ -150,6 +152,23 @@ public class RestaurantServiceImp implements RestaurantService {
         sendNotifyToUserWhenResChangeOrderStatus(order);
     }
 
+    @Override
+    public void updateRestaurantInfo(long restaurantId, UpdateRestaurantRequest request) {
+        log.info("Update Restaurant info: {}", request);
+
+        Restaurant restaurant = getRestaurant(restaurantId);
+
+        if (request.getName() != null) restaurant.setName(request.getName());
+        if (request.getImage() != null && !request.getImage().isBlank()) restaurant.setImage(request.getImage());
+        if (request.getDescription() != null) restaurant.setDescription(request.getDescription());
+        if (request.getOpeningHour() != null) restaurant.setOpeningHour(request.getOpeningHour());
+        if (request.getClosingHour() != null) restaurant.setClosingHour(request.getClosingHour());
+        if (request.getPhone() != null) restaurant.setPhone(request.getPhone());
+
+        restaurantRepository.save(restaurant);
+    }
+
+
     private void sendNotifyToUserWhenResChangeOrderStatus(Order order) {
         var user = order.getUser();
         long userId = user.getId();
@@ -191,9 +210,9 @@ public class RestaurantServiceImp implements RestaurantService {
 
     private RestaurantResponse addDistance(double userLat, double userLon, Restaurant restaurant, RestaurantResponse response) {
         if (userLat != -1 && userLon != -1) {
-            var distance = locationService.getDistance(userLat, userLon,
+            var distance = GeoUtils.haversine(userLat, userLon,
                     restaurant.getAddress().getLat(), restaurant.getAddress().getLon());
-            double distanceInMeters = distance.getDistance();
+            double distanceInMeters = distance*1000;
             String formattedDistance;
 
             if (distanceInMeters < 1000) {
@@ -205,7 +224,7 @@ public class RestaurantServiceImp implements RestaurantService {
 
             response.setDistance(formattedDistance);
             response.setTimeDistance(
-                    TimeUtil.formatDurationFromSeconds(distance.getDuration())
+                    TimeUtil.formatDurationFromSeconds(GeoUtils.estimateTravelTime(distance, MOVING_SPEED_PER_HOUR) * 3600)
             );
         }
         return response;
@@ -258,7 +277,6 @@ public class RestaurantServiceImp implements RestaurantService {
                     );
 
                     String formattedDistance = TimeUtil.formatDistance(distanceInMeters);
-
                     return RestaurantResponse.builder()
                             .id(restaurant.getId())
                             .name(restaurant.getName())

@@ -137,8 +137,7 @@ public class ReviewServiceImp implements ReviewService {
                 .build();
     }
 
-
-    private ReviewDTO.ReviewResponse buildReviewResponse(Review review) {
+    public ReviewDTO.ReviewResponse buildReviewResponse(Review review) {
         return ReviewDTO.ReviewResponse.builder()
                 .reviewId(review.getId())
                 .customerName(review.getOrder().getUser().getName())
@@ -152,5 +151,8 @@ public class ReviewServiceImp implements ReviewService {
                 .build();
     }
 
-
+    @Override
+    public List<Review> getReviewsInOrders(List<Order> orders) {
+        return reviewRepository.findAllByOrderIn(orders);
+    }
 }

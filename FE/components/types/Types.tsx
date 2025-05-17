@@ -106,6 +106,7 @@ export interface Order {
     shippingFee: number;
     note: string;
     review: boolean
+    reviewResponse : Review;
     payment_method: string | null;
     cartDetails: CartDetail[];
     discountShippingFee: number | null;

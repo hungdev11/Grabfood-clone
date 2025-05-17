@@ -14,6 +14,7 @@ export default function OrdersManagement() {
     const [page, setPage] = useState(0);
     const [size] = useState(5); // mỗi trang 5 đơn
     const [total, setTotal] = useState(0);
+    const [replyInputs, setReplyInputs] = useState<{ [key: number]: { content: string } }>({});
 
     const params = useParams();
     const restaurantId = params?.restaurantId as string;
@@ -33,7 +34,6 @@ export default function OrdersManagement() {
         const resData = response.data?.data;
         const items = resData?.items;
         const total = resData?.total || 0;
-
         setOrders(items?.orders || []);
         setStatusList(items?.statusList || []);
         setTotal(total);
@@ -45,6 +45,43 @@ export default function OrdersManagement() {
       }
     };
 
+    const handleReplyChange = (orderId: number, field: string, value: string) => {
+      setReplyInputs((prev) => ({
+        ...prev,
+        [orderId]: {
+          ...prev[orderId],
+          [field]: value,
+        },
+      }));
+    };
+
+    const submitReply = async (orderId: number) => {
+      const reviewObj = orders.find(o => o.id === orderId)?.reviewResponse;
+      if (!reviewObj) return;
+
+      const replyContent = replyInputs[orderId]?.content;
+      if (!replyContent) return;
+
+      try {
+        await axios.post("http://localhost:6969/grab/reviews/reply", {
+          reviewId: reviewObj.reviewId,
+          replyMessage: replyContent,
+        });
+
+        alert("Gửi phản hồi thành công!");
+
+        // Clear input + reload đơn hàng
+        setReplyInputs((prev) => ({
+          ...prev,
+          [orderId]: { content: "" }
+        }));
+
+        fetchOrders();
+      } catch (err) {
+        console.error("Lỗi khi gửi phản hồi:", err);
+        alert("Gửi phản hồi thất bại.");
+      }
+    };
 
     useEffect(() => {
       setPage(0); // Reset lại page khi status thay đổi
@@ -196,6 +233,57 @@ export default function OrdersManagement() {
                             Hoàn thành
                           </button>
                         )}
+                        {order.status === "COMPLETED" && order.reviewResponse && (
+                        <div className="w-full mt-3 space-y-2">
+                          {/* Thông tin đánh giá */}
+                          <div className="bg-gray-50 p-3 rounded border">
+                            <p className="text-sm text-gray-600">
+                              <strong>Khách hàng:</strong> {order.reviewResponse.customerName}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              <strong>Thời gian đánh giá:</strong> {order.reviewResponse.createdAt}
+                            </p>
+                            <p className="text-sm text-yellow-500">
+                              {'⭐'.repeat(order.reviewResponse.rating)}
+                            </p>
+                            <p className="mt-1 text-gray-800">
+                              {order.reviewResponse.reviewMessage}
+                            </p>
+                          </div>
+
+                          {/* Phản hồi từ nhà hàng */}
+                          {order.reviewResponse.replyMessage ? (
+                            <div className="bg-gray-100 p-3 rounded">
+                              <p className="text-sm text-gray-600">Phản hồi từ nhà hàng:</p>
+                              <p className="text-gray-800">{order.reviewResponse.replyMessage}</p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Thời gian phản hồi: {order.reviewResponse.replyAt}
+                              </p>
+                            </div>
+                          ) : (
+                            // Chưa có phản hồi -> Hiện form nhập phản hồi
+                            <div className="space-y-2">
+                              <textarea
+                                className="w-full border rounded px-3 py-2"
+                                rows={3}
+                                placeholder="Nhập phản hồi..."
+                                value={replyInputs[order.id]?.content || ""}
+                                onChange={(e) => handleReplyChange(order.id, "content", e.target.value)}
+                              />
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => submitReply(order.id)}
+                                  disabled={!replyInputs[order.id]?.content}
+                                  className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 disabled:opacity-50"
+                                >
+                                  Gửi phản hồi
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       </div>
                         <table className="min-w-full table-auto">
                           <thead>

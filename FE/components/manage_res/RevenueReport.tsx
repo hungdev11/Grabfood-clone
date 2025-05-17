@@ -12,9 +12,9 @@ interface RevenueData {
 const RevenueReport = () => {
   const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
   const [restaurantId, setRestaurantId] = useState(1);
-  const [dateFrom, setDateFrom] = useState('2023-01-01');
-  const [dateTo, setDateTo] = useState('2023-12-31');
-  const [groupBy, setGroupBy] = useState('month');
+  const [dateFrom, setDateFrom] = useState('2025-01-01');
+  const [dateTo, setDateTo] = useState('2025-12-31');
+  const [groupBy, setGroupBy] = useState('daily');
 
   const fetchRevenueStats = async () => {
     try {
