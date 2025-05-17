@@ -12,9 +12,9 @@ import java.util.Date;
 import java.util.List;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    List<Order> getOrderByUserIdAndStatus(Long user_id, OrderStatus status);
+    List<Order> getOrderByUserIdAndStatusOrderByIdDesc(Long userId, OrderStatus status);
 
-    List<Order> getOrderByUserId(Long user_id);
+    List<Order> getOrderByUserIdOrderByIdDesc(Long id);
     @Procedure(name = "Order.getAllOrdersOfRestaurant")
     List<Long> getAllOrdersOfRestaurant(@Param("restaurant_id") Long restaurantId);
 

@@ -251,7 +251,7 @@ public class OrderServiceImp implements OrderService {
 
     @Override
     public List<OrderResponse> getUserOrderByStatus(Long userId, OrderStatus status) {
-        List<Order> orderList = orderRepository.getOrderByUserIdAndStatus(userId, status);
+        List<Order> orderList = orderRepository.getOrderByUserIdAndStatusOrderByIdDesc(userId, status);
         return orderList.stream().map(order -> OrderResponse.builder()
                 .id(order.getId())
                 .address(order.getAddress())
@@ -270,7 +270,7 @@ public class OrderServiceImp implements OrderService {
 
     @Override
     public List<OrderResponse> getUserOrder(Long userId) {
-        List<Order> orderList = orderRepository.getOrderByUserId(userId);
+        List<Order> orderList = orderRepository.getOrderByUserIdOrderByIdDesc(userId);
         return orderList.stream().map(order -> OrderResponse.builder()
                 .id(order.getId())
                 .address(order.getAddress())
@@ -336,10 +336,10 @@ public class OrderServiceImp implements OrderService {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (CartDetail cartDetail: cartDetails) {
 
-            BigDecimal price = cartDetailRepository.findPriceByFoodId(cartDetail.getFood().getId());
+            BigDecimal price = foodService.getFoodPriceIn(cartDetail.getFood().getId(), LocalDateTime.now());
             List<Long> ids = cartDetail.getIds();
             for (Long id: ids) {
-                BigDecimal priceAdd = cartDetailRepository.findPriceByFoodId(id);
+                BigDecimal priceAdd = foodService.getFoodPriceIn(id , LocalDateTime.now());
                 price = price.add(priceAdd);
             }
             int quantity = cartDetail.getQuantity();
