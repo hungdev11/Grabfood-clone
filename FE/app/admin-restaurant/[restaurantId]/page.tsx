@@ -10,6 +10,7 @@ import MenuManagement from "@/components/manage_res/MenuManagement";
 import RevenueReport from "@/components/manage_res/RevenueReport";
 import { Notification } from "@/components/types/Types";
 import { NotificationBell } from "@/components/NotificationBell";
+import VoucherManagement from "@/components/manage_res/VoucherManagement";
 
 export default function RestaurantPage() {
   const [selectedMenu, setSelectedMenu] = useState("profile");
@@ -76,6 +77,7 @@ export default function RestaurantPage() {
           {selectedMenu === "main" && <MenuManagement />}
           {selectedMenu === "side" && <div>Hiển thị danh sách Món phụ</div>}
           {selectedMenu === "report" && <RevenueReport />}
+          {selectedMenu === "vouchers" && <VoucherManagement />}
         </div>
       </div>
     </div>

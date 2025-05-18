@@ -32,6 +32,8 @@ export interface ApiResponse<T> {
     phone: string;
     timeDistance: string;
     distance: string;
+    latitude?: number;
+    longitude?: number;
   }
   
   export interface AdditionalFood {

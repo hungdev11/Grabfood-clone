@@ -3,6 +3,18 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import { Restaurant } from "../types/Types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import LocationSearch from "../locationSearch";
+import { Label } from "../ui/label";
+import { Button } from "../ui/button";
+import { Plus } from "lucide-react";
+import { Input } from "../ui/input";
 
 export default function ProfileManagement() {
     const { restaurantId } = useParams();
@@ -11,7 +23,8 @@ export default function ProfileManagement() {
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(true);
     const [originalImage, setOriginalImage] = useState<string | undefined>(undefined);
-
+    const [verifyingAddress, setVerifyingAddress] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     if (!restaurantId) {
         return <div>Restaurant ID not found</div>;
@@ -49,6 +62,76 @@ export default function ProfileManagement() {
             }
         });
         return changed;
+    };
+
+    const handleVerifyAddress = async () => {
+        if (!editData.address || editData.address.trim() === "") {
+            alert("Vui lòng nhập địa chỉ để xác thực.");
+            return;
+        }
+
+        try {
+            setVerifyingAddress(true);
+            // Gọi Nominatim geocoding
+            const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(editData.address)}&addressdetails=1&limit=1`
+            );
+            const data = await res.json();
+
+            if (data.length === 0) {
+                alert("Không tìm thấy tọa độ cho địa chỉ này.");
+                return;
+            }
+
+            const place = data[0];
+
+            setEditData(prev => ({
+                ...prev,
+                latitude: parseFloat(place.lat),
+                longitude: parseFloat(place.lon),
+                address: place.display_name, // bạn có thể giữ nguyên hoặc thay đổi
+            }));
+
+            alert("Xác thực địa chỉ thành công!");
+        } catch (error) {
+            console.error("Lỗi xác thực địa chỉ:", error);
+            alert("Xác thực địa chỉ thất bại.");
+        } finally {
+            setVerifyingAddress(false);
+        }
+    };
+
+    const handleLocationSelect = async (latStr: string, lonStr: string) => {
+    try {
+        const lat = parseFloat(latStr);
+        const lon = parseFloat(lonStr);
+        const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`
+        );
+        const data = await res.json();
+        const addr = data.address || {};
+        console.log("Địa chỉ:", addr);
+        const detail = [addr.house_number, addr.road].filter(Boolean).join(" ");
+
+        const updatedLocation = {
+            latitude: lat,
+            longitude: lon,
+            address: data.display_name,
+            province: addr.state || "",
+            district: addr.city || addr.town || addr.county || "",
+            ward: addr.suburb || "",
+            detail,
+        };
+        setEditData((prev) => ({
+        ...prev,
+        ...updatedLocation,
+        }));
+
+        alert("Lấy thông tin địa chỉ thành công");
+    } catch (err) {
+        console.error(err);
+        alert("Không thể lấy thông tin địa chỉ");
+    }
     };
 
     const handleSave = async () => {
@@ -110,6 +193,60 @@ export default function ProfileManagement() {
                             <label className="block font-semibold mb-1">Địa chỉ:</label>
                             <input className="border p-2 w-full" value={editData.address || ""} onChange={(e) => setEditData({ ...editData, address: e.target.value })} />
                         </div> */}
+                        <div>
+                            <Label className="block font-semibold mb-1">Địa chỉ</Label>
+                            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button type="button" className="mb-2" onClick={() => setIsDialogOpen(true)}>
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Chọn địa chỉ từ bản đồ
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                    <DialogTitle>Chọn địa chỉ trên bản đồ</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="pt-4 space-y-4">
+                                    <LocationSearch onSelectLocation={handleLocationSelect} />
+
+                                    <div className="flex justify-end gap-2">
+                                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                                        Hủy
+                                        </Button>
+                                        <Button onClick={() => setIsDialogOpen(false)}>
+                                        Xong
+                                        </Button>
+                                    </div>
+                                    </div>
+                                </DialogContent>
+                                </Dialog>
+
+                            {/* Chi tiết địa chỉ */}
+                            <div className="flex gap-2">
+                                 <Input
+                                    placeholder="Ví dụ: 123 Nguyễn Huệ"
+                                    className="mt-2"
+                                    value={editData.address || ""}
+                                    onChange={(e) => setEditData({ ...editData, address: e.target.value })}
+                            />
+                            </div>
+
+                            {/* Nút xác thực địa chỉ */}
+                            <div className="flex gap-2 mt-2">
+                                <Button
+                                onClick={handleVerifyAddress}
+                                disabled={verifyingAddress}
+                                className="mb-2"
+                                >
+                                    {verifyingAddress ? "Đang xác thực..." : "Xác nhận địa chỉ"}
+                                </Button>
+                            </div>
+
+                            <div className="text-sm text-gray-500 mt-2">
+                                <p><strong>Latitude:</strong> {editData.latitude || "N/A"}</p>
+                                <p><strong>Longitude:</strong> {editData.longitude || "N/A"}</p>
+                            </div>
+                            </div>
                         <div>
                             <label className="block font-semibold mb-1">Mô tả:</label>
                             <textarea className="border p-2 w-full" value={editData.description || ""} onChange={(e) => setEditData({ ...editData, description: e.target.value })} />
