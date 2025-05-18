@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.grabfoodapp.R;
 import com.app.grabfoodapp.adapter.CartAdapter;
+import com.app.grabfoodapp.apiservice.location.LocationService;
 import com.app.grabfoodapp.apiservice.order.OrderService;
 import com.app.grabfoodapp.apiservice.payment.PaymentService;
 import com.app.grabfoodapp.config.ApiClient;
@@ -33,14 +34,17 @@ import com.app.grabfoodapp.dto.request.CreateOrderRequest;
 import com.app.grabfoodapp.dto.response.ApplyVoucherResponse;
 import com.app.grabfoodapp.dto.response.OrderResponse;
 import com.app.grabfoodapp.dto.response.VoucherResponse;
+import com.app.grabfoodapp.utils.LocationStorage;
 import com.app.grabfoodapp.utils.TokenManager;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -56,6 +60,8 @@ public class CheckoutActivity extends AppCompatActivity {
     TextView deliveryFeeText;
     TextView totalPriceText;
     TextView discountAmount;
+
+    TextView txtShippingAddress;
     TextView discountShipping;
     LinearLayout voucherLayout;
     BigDecimal totalPrice = BigDecimal.ZERO;
@@ -64,6 +70,7 @@ public class CheckoutActivity extends AppCompatActivity {
 
     private List<String> voucherCodes = new ArrayList<>();
 
+    private String location = "N/A";
     Button btnPayment;
     @SuppressLint("MissingInflatedId")
     @Override
@@ -78,6 +85,7 @@ public class CheckoutActivity extends AppCompatActivity {
         totalPriceText = findViewById(R.id.total_price_checkout);
         discountAmount = findViewById(R.id.txtDiscountAmount);
         discountShipping = findViewById(R.id.txtDiscountShipping);
+        txtShippingAddress = findViewById(R.id.txtShippingAddress);
         cartItems = (ArrayList<CartDetailDTO>) getIntent().getSerializableExtra("cartItems");
         cartId = getIntent().getLongExtra("cartId", 0);
         updateTotalPrice();
@@ -116,6 +124,7 @@ public class CheckoutActivity extends AppCompatActivity {
                 startActivityForResult(intent, REQUEST_CODE_VOUCHER);
             }
         });
+        getShippingAddress();
         handleBtnPaymentClick();
     }
 
@@ -214,7 +223,7 @@ public class CheckoutActivity extends AppCompatActivity {
                 CreateOrderRequest request = CreateOrderRequest.builder()
                         .cartId(cartId)
                         .note("App Order")
-                        .address("Address App")
+                        .address(location)
                         .shippingFee(BigDecimal.valueOf(25000))
                         .voucherCode(voucherCodes)
                         .build();
@@ -241,5 +250,36 @@ public class CheckoutActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    public void getShippingAddress() {
+        double lat = LocationStorage.getLatitude(this);
+        double lon = LocationStorage.getLongitude(this);
+        LocationService locationService = ApiClient.getClient().create(LocationService.class);
+        Call<ResponseBody> call = locationService.getLocation(lat, lon);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                Log.e("CHeckoutActivity", "onResponse: " + response.body());
+                if (response.isSuccessful()) {
+                    try {
+                        location = response.body().string();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    txtShippingAddress.setText(location);
+                } else {
+                    Toast.makeText(CheckoutActivity.this, "Lỗi lấy địa chỉ", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Toast.makeText(CheckoutActivity.this, "Lỗi gọi api", Toast.LENGTH_SHORT).show();
+                Log.e("APICheckout", "Lỗi mạng hoặc URL: " + t.getMessage());
+            }
+
+        });
+
     }
 }
