@@ -66,7 +66,12 @@ public class AdditionalFoodAdapter extends BaseAdapter {
 
         foodName.setText(food.getName());
         DecimalFormat decimalFormat = new DecimalFormat("#,###");
-        foodPrice.setText(decimalFormat.format(food.getDiscountPrice()) + "đ");
+        BigDecimal price = food.getDiscountPrice();
+        if (price != null) {
+            foodPrice.setText(decimalFormat.format(price) + "đ");
+        } else {
+            foodPrice.setText("0đ");
+        }
 
         checkBox.setOnCheckedChangeListener(null); // clear listener cũ trước
         checkBox.setChecked(ids.contains(food.getId())); // set checked đúng theo ids
@@ -81,15 +86,21 @@ public class AdditionalFoodAdapter extends BaseAdapter {
         return convertView;
     }
 
+    // Fix for AdditionalFoodAdapter.java
     public BigDecimal getTotalSelectedPrice() {
         BigDecimal total = BigDecimal.ZERO;
-
-        for (FoodDTO.GetFoodResponse food : foods) {
-            if (ids.contains(food.getId())) {
-                total = total.add(food.getDiscountPrice());
+        for (Long id : ids) {
+            for (FoodDTO.GetFoodResponse food : foods) {
+                if (food.getId()==id) {
+                    // FIX: Check for null discount price before adding
+                    BigDecimal price = food.getDiscountPrice();
+                    if (price != null) {
+                        total = total.add(price);
+                    }
+                    break;
+                }
             }
         }
-        Log.d("TotalPrice", "Total selected price: " + total.toString());
         return total;
     }
 
