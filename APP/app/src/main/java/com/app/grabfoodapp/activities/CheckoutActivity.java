@@ -5,6 +5,7 @@ import android.app.ComponentCaller;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -14,6 +15,7 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -22,7 +24,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.grabfoodapp.R;
+import com.app.grabfoodapp.adapter.AddressAdapter;
 import com.app.grabfoodapp.adapter.CartAdapter;
+import com.app.grabfoodapp.apiservice.address.AddressService;
 import com.app.grabfoodapp.apiservice.location.LocationService;
 import com.app.grabfoodapp.apiservice.order.OrderService;
 import com.app.grabfoodapp.apiservice.payment.PaymentService;
@@ -31,6 +35,7 @@ import com.app.grabfoodapp.dto.ApiResponse;
 import com.app.grabfoodapp.dto.CartDetailDTO;
 import com.app.grabfoodapp.dto.request.ApplyVoucherRequest;
 import com.app.grabfoodapp.dto.request.CreateOrderRequest;
+import com.app.grabfoodapp.dto.response.AddressResponse;
 import com.app.grabfoodapp.dto.response.ApplyVoucherResponse;
 import com.app.grabfoodapp.dto.response.OrderResponse;
 import com.app.grabfoodapp.dto.response.VoucherResponse;
@@ -71,6 +76,8 @@ public class CheckoutActivity extends AppCompatActivity {
     private List<String> voucherCodes = new ArrayList<>();
 
     private String location = "N/A";
+    private List<AddressResponse> userAddresses = new ArrayList<>();
+    private AddressResponse selectedAddress = null;
     Button btnPayment;
     @SuppressLint("MissingInflatedId")
     @Override
@@ -252,7 +259,27 @@ public class CheckoutActivity extends AppCompatActivity {
         });
     }
 
-    public void getShippingAddress() {
+    private void getShippingAddress() {
+        // Make TextView clickable and give visual feedback
+        txtShippingAddress.setClickable(true);
+        txtShippingAddress.setFocusable(true);
+
+        // Set a background that shows feedback when clicked
+        txtShippingAddress.setBackgroundResource(android.R.drawable.list_selector_background);
+
+        // Set click listener with proper handling
+        txtShippingAddress.setOnClickListener(v -> {
+            if (userAddresses.isEmpty()) {
+                loadUserAddresses(true);
+            } else {
+                showAddressSelectionDialog();
+            }
+        });
+
+        // Load default address initially
+        loadUserAddresses(false);
+    }
+    private void useCurrentLocation() {
         double lat = LocationStorage.getLatitude(this);
         double lon = LocationStorage.getLongitude(this);
         LocationService locationService = ApiClient.getClient().create(LocationService.class);
@@ -260,26 +287,117 @@ public class CheckoutActivity extends AppCompatActivity {
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                Log.e("CHeckoutActivity", "onResponse: " + response.body());
                 if (response.isSuccessful()) {
                     try {
                         location = response.body().string();
+                        txtShippingAddress.setText(location);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
-                    txtShippingAddress.setText(location);
                 } else {
-                    Toast.makeText(CheckoutActivity.this, "Lỗi lấy địa chỉ", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CheckoutActivity.this, "Error getting address", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Toast.makeText(CheckoutActivity.this, "Lỗi gọi api", Toast.LENGTH_SHORT).show();
-                Log.e("APICheckout", "Lỗi mạng hoặc URL: " + t.getMessage());
+                Toast.makeText(CheckoutActivity.this, "Network error", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    private void loadUserAddresses(boolean showDialogAfterLoad) {
+        String token = "Bearer " + new TokenManager(this).getToken();
+        String userId = new TokenManager(this).getUserId();
+
+        AddressService addressService = ApiClient.getClient().create(AddressService.class);
+        Call<List<AddressResponse>> call = addressService.getUserAddresses(token, userId);
+        call.enqueue(new Callback<List<AddressResponse>>() {
+            @Override
+            public void onResponse(Call<List<AddressResponse>> call,
+                                   Response<List<AddressResponse>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    userAddresses.clear();
+                    userAddresses.addAll(response.body());
+
+                    // Find default address
+                    for (AddressResponse address : userAddresses) {
+                        if (address.isDefault()) {
+                            selectedAddress = address;
+                            String addressText = buildAddressText(address);
+                            location = addressText;
+                            txtShippingAddress.setText(addressText);
+                            break;
+                        }
+                    }
+
+                    // If no default, use first address
+                    if (selectedAddress == null && !userAddresses.isEmpty()) {
+                        selectedAddress = userAddresses.get(0);
+                        String addressText = buildAddressText(selectedAddress);
+                        location = addressText;
+                        txtShippingAddress.setText(addressText);
+                    }
+
+                    if (showDialogAfterLoad) {
+                        showAddressSelectionDialog();
+                    }
+                } else {
+                    // Fallback to current location if no saved addresses
+                    useCurrentLocation();
+                }
             }
 
+            @Override
+            public void onFailure(Call<List<AddressResponse>> call, Throwable t) {
+                useCurrentLocation();
+                Log.e("CheckoutActivity", "Error loading addresses: " + t.getMessage());
+            }
+        });
+    }
+    private void showAddressSelectionDialog() {
+        if (userAddresses.isEmpty()) {
+            Toast.makeText(this, "No saved addresses found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Use a different approach that doesn't rely on RecyclerView clicks
+        final String[] addressTexts = new String[userAddresses.size()];
+        for (int i = 0; i < userAddresses.size(); i++) {
+            addressTexts[i] = buildAddressText(userAddresses.get(i));
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(CheckoutActivity.this);
+        builder.setTitle("Select Delivery Address");
+        builder.setItems(addressTexts, (dialog, which) -> {
+            // Get the selected address
+            AddressResponse address = userAddresses.get(which);
+            selectedAddress = address;
+            location = addressTexts[which];
+            txtShippingAddress.setText(location);
         });
 
+        builder.setPositiveButton("Add New Address", (dialog, which) -> {
+            Intent intent = new Intent(CheckoutActivity.this, ShippingAddressActivity.class);
+            startActivity(intent);
+        });
+
+        builder.setNegativeButton("Cancel", null);
+
+        // Create and show dialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
+    private String buildAddressText(AddressResponse address) {
+        StringBuilder builder = new StringBuilder();
+        if (address.getDetail() != null && !address.getDetail().isEmpty()) {
+            builder.append(address.getDetail());
+            if (address.getDisplayName() != null && !address.getDisplayName().isEmpty()) {
+                builder.append(", ").append(address.getDisplayName());
+            }
+        } else if (address.getDisplayName() != null) {
+            builder.append(address.getDisplayName());
+        }
+        return builder.toString();
+    }
+
 }
