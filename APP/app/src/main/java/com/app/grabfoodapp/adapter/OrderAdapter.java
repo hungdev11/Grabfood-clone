@@ -2,18 +2,38 @@ package com.app.grabfoodapp.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.app.grabfoodapp.R;
+import com.app.grabfoodapp.activities.PopUpFood;
+import com.app.grabfoodapp.apiservice.cart.CartService;
+import com.app.grabfoodapp.apiservice.review.ReviewService;
+import com.app.grabfoodapp.config.ApiClient;
+import com.app.grabfoodapp.dto.ApiResponse;
+import com.app.grabfoodapp.dto.ReviewDTO;
+import com.app.grabfoodapp.dto.request.CartUpdateRequest;
 import com.app.grabfoodapp.dto.response.OrderResponse;
+
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> {
     private Context context;
@@ -50,10 +70,59 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
         // Hiển thị/ẩn nút Đánh giá
         if (!order.isReview() && "COMPLETED".equals(order.getStatus())) {
             holder.btnReview.setVisibility(View.VISIBLE);
-
         } else {
             holder.btnReview.setVisibility(View.GONE);
         }
+
+        holder.btnReview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                holder.reviewSection.setVisibility(View.VISIBLE);
+                holder.btnReview.setVisibility(View.GONE);
+            }
+        });
+
+        holder.cancelReview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                holder.reviewSection.setVisibility(View.GONE);
+                holder.btnReview.setVisibility(View.VISIBLE);
+            }
+        });
+
+        holder.submitReview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sendingReview(
+                        order.getId(),
+                        BigDecimal.valueOf(holder.ratingBar.getRating()),
+                        holder.editTextReviewMessage.getText().toString());
+                holder.reviewSection.setVisibility(View.GONE);
+                orderDetailAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    private void sendingReview(long orderId, BigDecimal rating, String review) {
+        ReviewDTO.CreateReviewRequest request = ReviewDTO.CreateReviewRequest.builder()
+                .orderId(orderId)
+                .rating(rating)
+                .reviewMessage(review)
+                .build();
+        ReviewService reviewService = ApiClient.getClient().create(ReviewService.class);
+        reviewService.sendReview(request).enqueue(new Callback<ApiResponse<Long>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Long>> call, @NonNull Response<ApiResponse<Long>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().getCode() == 202) {
+                    Toast.makeText(context, "Review send successfully", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Long>> call, Throwable t) {
+                t.printStackTrace();
+            }
+        });
     }
 
     @Override
@@ -65,6 +134,11 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
         TextView tvOrderShopName, tvOrderTotalPrice, tvOrderShippingFee;
         RecyclerView rvOrderItem;
         Button btnReview;
+        LinearLayout reviewSection;
+        RatingBar ratingBar;
+        EditText editTextReviewMessage;
+        Button cancelReview;
+        Button submitReview;
 
         ViewHolder(View itemView) {
             super(itemView);
@@ -73,6 +147,12 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
             tvOrderShippingFee = itemView.findViewById(R.id.tvOrderShippingFee);
             rvOrderItem = itemView.findViewById(R.id.rvOrderItem);
             btnReview = itemView.findViewById(R.id.btnReview);
+
+            reviewSection = itemView.findViewById(R.id.reviewSection);
+            ratingBar = itemView.findViewById(R.id.ratingBar);
+            editTextReviewMessage = itemView.findViewById(R.id.etReview);
+            cancelReview = itemView.findViewById(R.id.btnCancel);
+            submitReview = itemView.findViewById(R.id.btnSubmit);
         }
     }
 }

@@ -26,6 +26,6 @@ public class OrderResponse {
     private String note;
     private String payment_method;
     private List<CartDetailResponse> cartDetails;
-    private boolean isReview;
+    private boolean review;
     private LocalDateTime createdAt;
 }
