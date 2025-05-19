@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.Enumeration;
 
 @RestController
 @Slf4j
@@ -232,7 +233,12 @@ public class PaymentController {
         String amount = request.getParameter("vnp_Amount");
         String orderId = request.getParameter("vnp_TxnRef");
         String requestId = request.getParameter("vnp_TransactionNo");
-
+//        Enumeration<String> paramNames = request.getParameterNames();
+//        while (paramNames.hasMoreElements()) {
+//            String paramName = paramNames.nextElement();
+//            String paramValue = request.getParameter(paramName);
+//            log.info("Param: {} = {}", paramName, paramValue);
+//        }
         String redirectHtml;
         if (status.equals("00")) {
             paymentService.createPaymentVNPay(new BigDecimal(amount).divide(BigDecimal.valueOf(100)), Long.parseLong(orderId), requestId);

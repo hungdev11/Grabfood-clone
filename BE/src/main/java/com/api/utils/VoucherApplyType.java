@@ -1,5 +1,5 @@
 package com.api.utils;
 
 public enum VoucherApplyType {
-    SHIPPING, ORDER, ALL
+    SHIPPING, ORDER, ALL, SPECIFIC
 }

@@ -14,6 +14,7 @@ import com.api.service.FoodService;
 import com.api.service.VoucherDetailService;
 import com.api.service.VoucherService;
 import com.api.utils.FoodStatus;
+import com.api.utils.VoucherApplyType;
 import com.api.utils.VoucherStatus;
 import com.api.utils.VoucherType;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
@@ -282,15 +284,10 @@ public class CartServiceImp implements CartService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
-        // Lấy toàn bộ món ăn chính trong giỏ hàng
+
         List<CartDetail> cartDetails = cartDetailRepository.findByCartIdAndOrderIsNull(cart.getId());
 
-        List<Food> mainFoods = cartDetails.stream()
-                .map(CartDetail::getFood)
-                .filter(food -> food.getStatus().equals(FoodStatus.ACTIVE))
-                .toList();
-
-        // Xác định các cartDetail có món inactive
+        // Remove inactive food items
         List<CartDetail> inactiveCartDetails = cartDetails.stream()
                 .filter(cd -> cd.getFood().getStatus() != FoodStatus.ACTIVE)
                 .toList();
@@ -307,65 +304,70 @@ public class CartServiceImp implements CartService {
                     .build();
         }
 
-        // Lấy danh sách voucher có hiệu lực
-        List<Voucher> vouchers = voucherService.getVoucherOfRestaurant(mainFoods.get(0).getRestaurant().getId()).stream()
+        List<Food> mainFoods = cartDetails.stream()
+                .map(CartDetail::getFood)
+                .toList();
+
+        Long restaurantId = mainFoods.get(0).getRestaurant().getId();
+
+        // Get valid vouchers
+        List<Voucher> allVouchers = voucherService.getVoucherOfRestaurant(restaurantId).stream()
                 .filter(v -> v.getStatus() == VoucherStatus.ACTIVE &&
                         v.getValue() != null &&
                         v.getValue().compareTo(BigDecimal.ZERO) > 0)
                 .toList();
 
-        // Lấy VoucherDetail hợp lệ
-        List<VoucherDetail> voucherDetails = voucherDetailService
+        LocalDateTime now = LocalDateTime.now();
+
+        // Restaurant-level vouchers
+        List<Voucher> validRestaurantVouchers = allVouchers.stream()
+                .filter(v -> v.getApplyType() == VoucherApplyType.ALL &&
+                        v.getVoucherDetails().stream()
+                                .anyMatch(vd -> vd.getStartDate().isBefore(now) && vd.getEndDate().isAfter(now)))
+                .toList();
+
+        // Food-level voucher details
+        List<VoucherDetail> validVoucherDetails = voucherDetailService
                 .getVoucherDetailByVoucherInAndFoodInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                        vouchers,
-                        mainFoods,
-                        LocalDateTime.now()
+                        allVouchers, mainFoods, now
                 );
 
-        // Map<foodId, VoucherDetail>
-        Map<Long, VoucherDetail> foodIdToVoucherDetail = voucherDetails.stream()
+        Map<Long, VoucherDetail> foodIdToVoucherDetail = validVoucherDetails.stream()
                 .collect(Collectors.toMap(
                         vd -> vd.getFood().getId(),
                         vd -> vd,
-                        (vd1, vd2) -> vd1 // ưu tiên 1 cái
+                        (vd1, vd2) -> vd1 // keep first
                 ));
 
         List<CartDetailResponse> cartDetailResponseList = cartDetails.stream().map(cartDetail -> {
             Food food = cartDetail.getFood();
             BigDecimal basePrice = foodService.getCurrentPrice(food.getId());
-            BigDecimal finalPrice = basePrice;
+            BigDecimal finalPrice = applyVouchers(basePrice, food, validRestaurantVouchers, foodIdToVoucherDetail);
 
-            // Áp dụng giảm giá nếu có
-            VoucherDetail voucherDetail = foodIdToVoucherDetail.get(food.getId());
-            if (voucherDetail != null) {
-                Voucher voucher = voucherDetail.getVoucher();
-                if (voucher.getType().equals(VoucherType.FIXED)) {
-                    finalPrice = basePrice.subtract(voucher.getValue());
-                } else if (voucher.getType().equals(VoucherType.PERCENTAGE)) {
-                    BigDecimal discount = basePrice.multiply(voucher.getValue()).divide(BigDecimal.valueOf(100));
-                    finalPrice = basePrice.subtract(discount);
-                }
-                if (finalPrice.compareTo(BigDecimal.ZERO) < 0) {
-                    finalPrice = BigDecimal.ZERO;
-                }
-            }
-
-            // Xử lý món ăn thêm
+            // Handle additional foods
             List<AdditionalFoodCartResponse> additionalItems = new ArrayList<>();
-            List<Long> validIds = new ArrayList<>();
+            List<Long> validAdditionalIds = new ArrayList<>();
+
             for (Long id : cartDetail.getIds()) {
                 Optional<Food> aFoodOpt = foodRepository.findById(id);
-                if (aFoodOpt.isPresent() && aFoodOpt.get().getStatus() == FoodStatus.ACTIVE) {
-                    validIds.add(id);
+                if (aFoodOpt.isPresent()) {
                     Food aFood = aFoodOpt.get();
-                    additionalItems.add(AdditionalFoodCartResponse.builder()
-                            .id(aFood.getId())
-                            .name(aFood.getName())
-                            .price(foodService.getCurrentPrice(aFood.getId()))
-                            .build());
+                    if (aFood.getStatus() == FoodStatus.ACTIVE) {
+                        BigDecimal aBasePrice = foodService.getCurrentPrice(aFood.getId());
+                        BigDecimal aFinalPrice = applyVouchers(aBasePrice, aFood, validRestaurantVouchers, foodIdToVoucherDetail);
+
+                        additionalItems.add(AdditionalFoodCartResponse.builder()
+                                .id(aFood.getId())
+                                .name(aFood.getName())
+                                .price(aFinalPrice)
+                                .build());
+
+                        validAdditionalIds.add(id);
+                    }
                 }
             }
-            cartDetail.setIds(validIds);
+
+            cartDetail.setIds(validAdditionalIds);
             cartDetailRepository.save(cartDetail);
 
             return CartDetailResponse.builder()
@@ -380,14 +382,14 @@ public class CartServiceImp implements CartService {
                     .build();
         }).toList();
 
-
         return CartResponse.builder()
-                .restaurantId(cartDetails.get(0).getFood().getRestaurant().getId())
+                .restaurantId(restaurantId)
                 .cartId(cart.getId())
                 .listItem(cartDetailResponseList)
-                .restaurantName(cartDetails.getFirst().getFood().getRestaurant().getName())
+                .restaurantName(mainFoods.get(0).getRestaurant().getName())
                 .build();
     }
+
 
     @Override
     public void deleteCartDetail(Long cartDetailId) {
@@ -403,6 +405,39 @@ public class CartServiceImp implements CartService {
             isRestaurantOpen = restaurant.getOpeningHour().isBefore(LocalTime.now()) && restaurant.getClosingHour().isAfter(LocalTime.now());
         }
         return isRestaurantOpen;
+    }
+    private BigDecimal applyVouchers(BigDecimal originalPrice, Food food,
+                                     List<Voucher> restaurantVouchers,
+                                     Map<Long, VoucherDetail> foodIdToVoucherDetail) {
+        if (originalPrice == null) return BigDecimal.ZERO;
+
+        BigDecimal price = originalPrice;
+
+        // Apply restaurant-level voucher
+        for (Voucher voucher : restaurantVouchers) {
+            if (voucher.getRestaurant().equals(food.getRestaurant())) {
+                price = applySingleVoucher(price, voucher);
+            }
+        }
+
+        // Apply food-level voucher
+        VoucherDetail foodVoucher = foodIdToVoucherDetail.get(food.getId());
+        if (foodVoucher != null) {
+            price = applySingleVoucher(price, foodVoucher.getVoucher());
+        }
+
+        return price.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : price;
+    }
+
+    private BigDecimal applySingleVoucher(BigDecimal price, Voucher voucher) {
+        if (voucher.getType() == VoucherType.FIXED) {
+            return price.subtract(voucher.getValue());
+        } else if (voucher.getType() == VoucherType.PERCENTAGE) {
+            BigDecimal discount = price.multiply(voucher.getValue())
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            return price.subtract(discount);
+        }
+        return price;
     }
 
 }

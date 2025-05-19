@@ -29,12 +29,12 @@ const PickAdditionalFood: React.FC<PickAdditionalFoodProps> = ({
                   type="checkbox"
                   id={`food-${food.id}`}
                   checked={isChecked}
-                  onChange={() => onCheckboxChange(food.id, food.price)}
+                  onChange={() => onCheckboxChange(food.id, food.discountPrice)}
                   className="h-5 w-5"
                 />
                 <label htmlFor={`food-${food.id}`} className="text-lg">{food.name}</label>
               </div>
-              <span className="text-lg font-bold">{food.price.toLocaleString()}đ</span>
+              <span className="text-lg font-bold">{food.discountPrice.toLocaleString()}đ</span>
             </div>
           );
         })}

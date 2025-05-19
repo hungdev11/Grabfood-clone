@@ -8,6 +8,8 @@ import com.api.dto.response.ApiResponse;
 import com.api.dto.response.GetFoodGroupResponse;
 import com.api.dto.response.GetFoodResponse;
 import com.api.dto.response.PageResponse;
+import com.api.entity.Restaurant;
+import com.api.entity.Voucher;
 import com.api.utils.FoodStatus;
 
 import java.math.BigDecimal;
@@ -27,4 +29,5 @@ public interface FoodService {
     PageResponse<List<GetFoodResponse>> getAdditionalFoodsOfFood (long restaurantId, long foodId, boolean isForCustomer, int page, int pageSize);
     void updateFoodInfo(long restaurantId, long foodId, UpdateFoodInfoRequest request);
     GetFoodGroupResponse getFoodGroupOfRestaurant(long restaurantId, boolean isForCustomer);
+    List<Voucher> getValidRestaurantVouchers(Restaurant restaurant, LocalDateTime time);
 }

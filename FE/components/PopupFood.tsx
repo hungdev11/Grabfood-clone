@@ -102,7 +102,7 @@ const Popup: React.FC<PopupProps> = ({
           const selectedMap: { [key: number]: number } = {};
           selectedFood.additionalFoods.forEach((item) => {
             const matched = foods.find((f) => f.id === item.id);
-            if (matched) selectedMap[matched.id] = matched.price;
+            if (matched) selectedMap[matched.id] = matched.discountPrice;
           });
           setSelectedItems(selectedMap);
         } else {

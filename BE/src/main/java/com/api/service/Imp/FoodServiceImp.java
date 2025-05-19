@@ -26,6 +26,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -129,8 +130,6 @@ public class FoodServiceImp implements FoodService {
                 .map(FoodDetail::getPrice)
                 .findFirst()
                 .orElse(BigDecimal.ZERO);
-
-        LocalDateTime now = LocalDateTime.now();
         return price;
     }
 
@@ -158,26 +157,29 @@ public class FoodServiceImp implements FoodService {
     }
 
     private BigDecimal applyVoucher(Food food, BigDecimal price, LocalDateTime time) {
+        // Apply restaurant-level vouchers
+        List<Voucher> restaurantVouchers = getValidRestaurantVouchers(restaurantService.getRestaurant(food.getRestaurant().getId()), time);
+        for (Voucher voucher : restaurantVouchers) {
+            price = calculateDiscountPrice(price, voucher);
+            if (price.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
+        }
+
+        // Apply only one matching food-level voucher
         for (VoucherDetail vd : food.getVoucherDetails()) {
             if (time.isBefore(vd.getStartDate()) || time.isAfter(vd.getEndDate())) continue;
 
             Voucher voucher = vd.getVoucher();
-            // nếu trong lúc đặt order vẫn hiệu lực nhưng sau đó k còn hiệu lực thì vẫn áp dụng, nên xét status k hợp lý
-            //if (voucher.getStatus() != VoucherStatus.ACTIVE) continue;
             if (!food.getRestaurant().equals(voucher.getRestaurant())) continue;
+            if (voucher.getStatus() != VoucherStatus.ACTIVE) continue;
 
-            if (voucher.getType() == VoucherType.PERCENTAGE) {
-                BigDecimal discount = voucher.getValue().min(BigDecimal.valueOf(100));
-                price = price.subtract(price.multiply(discount).divide(BigDecimal.valueOf(100)));
-            } else if (voucher.getType() == VoucherType.FIXED) {
-                price = price.compareTo(voucher.getValue()) < 0
-                        ? BigDecimal.ZERO
-                        : price.subtract(voucher.getValue());
-            }
+            price = calculateDiscountPrice(price, voucher);
             break;
         }
+
         return price;
     }
+
+
 
     @Override
     public GetFoodResponse getFood(long foodId, boolean isForCustomer) {
@@ -440,7 +442,6 @@ public class FoodServiceImp implements FoodService {
         log.info("Get food group of restaurant {}", restaurantId);
         Restaurant restaurant = restaurantService.getRestaurant(restaurantId);
 
-        log.info("Get types of restaurant {}", restaurant);
         List<Food> foods = restaurant.getFoods();
         if (isForCustomer) {
             foods = foods.stream()
@@ -457,45 +458,64 @@ public class FoodServiceImp implements FoodService {
                 .map(f -> f.getType().getName())
                 .collect(Collectors.toSet());
 
-
         log.info("Get voucher of restaurant {} in present", restaurantId);
-        List<Voucher> voucherList = voucherService.getVoucherOfRestaurant(restaurantId).stream()
-                .filter(v -> v.getStatus().equals(VoucherStatus.ACTIVE)
-                        && v.getValue() != null
-                        && v.getValue().compareTo(BigDecimal.ZERO) > 0).toList();
+        LocalDateTime now = LocalDateTime.now();
 
-        List<VoucherDetail> voucherDetailList = voucherDetailService
-                .getVoucherDetailByVoucherInAndFoodInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(voucherList, foods, LocalDateTime.now());
+        // Get all valid vouchers
+        List<Voucher> allVouchers = voucherService.getVoucherOfRestaurant(restaurantId).stream()
+                .filter(v -> v.getStatus() == VoucherStatus.ACTIVE &&
+                        v.getValue() != null &&
+                        v.getValue().compareTo(BigDecimal.ZERO) > 0)
+                .toList();
 
-        Map<Long, VoucherDetail> foodIdToVoucherDetail = voucherDetailList.stream()
+        // Get valid restaurant-level vouchers
+        List<Voucher> validRestaurantVouchers = getValidRestaurantVouchers(restaurant, now);
+
+        log.error("SIZE : {}", validRestaurantVouchers.size());
+
+        // Get valid food-level voucher details
+        List<VoucherDetail> foodVoucherDetails = voucherDetailService
+                .getVoucherDetailByVoucherInAndFoodInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(allVouchers, foods, now);
+
+        Map<Long, VoucherDetail> foodIdToVoucherDetail = foodVoucherDetails.stream()
                 .collect(Collectors.toMap(
                         vd -> vd.getFood().getId(),
                         vd -> vd,
-                        (vd1, vd2) -> vd1 // nếu có 2 voucher thì chọn cái đầu
+                        (vd1, vd2) -> vd1 // if duplicates, keep the first one
                 ));
 
         log.info("Get foods of restaurant {}", restaurantId);
         List<GetFoodResponse> foodResponses = foods.stream()
                 .map(f -> {
                     BigDecimal currentPrice = getCurrentPrice(f.getId());
-                    VoucherDetail voucherDetail = foodIdToVoucherDetail.get(f.getId());
-                    BigDecimal discountPrice = voucherDetail != null
-                            ? calculateDiscountPrice(currentPrice, voucherDetail.getVoucher())
-                            : currentPrice;
+
+                    // Apply restaurant voucher first
+                    BigDecimal afterRestaurantDiscount = validRestaurantVouchers.stream()
+                            .filter(v -> f.getRestaurant().equals(v.getRestaurant()))
+                            .reduce(currentPrice, this::calculateDiscountPrice, (p1, p2) -> p1); // sequential reduction
+
+                    // Apply food-level voucher if available
+                    VoucherDetail foodVoucherDetail = foodIdToVoucherDetail.get(f.getId());
+                    BigDecimal finalDiscountPrice = foodVoucherDetail != null
+                            ? calculateDiscountPrice(afterRestaurantDiscount, foodVoucherDetail.getVoucher())
+                            : afterRestaurantDiscount;
+
                     GetFoodResponse foodResponse = GetFoodResponse.builder()
                             .id(f.getId())
                             .name(f.getName())
                             .image(f.getImage())
                             .description(f.getDescription())
                             .price(currentPrice)
-                            .discountPrice(discountPrice)
+                            .discountPrice(finalDiscountPrice)
                             .rating(BigDecimal.ZERO)
                             .type(f.getType().getName())
                             .kind(f.getKind().name())
                             .build();
+
                     if (!isForCustomer) {
                         foodResponse.setStatus(f.getStatus());
                     }
+
                     return foodResponse;
                 })
                 .toList();
@@ -505,6 +525,7 @@ public class FoodServiceImp implements FoodService {
                 .foods(foodResponses)
                 .build();
     }
+
 
 
 //====================================================================================================================================
@@ -532,40 +553,65 @@ public class FoodServiceImp implements FoodService {
 
     private List<GetFoodResponse> foodResponsesToEndUser(Page<Food> foodPage, boolean isForCustomer) {
         log.info("Response to user? {}", isForCustomer);
+        LocalDateTime now = LocalDateTime.now();
 
         return foodPage.getContent().stream()
                 .map(food -> {
-                    GetFoodResponse.GetFoodResponseBuilder responseBuilder = GetFoodResponse.builder()
+                    BigDecimal originalPrice = getCurrentPrice(food.getId());
+                    BigDecimal discountPrice = applyVoucher(food, originalPrice, now);
+
+                    GetFoodResponse.GetFoodResponseBuilder builder = GetFoodResponse.builder()
                             .id(food.getId())
                             .name(food.getName())
                             .image(food.getImage())
                             .description(food.getDescription())
-                            .price(getCurrentPrice(food.getId()))
+                            .price(originalPrice)
+                            .discountPrice(discountPrice)
                             .rating(BigDecimal.ZERO);
 
                     if (!isForCustomer) {
-                        responseBuilder.kind(food.getKind().name());
-                        responseBuilder.status(food.getStatus());
+                        builder.kind(food.getKind().name());
+                        builder.status(food.getStatus());
                     }
 
-                    return responseBuilder.build();
+                    return builder.build();
                 })
                 .collect(Collectors.toList());
     }
 
     private BigDecimal calculateDiscountPrice(BigDecimal originalPrice, Voucher voucher) {
-        if (voucher == null || voucher.getValue() == null) return originalPrice;
+        if (originalPrice == null || voucher == null || voucher.getValue() == null || voucher.getType() == null) {
+            return originalPrice != null ? originalPrice : BigDecimal.ZERO;
+        }
 
         BigDecimal discountPrice = originalPrice;
 
-        if (voucher.getType().equals(VoucherType.FIXED)) {
-            discountPrice = originalPrice.subtract(voucher.getValue());
-        } else if (voucher.getType().equals(VoucherType.PERCENTAGE)) {
-            BigDecimal discount = originalPrice.multiply(voucher.getValue()).divide(BigDecimal.valueOf(100));
-            discountPrice = originalPrice.subtract(discount);
+        switch (voucher.getType()) {
+            case FIXED:
+                discountPrice = originalPrice.subtract(voucher.getValue());
+                break;
+
+            case PERCENTAGE:
+                BigDecimal percent = voucher.getValue().min(BigDecimal.valueOf(100));
+                BigDecimal discount = originalPrice.multiply(percent)
+                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+                discountPrice = originalPrice.subtract(discount);
+                break;
+
+            default:
+                return originalPrice;
         }
 
         return discountPrice.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : discountPrice;
+    }
+
+    public List<Voucher> getValidRestaurantVouchers(Restaurant restaurant, LocalDateTime time) {
+        return voucherService.getVoucherOfRestaurant(restaurant.getId()).stream()
+                .filter(v -> v.getStatus() == VoucherStatus.ACTIVE)
+                .filter(v -> v.getApplyType() == VoucherApplyType.ALL)
+                .filter(v -> v.getVoucherDetails().stream()
+                        .anyMatch(vd -> !time.isBefore(vd.getStartDate()) && !time.isAfter(vd.getEndDate())))
+                .toList();
     }
 
 }

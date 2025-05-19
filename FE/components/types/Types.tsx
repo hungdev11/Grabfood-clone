@@ -40,6 +40,7 @@ export interface ApiResponse<T> {
     id: number;
     name: string;
     price: number;
+    discountPrice: number;
   }
 
   type FoodKind = "MAIN" | "ADDITIONAL" | "BOTH";
