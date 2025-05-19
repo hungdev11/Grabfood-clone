@@ -41,7 +41,7 @@ public class VoucherDetailServiceImp implements VoucherDetailService {
         }
         Voucher voucher = voucherService.getVoucherbyId(request.getVoucher_id());
 
-        if(voucher.getRestaurant()!=null) {
+        if(voucher.getRestaurant()!=null && request.getFood_id()!=null) {
             if (voucher.getRestaurant().getFoods().contains(food)) {
                 voucherDetail.setFood(food);
             } else {

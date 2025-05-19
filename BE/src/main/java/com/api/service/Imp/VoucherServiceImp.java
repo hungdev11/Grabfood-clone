@@ -152,6 +152,18 @@ public class VoucherServiceImp implements VoucherService {
         return voucherRepository.findByRestaurantId(restaurantId);
     }
 
+    @Override
+    public List<VoucherResponse> getRestaurantVoucher(long restaurantId) {
+        VoucherMapperImp voucherMapper = new VoucherMapperImp();
+        return voucherRepository.findByRestaurantId(restaurantId).stream().map(
+                voucher -> {
+                    VoucherResponse response = voucherMapper.toVoucherResponse(voucher);
+                    response.setActive(checkActiveVoucher(voucher.getId()));
+                    return response;
+                }
+        ).toList();
+    }
+
     public void checkVoucherValue( VoucherType type,BigDecimal value) {
         if(type.equals(VoucherType.PERCENTAGE)) {
             if (value.compareTo(BigDecimal.ZERO) <= 0 || value.compareTo(new BigDecimal("100")) > 0) {
@@ -160,7 +172,15 @@ public class VoucherServiceImp implements VoucherService {
         }
     }
 
-
-
-
+    private boolean checkActiveVoucher(long voucherId) {
+        Voucher voucher = voucherRepository.findById(voucherId).orElseThrow(() ->
+                new AppException(ErrorCode.VOUCHER_NOT_FOUND));
+        List<VoucherDetail> voucherDetailList = voucher.getVoucherDetails();
+        for (VoucherDetail voucherDetail: voucherDetailList) {
+            if (voucherDetail.getEndDate().isAfter(LocalDateTime.now())) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

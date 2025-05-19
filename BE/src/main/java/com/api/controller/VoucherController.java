@@ -3,6 +3,7 @@ package com.api.controller;
 import com.api.dto.request.VoucherRequest;
 import com.api.dto.response.ApiResponse;
 import com.api.dto.response.VoucherResponse;
+import com.api.entity.Voucher;
 import com.api.service.VoucherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,10 @@ public class VoucherController {
     @DeleteMapping("/{voucher_id}")
     public ApiResponse deleteVoucher(@PathVariable Long voucher_id) {
         voucherService.deleteVoucher(voucher_id);
-        return ApiResponse.builder().build();
+        return ApiResponse.builder()
+                .code(200)
+                .message("OK")
+                .build();
     }
 
     @PutMapping("/{voucher_id}")
@@ -58,6 +62,16 @@ public class VoucherController {
                 .code(200)
                 .message("Success")
                 .data(voucherService.getVoucherCanApply(totalPrice))
+                .build();
+    }
+
+    @GetMapping("/restaurant/{restaurant_id}")
+    public ApiResponse<List<VoucherResponse>> getVoucherOfRestaurant(@PathVariable Long restaurant_id)
+    {
+        return ApiResponse.<List<VoucherResponse>>builder()
+                .code(200)
+                .message("OK")
+                .data(voucherService.getRestaurantVoucher(restaurant_id))
                 .build();
     }
 }
