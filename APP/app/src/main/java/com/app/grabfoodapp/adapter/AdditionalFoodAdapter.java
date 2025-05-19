@@ -66,7 +66,7 @@ public class AdditionalFoodAdapter extends BaseAdapter {
 
         foodName.setText(food.getName());
         DecimalFormat decimalFormat = new DecimalFormat("#,###");
-        foodPrice.setText(decimalFormat.format(food.getPrice()) + "đ");
+        foodPrice.setText(decimalFormat.format(food.getDiscountPrice()) + "đ");
 
         checkBox.setOnCheckedChangeListener(null); // clear listener cũ trước
         checkBox.setChecked(ids.contains(food.getId())); // set checked đúng theo ids
@@ -86,7 +86,7 @@ public class AdditionalFoodAdapter extends BaseAdapter {
 
         for (FoodDTO.GetFoodResponse food : foods) {
             if (ids.contains(food.getId())) {
-                total = total.add(food.getPrice());
+                total = total.add(food.getDiscountPrice());
             }
         }
         Log.d("TotalPrice", "Total selected price: " + total.toString());
