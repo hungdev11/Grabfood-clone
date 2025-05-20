@@ -39,11 +39,11 @@ public class VoucherController {
     }
 
     @PutMapping("/{voucher_id}")
-    public ApiResponse<VoucherResponse> updateVoucher(@PathVariable Long voucher_id, @RequestBody VoucherRequest request) {
-        return ApiResponse.<VoucherResponse>builder()
+    public ApiResponse<Void> updateVoucher(@PathVariable Long voucher_id) {
+        voucherService.updateVoucherStatus(voucher_id);
+        return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Success")
-                .data(voucherService.updateVoucher(voucher_id,request))
                 .build();
     }
 
@@ -74,4 +74,5 @@ public class VoucherController {
                 .data(voucherService.getRestaurantVoucher(restaurant_id))
                 .build();
     }
+
 }

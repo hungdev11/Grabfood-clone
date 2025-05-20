@@ -27,4 +27,6 @@ public interface VoucherService {
     List<Voucher> getVoucherOfRestaurant(long restaurantId);
 
     List<VoucherResponse> getRestaurantVoucher(long restaurantId);
+
+    void updateVoucherStatus(long voucherId);
 }

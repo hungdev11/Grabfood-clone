@@ -2,18 +2,22 @@
 
 import { useState , useEffect} from 'react';
 import { Voucher, VoucherRequest } from '@/components/types/voucher';
-import { fetchVouchers, createVoucher, deleteVoucher } from '@/utils/apiVoucher';
+import { fetchVouchers, createVoucher, deleteVoucher, updateVoucher , addVoucherDetail} from '@/utils/apiVoucher';
 import { useRouter } from 'next/navigation';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ModalVoucher from './modalVoucher';
+import ModalAddDetail from './modalAddDetail';
 
 import { useParams } from "next/navigation";
 
 export default function VoucherManagement() {
   const params = useParams();
   const restaurantId = params?.restaurantId as string;
-
+  const [showModal, setShowModal] = useState(false);
+  const [showModalDetail, setShowModalDetail] = useState(false);
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
 
   const initialForm: VoucherRequest = {
   code: '',
@@ -73,6 +77,29 @@ export default function VoucherManagement() {
     }
   }
 
+  const handleUpdate = async (voucherId: number) => {
+    try {
+      await updateVoucher(voucherId);
+      fetchVouchers(restaurantId).then((data) => {
+        setVouchers(data);
+      });
+    } catch (error) {
+      toast.error('Đã xảy ra lỗi khi cập nhật!'); 
+    }
+  };
+
+  const handleAddVoucherDetail = async (data: any) => {
+    try {
+      await addVoucherDetail(data);
+      toast.success('Thêm chi tiết voucher thành công!');
+      fetchVouchers(restaurantId).then((data) => {
+        setVouchers(data);
+      });
+    } catch (error) {
+      toast.error('Đã xảy ra lỗi khi thêm chi tiết voucher!');
+    }
+  }
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
 
@@ -84,7 +111,7 @@ export default function VoucherManagement() {
             onClick={() => setIsModalOpen(true)}
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
         >
-            Add New Voucher
+            Thêm Voucher
         </button>
     </div>
 
@@ -96,6 +123,7 @@ export default function VoucherManagement() {
               <th className="py-3 px-4 text-left">Code</th>
               <th className="py-3 px-4 text-left">Giảm</th>
               <th className="py-3 px-4 text-left">Trạng thái</th>
+              <th className="py-3 px-4 text-left">Khóa</th>
               <th className="py-3 px-4 text-left">Action</th>
             </tr>
           </thead>
@@ -108,9 +136,28 @@ export default function VoucherManagement() {
                 </td>
                 <td className="py-3 px-4">
                   {voucher.active ? (
-                    <span className="text-green-500 font-semibold">Đang hoạt động</span>)
+                    <span className="text-green-500 font-semibold">Mở</span>)
                   : (
-                    <span className="text-red-500 font-semibold">Không sử dụng</span>
+                    <span className="text-red-500 font-semibold">Đóng</span>
+                  )}
+                </td>
+                <td className="py-3 px-4">
+                  {voucher.status !== "ACTIVE" ? (
+                    <button
+                      className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                      onClick={() => {handleUpdate(voucher.id)}}
+                    >
+                      Mở
+                    </button>
+                  ) : (
+                    !voucher.active && (
+                      <button
+                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                        onClick={() => {handleUpdate(voucher.id)}}
+                      >
+                        Khóa
+                      </button>
+                    )
                   )}
                 </td>
                 <td className="py-3 px-4">
@@ -122,9 +169,39 @@ export default function VoucherManagement() {
                   </button>
                   <button
                     className="bg-pink-500 text-white px-3 py-1 rounded hover:bg-pink-600"
+                    onClick={() => {
+                      setShowModal(true);
+                      setSelectedVoucher(voucher);
+                    }}
                   >
                     Chi tiết
                   </button>
+                  {voucher.status === 'ACTIVE' && !voucher.active && (
+                    <button
+                      className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                      onClick={() => {
+                        setShowModalDetail(true);
+                        setSelectedVoucher(voucher);
+                      }}
+                    >
+                      Tạo mới
+                    </button>
+                  )}
+                  {showModalDetail && (
+                    <ModalAddDetail
+                      voucherId={selectedVoucher?.id}
+                      isOpen={showModalDetail}
+                      onClose={() => setShowModalDetail(false)}
+                      onSubmit={handleAddVoucherDetail}
+                    />
+                  )}
+                  {selectedVoucher && (
+                    <ModalVoucher
+                      isOpen={showModal}
+                      onClose={() => setShowModal(false)}
+                      voucher={selectedVoucher}
+                    />
+                  )}
                 </td>
               </tr>
             ))}
@@ -132,11 +209,10 @@ export default function VoucherManagement() {
         </table>
       </div>
 
-     
       {isModalOpen && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-6 rounded-lg w-full max-w-md">
-        <h2 className="text-xl font-bold text-green-500 mb-4">Add New Voucher</h2>
+        <h2 className="text-xl font-bold text-green-500 mb-4"> New AddVoucher</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Voucher Code</label>

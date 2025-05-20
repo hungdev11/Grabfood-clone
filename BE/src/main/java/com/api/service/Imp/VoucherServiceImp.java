@@ -158,10 +158,25 @@ public class VoucherServiceImp implements VoucherService {
         return voucherRepository.findByRestaurantId(restaurantId).stream().map(
                 voucher -> {
                     VoucherResponse response = voucherMapper.toVoucherResponse(voucher);
-                    response.setActive(checkActiveVoucher(voucher.getId()));
+                    boolean check = checkActiveVoucher(voucher.getId());
+                    if(check) {
+                       response.setEndTime(voucherDetailRepository.findByVoucherIdAndEndDateAfter(voucher.getId(), LocalDateTime.now()).getEndDate().toString());
+                    }
+                    response.setActive(check);
                     return response;
                 }
         ).toList();
+    }
+
+    @Override
+    public void updateVoucherStatus(long voucherId) {
+        Voucher voucher = voucherRepository.findById(voucherId).orElseThrow(() -> new AppException(ErrorCode.VOUCHER_NOT_FOUND));
+        if (voucher.getStatus().equals(VoucherStatus.ACTIVE)) {
+            voucher.setStatus(VoucherStatus.INACTIVE);
+        } else {
+            voucher.setStatus(VoucherStatus.ACTIVE);
+        }
+        voucherRepository.save(voucher);
     }
 
     public void checkVoucherValue( VoucherType type,BigDecimal value) {

@@ -23,3 +23,10 @@ export interface VoucherRequest {
   status: 'ACTIVE' | 'INACTIVE' | 'EXPIRED';
   restaurant_id: number;
 }
+
+export interface AddVoucherDetailRequest {
+  quantity: number;
+  startDate: string;
+  endDate: string;
+  voucher_id: number;
+}

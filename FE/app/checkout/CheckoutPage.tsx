@@ -997,7 +997,6 @@ export default function Checkout() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
         <ToastContainer />
       </div>
     </CartProvider>
