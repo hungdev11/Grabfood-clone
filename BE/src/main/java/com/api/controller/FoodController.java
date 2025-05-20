@@ -142,4 +142,18 @@ public class FoodController {
                 .code(200)
                 .build();
     }
+    @GetMapping("/search")
+    public ApiResponse<?> searchFoods(
+            @RequestParam String query,
+            @RequestParam(required = false) Long restaurantId,
+            @RequestParam(defaultValue = "false") boolean isForCustomer) {
+
+        log.debug("Searching for foods with query: {}, restaurantId: {}", query, restaurantId);
+
+        return ApiResponse.builder()
+                .code(200)
+                .message("Success")
+                .data(foodService.searchFoods(query, restaurantId, isForCustomer))
+                .build();
+    }
 }

@@ -182,12 +182,13 @@ export default function DeliveryAddresses() {
       // Create a payload that matches what the backend expects
       const payload = {
         detail: newAddress.detail,
-        displayName: [newAddress.ward, newAddress.district, newAddress.province]
-          .filter(Boolean)
-          .join(", "),
-        default: newAddress.isDefault, // Use 'default' instead of 'isDefault'
+        default: newAddress.isDefault,
         latitude: newAddress.latitude,
         longitude: newAddress.longitude,
+        // Add these if your API supports them
+        province: newAddress.province,
+        district: newAddress.district,
+        ward: newAddress.ward,
       };
 
       const res = await fetchWithAuth(

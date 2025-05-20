@@ -54,9 +54,10 @@ export interface ApiResponse<T> {
     rating?: number;
     quantity?: number;
     cartDetailId?: number;
+    restaurantId?: number;
     status?: string;
-    additionalFoods?: AdditionalFood[];  // danh sách object
-    additionalIds?: number[];            // danh sách ID, phục vụ update
+    additionalFoods?: AdditionalFood[]; // danh sách object
+    additionalIds?: number[]; // danh sách ID, phục vụ update
     note?: string;
     kind: FoodKind;
     type: string;

@@ -614,4 +614,51 @@ public class FoodServiceImp implements FoodService {
                 .toList();
     }
 
+    @Override
+    public List<GetFoodResponse> searchFoods(String query, Long restaurantId, boolean isForCustomer) {
+        if (query == null || query.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Food> results;
+        if (restaurantId != null) {
+            // Search within a specific restaurant
+            results = foodRepository.findByNameContainingIgnoreCaseAndRestaurantId(
+                    query, restaurantId, isForCustomer ? FoodStatus.ACTIVE : null);
+        } else {
+            // Search across all restaurants
+            results = foodRepository.findByNameContainingIgnoreCase(
+                    query, isForCustomer ? FoodStatus.ACTIVE : null);
+        }
+
+        return results.stream()
+                .map(food -> mapFoodToResponse(food, isForCustomer))
+                .collect(Collectors.toList());
+    }
+
+    private GetFoodResponse mapFoodToResponse(Food food, boolean isForCustomer) {
+        BigDecimal originalPrice = getCurrentPrice(food.getId());
+        BigDecimal discountPrice = applyVoucher(food, originalPrice, LocalDateTime.now());
+
+        GetFoodResponse.GetFoodResponseBuilder builder = GetFoodResponse.builder()
+                .id(food.getId())
+                .name(food.getName())
+                .image(food.getImage())
+                .description(food.getDescription())
+                .price(originalPrice)
+                .discountPrice(discountPrice)
+                .rating(BigDecimal.ZERO);
+
+        if (!isForCustomer) {
+            builder.kind(food.getKind().name());
+            builder.status(food.getStatus());
+        }
+
+        if (food.getType() != null) {
+            builder.type(food.getType().getName());
+        }
+
+        return builder.build();
+    }
+
 }
