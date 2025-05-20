@@ -76,7 +76,7 @@ const RevenueReport = () => {
           <Tooltip />
           <Legend />
           <Line type="monotone" dataKey="grossRevenue" stroke="#8884d8" name="Gross Revenue" />
-          <Line type="monotone" dataKey="netRevenue" stroke="#82ca9d" name="Net Revenue" />
+          {/* <Line type="monotone" dataKey="netRevenue" stroke="#82ca9d" name="Net Revenue" /> */}
         </LineChart>
       </ResponsiveContainer>
     </div>
