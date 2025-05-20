@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { fetchWithAuth } from "@/utils/api";
@@ -21,29 +21,37 @@ export default function FoodSearch({
 }: FoodSearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Search function - now only called on button click or Enter
-  const searchFoods = async () => {
-    // Don't search if query is empty
-    if (!searchQuery.trim()) {
+  // Real-time search with debounce
+  const handleInputChange = (value: string) => {
+    setSearchQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      if (value.trim()) {
+        searchFoods(value);
+      } else {
+        if (onResults) onResults([]);
+      }
+    }, 400);
+  };
+
+  // Sửa searchFoods để nhận query truyền vào
+  const searchFoods = async (query: string) => {
+    if (!query.trim()) {
       if (onResults) onResults([]);
       return;
     }
-
     setIsLoading(true);
     try {
       let url = `http://localhost:6969/grab/foods/search?query=${encodeURIComponent(
-        searchQuery.trim()
+        query.trim()
       )}&isForCustomer=true`;
-
-      // Add restaurant ID to query if provided
       if (restaurantId) {
         url += `&restaurantId=${restaurantId}`;
       }
-
       const response = await fetchWithAuth(url);
       const result = await response.json();
-
       if (result.data && Array.isArray(result.data)) {
         if (onResults) onResults(result.data);
       }
@@ -61,34 +69,32 @@ export default function FoodSearch({
           type="text"
           placeholder={placeholder}
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-7 pr-3 py-1 w-full rounded-md border text-sm h-8"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && searchQuery.trim()) {
-              e.preventDefault();
-              searchFoods();
-            }
-          }}
+          onChange={(e) => handleInputChange(e.target.value)}
+          className="pl-7 pr-10 py-1 w-full rounded-md border text-sm h-8"
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             <div className="animate-spin h-3 w-3 border-2 border-gray-500 border-t-transparent rounded-full" />
           </div>
         )}
-        <button
-          onClick={searchFoods}
-          disabled={isLoading || !searchQuery.trim()}
-          className="ml-1 px-2 py-1 bg-[#00B14F] text-white rounded-md hover:bg-[#00A040] disabled:bg-gray-300 disabled:cursor-not-allowed flex-shrink-0 text-xs h-8"
-        >
-          {isLoading ? "Searching..." : "Search"}
-        </button>
+        {searchQuery && !isLoading && (
+          <button
+            onClick={() => {
+              setSearchQuery("");
+              if (onResults) onResults([]);
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
       </div>
       <p className="text-xs text-gray-500 mt-1">
         {isLoading
-          ? "Searching..."
-          : restaurantId
-          ? "Nhập từ khóa và nhấn vào Tìm kiếm"
-          : "Nhập từ khóa và nhấn vào Tìm kiếm"}
+          ? "Đang tìm kiếm..."
+          : searchQuery
+          ? "Kết quả được cập nhật khi bạn gõ"
+          : "Nhập từ khóa để tìm món ăn"}
       </p>
     </div>
   );

@@ -57,7 +57,7 @@ const FoodListComponent: React.FC<Props> = ({
           restaurantId={restaurantId}
           onResults={handleSearchResults}
           placeholder="Tìm kiếm món ăn thuộc nhà hàng..."
-          className="max-w-md mx-auto"
+          className="w-full md:w-[350px]"
         />
       </div>
       {/* Tabs loại món */}
