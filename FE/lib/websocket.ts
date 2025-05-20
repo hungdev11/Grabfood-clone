@@ -2,7 +2,7 @@ import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
 // Flag to disable WebSockets during development
-const WEBSOCKETS_ENABLED = false; // Set to true when WebSocket server is ready and you need it
+const WEBSOCKETS_ENABLED = true; // Set to true when WebSocket server is ready and you need it
 
 let stompClient: Client | null = null;
 let orderSubscription: any = null;
