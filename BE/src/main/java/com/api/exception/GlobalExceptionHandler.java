@@ -19,11 +19,13 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(AppException.class)
+    @ResponseStatus(BAD_REQUEST)
     public ErrorResponse handleAppException(AppException exception, WebRequest request) {
         return buildErrorResponse(exception.getMessage(), NOT_FOUND, request);
     }
 
     @ExceptionHandler(RuntimeException.class)
+    @ResponseStatus(BAD_REQUEST)
     public ErrorResponse handleRuntimeException(RuntimeException exception, WebRequest request) {
         return buildErrorResponse(exception.getMessage(), BAD_REQUEST, request);
     }
