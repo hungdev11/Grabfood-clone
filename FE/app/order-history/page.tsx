@@ -64,6 +64,32 @@ export default function HomePage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [userId, setUserId] = useState<number | null>(null);
+  useEffect(() => {
+      const storedId = localStorage.getItem("grabUserId");
+      if (storedId) {
+        setUserId(Number(storedId));
+      }
+    }, []);
+    
+  // Hàm đặt lại đơn hàng
+  const reorder = async (userId: number, orderId: number) => {
+    try {
+      const response = await axiosInstance.post(
+        `http://localhost:6969/grab/order/user/${userId}/reorder/${orderId}`
+      );
+      console.log("Đặt lại đơn hàng thành công:", response.data);
+      if (response.data?.data) {
+        alert("Đặt lại đơn hàng thành công! Vui lòng kiểm tra giỏ hàng.");
+        window.location.href = "http://localhost:3000/order-history";
+      } else {
+        alert("Không thể đặt lại đơn hàng.");
+      }
+    } catch (err) {
+      alert("Lỗi khi đặt lại đơn hàng.");
+    }
+  };
+
   // Ánh xạ button sang trạng thái API
   const statusMap: { [key: string]: string | undefined } = {
     "Tất cả": undefined, // Không có status để lấy tất cả
@@ -396,6 +422,13 @@ export default function HomePage() {
                         )}
                       </>
                     ))}
+                    {order.status === "COMPLETED" && (
+                      <button 
+                        className="border border-gray-300 bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 w-full sm:w-auto"
+                        onClick={() => reorder(userId, order.id)}>Đặt lại
+                      </button>
+                    )}
+
                 </div>
               </div>
             ))

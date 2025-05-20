@@ -42,8 +42,7 @@ public class CartServiceImp implements CartService {
     private final VoucherService voucherService;
     private final VoucherDetailService voucherDetailService;
 
-    private void clearCart(Cart cart) {
-
+    public void clearCart(Cart cart) {
         int beforeSize = cart.getCartDetails().size();
         cart.getCartDetails().removeIf(cd -> cd.getCart() != null && cd.getOrder() == null);
         int afterSize = cart.getCartDetails().size();

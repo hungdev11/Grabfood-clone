@@ -49,6 +49,8 @@ public enum ErrorCode {
 
     ORDER_NOT_FOUND(0400, "Order not found", HttpStatus.BAD_REQUEST),
     ORDER_NOT_BELONG_TO_RES(0400, "Order not belong to restaurant", HttpStatus.BAD_REQUEST),
+    ORDER_NOT_BELONG_TO_CUSTOMER(0401, "Order not belong to customer", HttpStatus.BAD_REQUEST),
+    ORDER_NOT_ELIGIBLE_FOR_REORDER(0402, "Can not reorder with order not completed", HttpStatus.BAD_REQUEST),
     REVIEW_NOT_FOUND(0450, "Review not found", HttpStatus.BAD_REQUEST),
     CANNOT_WRITE_REVIEW_DUE_DATE(0451, "Can't write review due date", HttpStatus.BAD_REQUEST),
     HANDLE_NOT_PENDING_ORDER(0452, "Can not handle order not pending", HttpStatus.BAD_REQUEST),

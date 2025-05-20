@@ -104,4 +104,13 @@ public class OrderController {
                 .message("Success")
                 .build();
     }
+
+    @PostMapping("/user/{userId}/reorder/{orderId}")
+    public ApiResponse<Boolean> reorder(@PathVariable Long userId, @PathVariable Long orderId) {
+        return ApiResponse.<Boolean>builder()
+                .data(orderService.reorder(userId, orderId))
+                .code(200)
+                .message("Success")
+                .build();
+    }
 }
