@@ -25,4 +25,8 @@ public interface VoucherService {
     List<VoucherResponse> getVoucherCanApply(BigDecimal totalPrice);
 
     List<Voucher> getVoucherOfRestaurant(long restaurantId);
+
+    List<VoucherResponse> getRestaurantVoucher(long restaurantId);
+
+    void updateVoucherStatus(long voucherId);
 }

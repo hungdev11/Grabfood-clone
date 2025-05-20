@@ -32,4 +32,6 @@ public class VoucherResponse {
     private VoucherStatus status;
 
     private String restaurant_name;
+
+    private boolean isActive;
 }
