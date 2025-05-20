@@ -30,4 +30,5 @@ public interface FoodService {
     void updateFoodInfo(long restaurantId, long foodId, UpdateFoodInfoRequest request);
     GetFoodGroupResponse getFoodGroupOfRestaurant(long restaurantId, boolean isForCustomer);
     List<Voucher> getValidRestaurantVouchers(Restaurant restaurant, LocalDateTime time);
+    List<GetFoodResponse> searchFoods(String query, Long restaurantId, boolean isForCustomer);
 }
