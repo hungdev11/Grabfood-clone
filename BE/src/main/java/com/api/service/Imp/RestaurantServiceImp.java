@@ -12,6 +12,7 @@ import com.api.entity.Order;
 import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
 import com.api.entity.Restaurant;
+import com.api.repository.AddressRepository;
 import com.api.repository.OrderRepository;
 import com.api.repository.RestaurantRepository;
 import com.api.service.*;
@@ -49,6 +50,8 @@ public class RestaurantServiceImp implements RestaurantService {
     private final NotificationService notificationService;
 
     private static final double MOVING_SPEED_PER_HOUR = 50;
+    private final AddressRepository addressRepository;
+
     @Override
     @Transactional
     public long addRestaurant(AddRestaurantRequest request) {
@@ -153,6 +156,7 @@ public class RestaurantServiceImp implements RestaurantService {
     }
 
     @Override
+    @Transactional
     public void updateRestaurantInfo(long restaurantId, UpdateRestaurantRequest request) {
         log.info("Update Restaurant info: {}", request);
 
@@ -164,7 +168,17 @@ public class RestaurantServiceImp implements RestaurantService {
         if (request.getOpeningHour() != null) restaurant.setOpeningHour(request.getOpeningHour());
         if (request.getClosingHour() != null) restaurant.setClosingHour(request.getClosingHour());
         if (request.getPhone() != null) restaurant.setPhone(request.getPhone());
-
+        if (request.getAddress() != null) {
+            Address address = restaurant.getAddress();
+            address.setDefault(false);
+            address.setLon(request.getAddress().getLongitude());
+            address.setLat(request.getAddress().getLatitude());
+            address.setWard(request.getAddress().getWard());
+            address.setDistrict(request.getAddress().getDistrict());
+            address.setProvince(request.getAddress().getProvince());
+            address.setDetail(request.getAddress().getDetail());
+            addressRepository.save(address);
+        }
         restaurantRepository.save(restaurant);
     }
 
