@@ -5,6 +5,7 @@ import com.api.dto.request.CartUpdateRequest;
 
 import com.api.dto.response.CartDetailResponse;
 import com.api.dto.response.CartResponse;
+import com.api.entity.Cart;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ public interface CartService {
 //    BigDecimal calculateTotalPrice(Long cartId);
     void updateCartDetailQuantity(CartUpdateRequest request);
     CartResponse getAllCartDetailUser(Long userId);
-
+    void clearCart(Cart cart);
     void deleteCartDetail(Long cartDetailId);
     boolean checkRestaurantOpen(long cartId);
 }

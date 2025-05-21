@@ -1,7 +1,9 @@
 package com.api.service.Imp;
 
+import com.api.dto.request.AddVoucherDetailRequestRes;
 import com.api.dto.request.VoucherRequest;
 import com.api.dto.response.VoucherResponse;
+import com.api.entity.Food;
 import com.api.entity.Restaurant;
 import com.api.entity.Voucher;
 import com.api.entity.VoucherDetail;
@@ -9,20 +11,24 @@ import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
 import com.api.mapper.Imp.VoucherMapperImp;
 
+import com.api.repository.FoodRepository;
 import com.api.repository.VoucherDetailRepository;
 import com.api.repository.VoucherRepository;
+import com.api.service.FoodService;
 import com.api.service.RestaurantService;
 import com.api.service.VoucherService;
+import com.api.utils.VoucherApplyType;
 import com.api.utils.VoucherStatus;
 import com.api.utils.VoucherType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +37,7 @@ public class VoucherServiceImp implements VoucherService {
     private final VoucherRepository voucherRepository;
     private final RestaurantService restaurantService;
     private final VoucherDetailRepository voucherDetailRepository;
+    private final FoodRepository foodRepository;
 
     @Override
     public VoucherResponse addVoucher(VoucherRequest request) {
@@ -141,7 +148,7 @@ public class VoucherServiceImp implements VoucherService {
         return listVoucherApply.stream().map(voucher -> {
             VoucherResponse response = voucherMapper.toVoucherResponse(voucher);
             VoucherDetail detail = voucherDetailRepository.findByVoucherIdAndEndDateAfter(voucher.getId(), LocalDateTime.now());
-            response.setEndTime(detail.getEndDate().toString());
+            response.setEndTime(detail.getEndDate());
             return response;
         }).toList();
     }
@@ -154,18 +161,72 @@ public class VoucherServiceImp implements VoucherService {
 
     @Override
     public List<VoucherResponse> getRestaurantVoucher(long restaurantId) {
-        VoucherMapperImp voucherMapper = new VoucherMapperImp();
-        return voucherRepository.findByRestaurantId(restaurantId).stream().map(
-                voucher -> {
-                    VoucherResponse response = voucherMapper.toVoucherResponse(voucher);
-                    boolean check = checkActiveVoucher(voucher.getId());
-                    if(check) {
-                       response.setEndTime(voucherDetailRepository.findByVoucherIdAndEndDateAfter(voucher.getId(), LocalDateTime.now()).getEndDate().toString());
+        Restaurant restaurant = restaurantService.getRestaurant(restaurantId);
+        LocalDateTime now = LocalDateTime.now();
+
+        return restaurant.getVouchers().stream()
+                .map(voucher -> {
+                    List<VoucherDetail> sortedDetails = voucher.getVoucherDetails().stream()
+                            .sorted(Comparator.comparing(VoucherDetail::getStartDate).reversed()) // gần nhất trước
+                            .collect(Collectors.toList());
+
+                    List<VoucherDetail> validDetails = sortedDetails.stream()
+                            .filter(detail -> detail.getEndDate().isAfter(now)) // còn hiệu lực
+                            .collect(Collectors.toList());
+
+                    if (validDetails.isEmpty()) {
+                        // Không còn hiệu lực -> lấy nhóm cuối cùng để trả foodIds (nếu có)
+                        if (!sortedDetails.isEmpty()) {
+                            VoucherDetail selectedDetail = sortedDetails.get(0);
+                            List<Long> foodIds = voucher.getApplyType() == VoucherApplyType.SPECIFIC
+                                    ? sortedDetails.stream()
+                                    .filter(d -> d.getStartDate().equals(selectedDetail.getStartDate()) &&
+                                            d.getEndDate().equals(selectedDetail.getEndDate()))
+                                    .map(d -> d.getFood().getId())
+                                    .collect(Collectors.toList())
+                                    : Collections.emptyList();
+
+                            return buildVoucherResponse(voucher, selectedDetail.getStartDate(), selectedDetail.getEndDate(), foodIds);
+                        } else {
+                            return buildVoucherResponse(voucher, null, null, Collections.emptyList());
+                        }
                     }
-                    response.setActive(check);
-                    return response;
-                }
-        ).toList();
+
+                    VoucherDetail selectedDetail = validDetails.get(0);
+
+                    List<Long> foodIds = voucher.getApplyType() == VoucherApplyType.SPECIFIC
+                            ? validDetails.stream()
+                            .filter(d -> d.getStartDate().equals(selectedDetail.getStartDate()) &&
+                                    d.getEndDate().equals(selectedDetail.getEndDate()))
+                            .map(d -> d.getFood().getId())
+                            .collect(Collectors.toList())
+                            : Collections.emptyList();
+
+                    return buildVoucherResponse(
+                            voucher,
+                            selectedDetail.getStartDate(),
+                            selectedDetail.getEndDate(),
+                            foodIds
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+
+    private VoucherResponse buildVoucherResponse(Voucher voucher, LocalDateTime start, LocalDateTime end, List<Long> foodIds) {
+        return VoucherResponse.builder()
+                .id(voucher.getId())
+                .code(voucher.getCode())
+                .description(voucher.getDescription())
+                .value(voucher.getValue())
+                .type(voucher.getType())
+                .applyType(voucher.getApplyType())
+                .status(voucher.getStatus())
+                .startTime(start)
+                .endTime(end)
+                .foodIds(foodIds)
+                .isActive(end.isAfter(LocalDateTime.now()))
+                .build();
     }
 
     @Override
@@ -176,8 +237,109 @@ public class VoucherServiceImp implements VoucherService {
         } else {
             voucher.setStatus(VoucherStatus.ACTIVE);
         }
+        log.info("Update voucher status of voucher {} to {}", voucherId, voucher.getStatus());
         voucherRepository.save(voucher);
     }
+
+    private void checkValidTime(LocalDateTime start, LocalDateTime end) {
+        if (start.isAfter(end)) {
+            log.error("Start time must before or equal end time");
+            throw new AppException(ErrorCode.INVALID_TIME);
+        }
+    }
+
+    @Override
+    @Transactional
+    public long addVoucherRestaurant(VoucherRequest request) {
+        checkValidTime(request.getStartDate(), request.getEndDate());
+        Restaurant restaurant = restaurantService.getRestaurant(request.getRestaurant_id());
+
+        if (voucherRepository.existsByCodeAndRestaurant(request.getCode(), restaurant)) {
+            log.error("Voucher code {} already exists in restaurant {}", request.getCode(), request.getRestaurant_id());
+            throw new AppException(ErrorCode.VOUCHER_DUPLICATED);
+        }
+
+        // 1. Tạo và lưu voucher trước
+        Voucher voucher = Voucher.builder()
+                .code(request.getCode())
+                .applyType(request.getApplyType())
+                .description(request.getDescription())
+                .restaurant(restaurant)
+                .type(request.getType())
+                .value(request.getValue())
+                .status(VoucherStatus.ACTIVE)
+                .build();
+        voucher = voucherRepository.save(voucher); // save first!
+
+        // 2. Sau đó tạo voucherDetails và gán voucher đã có ID
+        if (request.getApplyType().equals(VoucherApplyType.ALL)) {
+            VoucherDetail voucherDetail = VoucherDetail.builder()
+                    .voucher(voucher)
+                    .startDate(request.getStartDate())
+                    .endDate(request.getEndDate())
+                    .quantity(-1)
+                    .build();
+            voucherDetailRepository.save(voucherDetail);
+        } else if (request.getApplyType().equals(VoucherApplyType.SPECIFIC)) {
+            Voucher finalVoucher = voucher;
+            request.getFoodIds().stream()
+                    .map(id -> foodRepository.findById(id).orElse(null))
+                    .filter(Objects::nonNull)
+                    .forEach(f -> {
+                        VoucherDetail voucherDetail = VoucherDetail.builder()
+                                .voucher(finalVoucher)
+                                .food(f)
+                                .startDate(request.getStartDate())
+                                .endDate(request.getEndDate())
+                                .quantity(-1)
+                                .build();
+                        voucherDetailRepository.save(voucherDetail);
+
+                        // optional: update food entity if needed
+                        f.getVoucherDetails().add(voucherDetail);
+                        foodRepository.save(f);
+                    });
+        }
+
+        return voucher.getId();
+    }
+
+    @Override
+    @Transactional
+    public Boolean extendVoucher(AddVoucherDetailRequestRes request) {
+        Voucher voucher = voucherRepository.findById(request.getVoucher_id())
+                .orElseThrow(() -> new AppException(ErrorCode.VOUCHER_NOT_FOUND));
+        checkValidTime(request.getStartDate(), request.getEndDate());
+        if (!LocalDateTime.now().isBefore(request.getStartDate().plusMinutes(1))) { // add 1 min is request is long and now() can in-consistence
+            return false;
+        }
+
+        if (voucher.getApplyType().equals(VoucherApplyType.ALL)) {
+            VoucherDetail vd = VoucherDetail.builder()
+                    .voucher(voucher)
+                    .startDate(request.getStartDate())
+                    .endDate(request.getEndDate())
+                    .quantity(-1)
+                    .build();
+            voucherDetailRepository.save(vd);
+        }
+        request.getFoodIds().stream()
+                .forEach(id -> foodRepository.findById(id)
+                        .ifPresent(f -> {
+                            VoucherDetail vd = VoucherDetail.builder()
+                                    .voucher(voucher)
+                                    .food(f)
+                                    .startDate(request.getStartDate())
+                                    .endDate(request.getEndDate())
+                                    .quantity(-1)
+                                    .build();
+                            voucherDetailRepository.save(vd);
+                            foodRepository.save(f);
+                        }));
+        voucherRepository.save(voucher);
+        return true;
+    }
+
 
     public void checkVoucherValue( VoucherType type,BigDecimal value) {
         if(type.equals(VoucherType.PERCENTAGE)) {

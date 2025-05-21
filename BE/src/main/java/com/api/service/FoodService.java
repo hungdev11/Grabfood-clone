@@ -22,7 +22,7 @@ public interface FoodService {
     BigDecimal getCurrentPrice(long foodId);
     BigDecimal getFoodPriceIn(long foodId, LocalDateTime time);
     GetFoodResponse getFood(long foodId, boolean isForCustomer);
-    PageResponse<List<GetFoodResponse>> getFoodsOfRestaurant(long restaurantId, boolean isForCustomer, int page, int pageSize);
+    List<GetFoodResponse> getFoodsOfRestaurant(long restaurantId);
     void changeFoodStatus(long restaurantId, long foodId, FoodStatus foodStatus);
     PageResponse<List<GetFoodResponse>> getAdditionalFoodsOfRestaurant(long restaurantId, boolean isForCustomer, int page, int pageSize);
     void addAdditionalFoodToFoodOfRestaurant(AddAdditionalFoodsRequest request);
@@ -30,4 +30,5 @@ public interface FoodService {
     void updateFoodInfo(long restaurantId, long foodId, UpdateFoodInfoRequest request);
     GetFoodGroupResponse getFoodGroupOfRestaurant(long restaurantId, boolean isForCustomer);
     List<Voucher> getValidRestaurantVouchers(Restaurant restaurant, LocalDateTime time);
+    List<GetFoodResponse> searchFoods(String query, Long restaurantId, boolean isForCustomer);
 }

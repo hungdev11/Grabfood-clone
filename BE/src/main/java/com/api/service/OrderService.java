@@ -24,4 +24,5 @@ public interface OrderService {
     Order getOrderById(Long orderId);
     List<Order> listAllOrdersOfRestaurant(Long restaurantId);
     void updateOrderStatus(Order order, OrderStatus status);
+    boolean reorder(long userId, long orderId);
 }

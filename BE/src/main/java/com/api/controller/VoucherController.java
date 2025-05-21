@@ -1,5 +1,6 @@
 package com.api.controller;
 
+import com.api.dto.request.AddVoucherDetailRequestRes;
 import com.api.dto.request.VoucherRequest;
 import com.api.dto.response.ApiResponse;
 import com.api.dto.response.VoucherResponse;
@@ -26,6 +27,15 @@ public class VoucherController {
                 .code(200)
                 .message("Success")
                 .data(voucherService.addVoucher(request))
+                .build();
+    }
+
+    @PostMapping("/restaurant")
+    public ApiResponse<Long> addNewVoucherRestaurant(@Validated @RequestBody VoucherRequest request) {
+        return ApiResponse.<Long>builder()
+                .code(200)
+                .message("Success")
+                .data(voucherService.addVoucherRestaurant(request))
                 .build();
     }
 
@@ -72,6 +82,16 @@ public class VoucherController {
                 .code(200)
                 .message("OK")
                 .data(voucherService.getRestaurantVoucher(restaurant_id))
+                .build();
+    }
+
+    @PostMapping("/extend-voucher")
+    public ApiResponse<Boolean> extendVoucher(@RequestBody AddVoucherDetailRequestRes request)
+    {
+        return ApiResponse.<Boolean>builder()
+                .code(200)
+                .message("OK")
+                .data(voucherService.extendVoucher(request))
                 .build();
     }
 

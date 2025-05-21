@@ -7,9 +7,9 @@ import com.api.entity.*;
 import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
 import com.api.repository.*;
-import com.api.service.FoodService;
-import com.api.service.OrderService;
-import com.api.service.ReviewService;
+import com.api.service.*;
+import com.api.service.strategy.OrderNotificationStrategyFactory;
+import com.api.service.strategy.OrderStatusNotificationStrategy;
 import com.api.utils.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +48,8 @@ public class OrderServiceImp implements OrderService {
 
     private final FoodService foodService;
     private final ReviewService reviewService;
+    private final CartService cartService;
+    private final UserService userService;
 
     @Override
     @Transactional
@@ -418,5 +420,72 @@ public class OrderServiceImp implements OrderService {
         } else {
             return new Restaurant();
         }
+    }
+
+    @Override
+    @Transactional
+    public boolean reorder(long userId, long orderId) {
+        Order order = getOrderById(orderId);
+        if (order.getUser().getId() != userId) {
+            log.error("Order id {} is not the belong to user id {}", orderId, userId);
+            throw new AppException(ErrorCode.ORDER_NOT_BELONG_TO_CUSTOMER);
+        }
+        // reorder with only completed orders
+        if (!order.getStatus().equals(OrderStatus.COMPLETED)) {
+            throw new AppException(ErrorCode.ORDER_NOT_ELIGIBLE_FOR_REORDER);
+        }
+        Optional<Cart> cartOpt = cartRepository.findByUser(userService.getUserById(userId));
+        List<CartDetail> currentCartDetails = cartOpt.isPresent() ? cartOpt.get().getCartDetails() : new ArrayList<>();
+        List<CartDetail> oldCartDetailsWithAvailableFood = order.getCartDetails()
+                .stream()
+                .filter(cd -> cd.getFood().getStatus().equals(FoodStatus.ACTIVE))
+                .toList();
+
+        if (oldCartDetailsWithAvailableFood.isEmpty()) {
+            log.warn("Cannot reorder without available food");
+            return false;
+        }
+
+        // clear current cart
+        if (currentCartDetails.size() > 0) {
+            log.info("Clear before reorder");
+            cartService.clearCart(cartOpt.get());
+        }
+
+        //add reorder cart item ?
+        Set<Long> additionalIdsStillAvailable = foodService
+                .getAdditionalFoodsOfRestaurant(
+                        oldCartDetailsWithAvailableFood.getFirst().getFood().getRestaurant().getId(),
+                        true, 0, 100)
+                .getItems()
+                .stream()
+                .map(GetFoodResponse::getId)
+                .collect(Collectors.toSet());
+        List<CartDetail> newCartDetails = oldCartDetailsWithAvailableFood.stream()
+                .map(ocd -> {
+                    CartDetail newCD = CartDetail.builder()
+                            .ids(new ArrayList<>())
+                            .cart(ocd.getCart())
+                            .food(ocd.getFood())
+                            .note(ocd.getNote())
+                            .quantity(ocd.getQuantity())
+                            .order(null)
+                            .build();
+                    if (ocd.getIds() != null) {
+                        for (long id : ocd.getIds()) {
+                            if (additionalIdsStillAvailable.contains(id)) {
+                                newCD.getIds().add(id);
+                            }
+                        }
+                    }
+                    cartDetailRepository.save(newCD);
+                    return newCD;
+                })
+                .toList();
+        cartOpt.get().getCartDetails().addAll(newCartDetails);
+        cartRepository.save(cartOpt.get());
+        log.info("Reorder completed");
+        // move to checkout or do something to notify customer
+        return !cartOpt.get().getCartDetails().isEmpty();
     }
 }

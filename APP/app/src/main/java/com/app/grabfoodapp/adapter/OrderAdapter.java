@@ -19,12 +19,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.app.grabfoodapp.R;
 import com.app.grabfoodapp.activities.PopUpFood;
 import com.app.grabfoodapp.apiservice.cart.CartService;
+import com.app.grabfoodapp.apiservice.order.OrderService;
 import com.app.grabfoodapp.apiservice.review.ReviewService;
 import com.app.grabfoodapp.config.ApiClient;
 import com.app.grabfoodapp.dto.ApiResponse;
 import com.app.grabfoodapp.dto.ReviewDTO;
 import com.app.grabfoodapp.dto.request.CartUpdateRequest;
 import com.app.grabfoodapp.dto.response.OrderResponse;
+import com.app.grabfoodapp.utils.TokenManager;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -38,10 +40,13 @@ import retrofit2.Response;
 public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> {
     private Context context;
     private List<OrderResponse> orders;
+    private TokenManager tokenManager;
+
 
     public OrderAdapter(Context context, List<OrderResponse> orders) {
         this.context = context;
         this.orders = orders;
+        tokenManager = new TokenManager(context);
     }
 
     @NonNull
@@ -74,11 +79,46 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
             holder.btnReview.setVisibility(View.GONE);
         }
 
+        if ("COMPLETED".equals(order.getStatus())) {
+            holder.btnReorder.setVisibility(View.VISIBLE);
+        } else {
+            holder.btnReorder.setVisibility(View.GONE);
+        }
+
         holder.btnReview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 holder.reviewSection.setVisibility(View.VISIBLE);
                 holder.btnReview.setVisibility(View.GONE);
+                holder.btnReorder.setVisibility(View.GONE);
+            }
+        });
+
+        holder.btnReorder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                OrderService orderService = ApiClient.getClient().create(OrderService.class);
+                long userId = Long.parseLong(tokenManager.getUserId());
+
+                orderService.reorder(userId, order.getId()).enqueue(new Callback<ApiResponse<Boolean>>() {
+                    @Override
+                    public void onResponse(Call<ApiResponse<Boolean>> call, Response<ApiResponse<Boolean>> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            if (response.body().getData()) {
+                                Toast.makeText(context,"Đã thêm lại đơn hàng vào giỏ. Hãy kiểm tra giỏ hàng của bạn!", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(context,"Nhà hàng không còn bán mặt hàng này!", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Log.e("API", "Error response code: " + response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiResponse<Boolean>> call, Throwable t) {
+                        Log.e("API", "Lỗi mạng hoặc URL: " + t.getMessage());
+                    }
+                });
             }
         });
 
@@ -87,6 +127,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
             public void onClick(View view) {
                 holder.reviewSection.setVisibility(View.GONE);
                 holder.btnReview.setVisibility(View.VISIBLE);
+                holder.btnReorder.setVisibility(View.VISIBLE);
             }
         });
 
@@ -99,6 +140,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
                         holder.editTextReviewMessage.getText().toString());
                 holder.reviewSection.setVisibility(View.GONE);
                 orderDetailAdapter.notifyDataSetChanged();
+                holder.btnReorder.setVisibility(View.VISIBLE);
             }
         });
     }
@@ -134,6 +176,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
         TextView tvOrderShopName, tvOrderTotalPrice, tvOrderShippingFee;
         RecyclerView rvOrderItem;
         Button btnReview;
+        Button btnReorder;
         LinearLayout reviewSection;
         RatingBar ratingBar;
         EditText editTextReviewMessage;
@@ -147,7 +190,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
             tvOrderShippingFee = itemView.findViewById(R.id.tvOrderShippingFee);
             rvOrderItem = itemView.findViewById(R.id.rvOrderItem);
             btnReview = itemView.findViewById(R.id.btnReview);
-
+            btnReorder = itemView.findViewById(R.id.btnReorder);
             reviewSection = itemView.findViewById(R.id.reviewSection);
             ratingBar = itemView.findViewById(R.id.ratingBar);
             editTextReviewMessage = itemView.findViewById(R.id.etReview);

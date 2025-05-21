@@ -12,6 +12,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 public interface OrderService {
     @POST("order/check/applyVoucher")
@@ -19,4 +20,8 @@ public interface OrderService {
 
     @GET("order")
     Call<List<OrderResponse>> getAllOrders(@Header("Authorization") String authHeader);
+
+    @POST("order/user/{userId}/reorder/{orderId}")
+    Call<ApiResponse<Boolean>> reorder(@Path("userId") long userId, @Path("orderId") long orderId);
+
 }

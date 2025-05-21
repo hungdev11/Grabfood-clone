@@ -75,6 +75,15 @@ public class FoodController {
                 .build();
     }
 
+    @GetMapping("/all/restaurant/{restaurantId}")
+    public ApiResponse<?> getAllFoodsOfRestaurant(@PathVariable long restaurantId) {
+        return ApiResponse.builder()
+                .data(foodService.getFoodsOfRestaurant(restaurantId))
+                .message("Success")
+                .code(200)
+                .build();
+    }
+
     @PutMapping("/{foodId}")
     public ApiResponse<?> updateFoodStatus(@PathVariable long foodId, @RequestParam long restaurantId, @RequestParam FoodStatus foodStatus) {
         foodService.changeFoodStatus(restaurantId, foodId, foodStatus);
@@ -140,6 +149,20 @@ public class FoodController {
                 .data(foodService.getFoodPriceIn(foodId, time))
                 .message("Success")
                 .code(200)
+                .build();
+    }
+    @GetMapping("/search")
+    public ApiResponse<?> searchFoods(
+            @RequestParam String query,
+            @RequestParam(required = false) Long restaurantId,
+            @RequestParam(defaultValue = "false") boolean isForCustomer) {
+
+        log.debug("Searching for foods with query: {}, restaurantId: {}", query, restaurantId);
+
+        return ApiResponse.builder()
+                .code(200)
+                .message("Success")
+                .data(foodService.searchFoods(query, restaurantId, isForCustomer))
                 .build();
     }
 }

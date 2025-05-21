@@ -7,7 +7,9 @@ export interface Voucher {
   type: 'PERCENTAGE' | 'FIXED';
   value: number;
   applyType: string;
+  startTime: string | null;
   endTime: string | null;
+  foodIds: number[];
   status: 'ACTIVE' | 'INACTIVE' | string;
   restaurant_name: string | null;
   active: boolean;
@@ -16,12 +18,14 @@ export interface Voucher {
 export interface VoucherRequest {
   code: string;
   description: string;
-  minRequire: number;
   type: 'PERCENTAGE' | 'FIXED';
   value: number;
-  applyType: 'ORDER' | 'SHIPPING';
+  applyType: 'ALL' | 'SPECIFIC';
   status: 'ACTIVE' | 'INACTIVE' | 'EXPIRED';
   restaurant_id: number;
+  foodIds: null | number[];
+  startDate: string;
+  endDate: string;
 }
 
 export interface AddVoucherDetailRequest {
@@ -29,4 +33,11 @@ export interface AddVoucherDetailRequest {
   startDate: string;
   endDate: string;
   voucher_id: number;
+}
+
+export interface AddVoucherDetailRequestRes {
+  startDate: string;
+  endDate: string;
+  voucher_id: number;
+  foodIds: number[];
 }

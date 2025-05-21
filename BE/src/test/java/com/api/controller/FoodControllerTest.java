@@ -96,16 +96,6 @@ class FoodControllerTest {
     }
 
     @Test
-    void testGetFoodsOfRestaurant() {
-        when(foodService.getFoodsOfRestaurant(1L, false, 0, 20)).thenReturn(pageResponse);
-
-        //ApiResponse<?> response = foodController.getFoodsOfRestaurant(1L, false, 0, 20);
-
-//        assertEquals(200, response.getCode());
-//        assertEquals(2, ((PageResponse<?>) response.getData()).getTotal());
-    }
-
-    @Test
     void testUpdateFoodStatus() {
         doNothing().when(foodService).changeFoodStatus(1L, 1L, FoodStatus.ACTIVE);
 
