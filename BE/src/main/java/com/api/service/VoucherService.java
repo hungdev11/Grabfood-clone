@@ -33,4 +33,5 @@ public interface VoucherService {
 
     long addVoucherRestaurant(VoucherRequest request);
     Boolean extendVoucher(AddVoucherDetailRequestRes request);
+    boolean deleteVoucherRestaurant(long restaurantId, long voucherId);
 }
