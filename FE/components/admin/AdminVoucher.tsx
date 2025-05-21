@@ -1,29 +1,60 @@
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import ModalAddVoucher from "./ModalAddVoucher";
 import ModalAddVoucherDetail from "./ModalAddVoucherDetail";
+import { fetchAdminVouchers, updateVoucher,deleteVoucher, createVoucher, addAdminVoucherDetail } from "@/utils/apiVoucher";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { AddAdminVoucherRequest, AddVoucherDetailRequest, Voucher } from "../types/voucher";
+import DiscountDetailModal from "./ModalVoucherDetail";
 
 export default function AdminVoucher() {
     const [modalAddOpen, setAddModalOpen] = useState(false);
-    const [vouchers, setVouchers] = useState([
-        {
-            id: 1,
-            code: "VOUCHER1",
-            type: "PERCENTAGE",
-            value: 10,
-            active: true,
-            status: "ACTIVE",
-        },
-        {
-            id: 2,
-            code: "VOUCHER2",
-            type: "FIXED",
-            value: 50000,
-            active: false,
-            status: "INACTIVE",
-        },
-    ]);
-    const [selectedVoucher, setSelectedVoucher] = useState(null);
+    const [vouchers, setVouchers] = useState<Voucher[]>([]);
+    const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
     const [modalAddDetailOpen, setAddDetailModalOpen] = useState(false);
+    const [ModalDetailsOpen, setModalDetailsOpen] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      const data = await fetchAdminVouchers();
+      setVouchers(data);
+    };
+    load();
+  }, [])
+
+  const handleUpdate = async (voucherId: number) => {
+      try {
+        await updateVoucher(voucherId);
+          fetchAdminVouchers().then((data) => {
+          setVouchers(data);
+        });
+      } catch (error) {
+        toast.error('Đã xảy ra lỗi khi cập nhật!'); 
+      }
+    };
+
+  const handleDelete = async (voucherId: number) => {
+    await deleteVoucher(voucherId);
+    fetchAdminVouchers().then((data) => {
+      setVouchers(data);
+    });
+  };
+
+  const handleCreate = async (data: AddAdminVoucherRequest) => {
+    await createVoucher(data);
+    fetchAdminVouchers().then((data) => {
+      setVouchers(data);
+    });
+    setAddModalOpen(false);
+  }
+
+  const handleAddDetail = async (data: AddVoucherDetailRequest) => {
+    await addAdminVoucherDetail(data);
+    fetchAdminVouchers().then((data) => {
+      setVouchers(data);
+    });
+    setAddDetailModalOpen(false);
+  }
 
     return (
     <div className="container mx-auto p-6 bg-gray-100 min-h-screen">
@@ -36,7 +67,9 @@ export default function AdminVoucher() {
       >
         + Thêm Voucher
       </button>
-    <ModalAddVoucher isOpen={modalAddOpen} onClose={() => setAddModalOpen(false)} />
+    <ModalAddVoucher isOpen={modalAddOpen} onClose={() => setAddModalOpen(false)}
+    onSubmit={handleCreate}
+    />
 
     </div>
 
@@ -48,6 +81,7 @@ export default function AdminVoucher() {
             <tr>
               <th className="py-4 px-6 text-left text-sm font-semibold">Code</th>
               <th className="py-4 px-6 text-left text-sm font-semibold">Giảm</th>
+              <th className="py-4 px-6 text-left text-sm font-semibold">Loại</th>
               <th className="py-4 px-6 text-left text-sm font-semibold">Trạng thái</th>
               <th className="py-4 px-6 text-left text-sm font-semibold">Khóa</th>
               <th className="py-4 px-6 text-left text-sm font-semibold">Hành động</th>
@@ -62,6 +96,11 @@ export default function AdminVoucher() {
                     ? `${voucher.value.toLocaleString()}%`
                     : `${voucher.value.toLocaleString()}đ`}
                 </td>
+                
+                <td className="py-4 px-6 text-gray-700">
+                  {voucher.applyType === 'ORDER' ? 'ĐƠN' : 'SHIP'}
+                </td>
+
                 <td className="py-4 px-6">
                   <span
                     className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
@@ -75,43 +114,62 @@ export default function AdminVoucher() {
                   {voucher.status !== 'ACTIVE' ? (
                     <><button
                       className="bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600 transition shadow-sm"
-                      onClick={() => {
-                        setAddDetailModalOpen(true);
-                      } }
+                      onClick={() => handleUpdate(voucher.id)}
                     >
                       Mở
-                    </button><ModalAddVoucherDetail
-                        voucherId={voucher.id}
-                        isOpen={modalAddDetailOpen}
-                        onClose={() => setAddDetailModalOpen(false)}
-                         /></>
+                    </button></>
                   ) : (
-                    !voucher.active && (
+
                       <button
                         className="bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition shadow-sm"
+                        onClick={() => handleUpdate(voucher.id)}
+
                       >
                         Khóa
                       </button>
                     )
-                  )}
+                  }
                 </td>
                 <td className="py-4 px-6 flex gap-2">
                   <button
                     className="bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition shadow-sm"
+                    onClick={() => {
+                      handleDelete(voucher.id);
+                    }}
                   >
                     Xóa
                   </button>
                   <button
+                    onClick={() => {
+                      setSelectedVoucher(voucher);
+                      setModalDetailsOpen(true);
+                    }
+                  }
                     className="bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 transition shadow-sm"
                   >
                     Chi tiết
                   </button>
+                  {selectedVoucher && (
+                    <DiscountDetailModal
+                      onOpen={ModalDetailsOpen}
+                      onClose={() => setModalDetailsOpen(false)}
+                      data={selectedVoucher}
+                    />
+                  )}
                   {voucher.status === 'ACTIVE' && !voucher.active && (
-                    <button
+                    <><button
                       className="bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600 transition shadow-sm"
+                      onClick={() => {
+                        setAddDetailModalOpen(true);
+                      } }
                     >
                       Tạo mới
-                    </button>
+                    </button><ModalAddVoucherDetail
+                        voucherId={voucher.id}
+                        isOpen={modalAddDetailOpen}
+                        onClose={() => setAddDetailModalOpen(false)}
+                        onSubmit={handleAddDetail}
+                         /></>
                   )}
                 </td>
               </tr>
@@ -120,7 +178,8 @@ export default function AdminVoucher() {
         </table>
       </div>
     </div>
-
+    <ToastContainer />
   </div>
+  
 );
 }

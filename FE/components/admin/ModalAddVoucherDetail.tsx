@@ -2,21 +2,16 @@
 
 import React, { useState } from 'react';
 
-interface AddVoucherDetailRequest {
-  quantity: number;
-  startDate: string;
-  endDate: string;
-  voucher_id: number;
-}
+import { AddVoucherDetailRequest } from '../types/voucher';
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  //onSubmit: (data: AddVoucherDetailRequest) => void;
+  onSubmit: (data: AddVoucherDetailRequest) => void;
   voucherId?: number;
 }
 
-const ModalAddVoucherDetail: React.FC<ModalProps> = ({voucherId, isOpen, onClose}) => {
+const ModalAddVoucherDetail: React.FC<ModalProps> = ({voucherId, isOpen, onClose, onSubmit}) => {
   const [formData, setFormData] = useState<AddVoucherDetailRequest>({
     quantity: 0,
     startDate: '',
@@ -52,7 +47,7 @@ const ModalAddVoucherDetail: React.FC<ModalProps> = ({voucherId, isOpen, onClose
       startDate: formatDateTime(formData.startDate),
       endDate: formatDateTime(formData.endDate),
     };
-    //onSubmit(formattedData);
+    onSubmit(formattedData);
     onClose();
   };
 

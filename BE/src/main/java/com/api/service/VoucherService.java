@@ -33,4 +33,6 @@ public interface VoucherService {
 
     long addVoucherRestaurant(VoucherRequest request);
     Boolean extendVoucher(AddVoucherDetailRequestRes request);
+
+    List<VoucherResponse> getAdminVoucher();
 }

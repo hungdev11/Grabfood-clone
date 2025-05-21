@@ -11,6 +11,7 @@ import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
 import com.api.mapper.Imp.VoucherMapperImp;
 
+import com.api.mapper.VoucherMapper;
 import com.api.repository.FoodRepository;
 import com.api.repository.VoucherDetailRepository;
 import com.api.repository.VoucherRepository;
@@ -46,20 +47,14 @@ public class VoucherServiceImp implements VoucherService {
         //Check voucher value
         log.info("Check voucher value of voucher {}", voucher.getId());
         checkVoucherValue(request.getType(), request.getValue());
-        Restaurant restaurant = new Restaurant();
-        if(request.getRestaurant_id() > 0) {
-            restaurant = restaurantService.getRestaurant(request.getRestaurant_id());
-        } else {
-            restaurant = null;
+        if (voucherRepository.existsByCode(request.getCode())) {
+            throw new AppException(ErrorCode.VOUCHER_CODE_EXISTED);
         }
-        voucher.setRestaurant(restaurant);
+        voucher.setRestaurant(null);
         voucherRepository.save(voucher);
         //
-        VoucherResponse response = voucherMapper.toVoucherResponse(voucher);
-        if(restaurant != null) {
-            response.setRestaurant_name(restaurant.getName());
-        }
-        return response;
+
+        return voucherMapper.toVoucherResponse(voucher);
     }
 
     @Override
@@ -338,6 +333,23 @@ public class VoucherServiceImp implements VoucherService {
                         }));
         voucherRepository.save(voucher);
         return true;
+    }
+
+    @Override
+    public List<VoucherResponse> getAdminVoucher() {
+        VoucherMapper voucherMapper = new VoucherMapperImp();
+        List<VoucherResponse> responses = voucherRepository.findByRestaurantIsNull().stream().map(voucher -> {
+            VoucherResponse response = voucherMapper.toVoucherResponse(voucher);
+            boolean check = checkActiveVoucher(voucher.getId());
+            response.setActive(check);
+            if (check) {
+                VoucherDetail detail = voucherDetailRepository.findByVoucherIdAndEndDateAfter(voucher.getId(), LocalDateTime.now());
+                response.setStartTime(detail.getStartDate());
+                response.setEndTime(detail.getEndDate());
+            }
+            return response;
+        } ).toList();
+        return responses;
     }
 
 

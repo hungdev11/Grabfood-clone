@@ -20,4 +20,6 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
     List<Voucher> findByRestaurantId(long restaurantId);
     boolean existsByCode(String code);
     boolean existsByCodeAndRestaurant(String code, Restaurant restaurant);
+
+    List<Voucher> findByRestaurantIsNull();
 }

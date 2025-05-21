@@ -2,25 +2,16 @@
 
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-
-type Voucher = {
-  code: string;
-  description: string;
-  minRequire: number;
-  type: 'PERCENTAGE' | 'FIXED';
-  value: number;
-  applyType: 'ORDER' | 'PRODUCT';
-  status: 'ACTIVE' | 'INACTIVE' | 'EXPIRED';
-};
+import { AddAdminVoucherRequest } from '../types/voucher';
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
- // onSubmit: (data: Voucher) => void;
+ onSubmit: (data: AddAdminVoucherRequest) => void;
 };
 
-const ModalAddVoucher: React.FC<Props> = ({ isOpen, onClose }) => {
-  const [formData, setFormData] = useState<Voucher>({
+const ModalAddVoucher: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
+  const [formData, setFormData] = useState<AddAdminVoucherRequest>({
     code: '',
     description: '',
     minRequire: 0,
@@ -39,7 +30,7 @@ const ModalAddVoucher: React.FC<Props> = ({ isOpen, onClose }) => {
   };
 
   const handleSubmit = () => {
-   //a onSubmit(formData);
+    onSubmit(formData);
     onClose();
   };
 
