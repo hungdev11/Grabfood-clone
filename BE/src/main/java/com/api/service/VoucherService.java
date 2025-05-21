@@ -1,5 +1,6 @@
 package com.api.service;
 
+import com.api.dto.request.AddVoucherDetailRequestRes;
 import com.api.dto.request.VoucherRequest;
 
 import com.api.entity.Voucher;
@@ -29,4 +30,7 @@ public interface VoucherService {
     List<VoucherResponse> getRestaurantVoucher(long restaurantId);
 
     void updateVoucherStatus(long voucherId);
+
+    long addVoucherRestaurant(VoucherRequest request);
+    Boolean extendVoucher(AddVoucherDetailRequestRes request);
 }

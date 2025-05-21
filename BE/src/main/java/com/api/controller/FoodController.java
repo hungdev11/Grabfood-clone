@@ -75,6 +75,15 @@ public class FoodController {
                 .build();
     }
 
+    @GetMapping("/all/restaurant/{restaurantId}")
+    public ApiResponse<?> getAllFoodsOfRestaurant(@PathVariable long restaurantId) {
+        return ApiResponse.builder()
+                .data(foodService.getFoodsOfRestaurant(restaurantId))
+                .message("Success")
+                .code(200)
+                .build();
+    }
+
     @PutMapping("/{foodId}")
     public ApiResponse<?> updateFoodStatus(@PathVariable long foodId, @RequestParam long restaurantId, @RequestParam FoodStatus foodStatus) {
         foodService.changeFoodStatus(restaurantId, foodId, foodStatus);
