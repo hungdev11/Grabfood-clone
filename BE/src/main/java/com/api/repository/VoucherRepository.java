@@ -1,5 +1,6 @@
 package com.api.repository;
 
+import com.api.entity.Restaurant;
 import com.api.entity.Voucher;
 import com.api.utils.VoucherStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,4 +18,6 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
 
     Optional<Voucher> findByCodeAndStatus(String code, VoucherStatus status);
     List<Voucher> findByRestaurantId(long restaurantId);
+    boolean existsByCode(String code);
+    boolean existsByCodeAndRestaurant(String code, Restaurant restaurant);
 }

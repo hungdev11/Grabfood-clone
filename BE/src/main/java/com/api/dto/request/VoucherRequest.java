@@ -6,6 +6,8 @@ import com.api.utils.VoucherType;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -29,5 +31,9 @@ public class VoucherRequest {
 
     private VoucherStatus status;
 
+    //-------------------------
     private Long restaurant_id;
+    private List<Long> foodIds;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
 }

@@ -40,6 +40,7 @@ public enum ErrorCode {
     VOUCHER_ID_EXISTED(0201, "The voucher ID has already been used and cannot be processed", HttpStatus.BAD_REQUEST),
     VOUCHER_EXPIRED(0202, "Voucher expired", HttpStatus.BAD_REQUEST),
     VOUCHER_MIN_REQUIRE(0203, "Order price is less than min require", HttpStatus.BAD_REQUEST),
+    VOUCHER_DUPLICATED(0452, "Existed voucher duplicated code in restaurant", HttpStatus.BAD_REQUEST),
 
     USER_NOT_FOUND(0300, "User not found", HttpStatus.BAD_REQUEST),
     CART_NOT_FOUND(0301, "Cart not found", HttpStatus.BAD_REQUEST),
@@ -53,8 +54,7 @@ public enum ErrorCode {
     ORDER_NOT_ELIGIBLE_FOR_REORDER(0402, "Can not reorder with order not completed", HttpStatus.BAD_REQUEST),
     REVIEW_NOT_FOUND(0450, "Review not found", HttpStatus.BAD_REQUEST),
     CANNOT_WRITE_REVIEW_DUE_DATE(0451, "Can't write review due date", HttpStatus.BAD_REQUEST),
-    HANDLE_NOT_PENDING_ORDER(0452, "Can not handle order not pending", HttpStatus.BAD_REQUEST),
-    ;
+    HANDLE_NOT_PENDING_ORDER(0452, "Can not handle order not pending", HttpStatus.BAD_REQUEST);
     private final int code;
     private final String message;
     private final HttpStatus statusCode;

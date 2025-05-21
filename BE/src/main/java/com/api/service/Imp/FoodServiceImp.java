@@ -201,45 +201,16 @@ public class FoodServiceImp implements FoodService {
     }
 
     @Override
-    public PageResponse<List<GetFoodResponse>> getFoodsOfRestaurant(long restaurantId, boolean isForCustomer, int page, int pageSize) {
-        log.info("Get foods of restaurant {}", restaurantId);
-
-        if (page < 0) {
-            log.warn("Invalid page number: {}. Defaulting to 0.", page);
-            page = 0;
-        }
-        log.info("{} foods in page {}", pageSize, page);
-
+    public List<GetFoodResponse> getFoodsOfRestaurant(long restaurantId) {
         Restaurant restaurant = restaurantService.getRestaurant(restaurantId);
-
-        Pageable pageable = PageRequest.of(page, pageSize);
-
-        Page<Food> foodPage;
-        if (isForCustomer) {
-            // Truy vấn tất cả các món ăn có trạng thái ACTIVE
-            foodPage = foodRepository.findByRestaurantAndStatus(restaurant, FoodStatus.ACTIVE, pageable);
-
-            // Lọc món ăn có loại là MAIN hoặc BOTH
-            foodPage = new PageImpl<>(
-                    foodPage.stream()
-                            .filter(f -> f.getKind().equals(FoodKind.MAIN) || f.getKind().equals(FoodKind.BOTH))
-                            .collect(Collectors.toList()),
-                    pageable,
-                    foodPage.getTotalElements()
-            );
-        }
-        else {
-            foodPage = foodRepository.findByRestaurant(restaurant, pageable);
-        }
-
-        List<GetFoodResponse> foodResponses = foodResponsesToEndUser(foodPage, isForCustomer);
-
-        return PageResponse.<List<GetFoodResponse>>builder()
-                .page(page)
-                .size(pageSize)
-                .total(foodPage.getTotalElements())
-                .items(foodResponses)
-                .build();
+        List<GetFoodResponse> responses = restaurant.getFoods().stream()
+                .map(f -> GetFoodResponse.builder()
+                        .id(f.getId())
+                        .name(f.getName())
+                        .price(getCurrentPrice(f.getId()))
+                        .build())
+                .toList();
+        return responses;
     }
 
     @Override

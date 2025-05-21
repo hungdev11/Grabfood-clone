@@ -2,7 +2,7 @@
 
 import { useState , useEffect} from 'react';
 import { Voucher, VoucherRequest } from '@/components/types/voucher';
-import { fetchVouchers, createVoucher, deleteVoucher, updateVoucher , addVoucherDetail} from '@/utils/apiVoucher';
+import { fetchVouchersRestaurant, createVoucher, deleteVoucher, updateVoucher , addVoucherDetailRes, createVoucherRestaurant} from '@/utils/apiVoucher';
 import { useRouter } from 'next/navigation';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -10,40 +10,89 @@ import ModalVoucher from './modalVoucher';
 import ModalAddDetail from './modalAddDetail';
 
 import { useParams } from "next/navigation";
+import { Food } from '../types/Types';
+import ModalDetails from './modelDetails';
+import { get } from 'http';
 
 export default function VoucherManagement() {
   const params = useParams();
   const restaurantId = params?.restaurantId as string;
   const [showModal, setShowModal] = useState(false);
   const [showModalDetail, setShowModalDetail] = useState(false);
+  const [showModalVoucher, setShowModalVoucher] = useState(false); // Chi tiết voucher
+  const [showModalDetails, setShowModalDetails] = useState(false); // Chi tiết món
+
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
-
+  const [foods, setFoods] = useState<Food[]>([]);
   const initialForm: VoucherRequest = {
-  code: '',
-  description: '',
-  minRequire: 0,
-  type: 'FIXED',
-  value: 0,
-  applyType: 'ORDER', // default
-  status: 'ACTIVE',   // default
-  restaurant_id: Number(restaurantId)   
-};
+    code: '',
+    description: '',
+    type: 'FIXED',
+    value: 0,
+    applyType: 'ALL',
+    status: 'ACTIVE',
+    restaurant_id: Number(restaurantId),
+    foodIds: [],
+    startDate: '',
+    endDate: '',
+  };
+  const formatDateTime = (dateTime: string): string => {
+    if (!dateTime) return '';
+    // Chuyển đổi thành định dạng YYYY-MM-DDTHH:mm:ss
+    const date = new Date(dateTime);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = '00'; // Thêm giây mặc định là 00
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  };
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const filteredFoods = foods.filter(food =>
+    food.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const [formData, setFormData] = useState(initialForm);
 
+  const getFoods = async () => {
+    try {
+      const response = await fetch(`http://localhost:6969/grab/foods/all/restaurant/${restaurantId}`);
+      const data = await response.json();
+      setFoods(data.data);
+    } catch (error) {
+      console.error('Error fetching foods:', error);
+    }
+  };
 
-   const handleChange = (e: { target: { name: any; value: any; }; }) => {
+  useEffect(() => {
+    if (formData.applyType === 'SPECIFIC') {
+      getFoods();
+    }
+  }, [formData.applyType]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+
+    const newValue = name === 'value' ? Number(value) || 0 : value;
+
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'minRequire' || name === 'value' ? parseFloat(value) || '' : value,
+      [name]: newValue,
     }));
+
+    console.log("Field changed:", name, "→", newValue);
   };
 
   useEffect(() => {
     const load = async () => {
-      const data = await fetchVouchers(restaurantId);
+      const data = await fetchVouchersRestaurant(restaurantId);
       setVouchers(data);
     };
     load();
@@ -52,12 +101,18 @@ export default function VoucherManagement() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createVoucher(formData);
+      const formattedData = {
+        ...formData,
+        startDate: formatDateTime(formData.startDate),
+        endDate: formatDateTime(formData.endDate),
+      };
+      console.log("Formatted data:", formattedData);
+      await createVoucherRestaurant(formattedData);
       setTimeout(() => {
         setIsModalOpen(false);
       }, 1000);
       toast.success(`Thêm thành công!`);
-      fetchVouchers(restaurantId).then((data) => {
+      fetchVouchersRestaurant(restaurantId).then((data) => {
         setVouchers(data);
       });
     } catch (err) {
@@ -69,7 +124,7 @@ export default function VoucherManagement() {
   const handleDelete = async (voucherId: number) => {
     try {
       await deleteVoucher(voucherId);
-      fetchVouchers(restaurantId).then((data) => {
+      fetchVouchersRestaurant(restaurantId).then((data) => {
         setVouchers(data);
       });
     } catch (error) {
@@ -80,7 +135,7 @@ export default function VoucherManagement() {
   const handleUpdate = async (voucherId: number) => {
     try {
       await updateVoucher(voucherId);
-      fetchVouchers(restaurantId).then((data) => {
+        fetchVouchersRestaurant(restaurantId).then((data) => {
         setVouchers(data);
       });
     } catch (error) {
@@ -90,9 +145,9 @@ export default function VoucherManagement() {
 
   const handleAddVoucherDetail = async (data: any) => {
     try {
-      await addVoucherDetail(data);
+      await addVoucherDetailRes(data);
       toast.success('Thêm chi tiết voucher thành công!');
-      fetchVouchers(restaurantId).then((data) => {
+      fetchVouchersRestaurant(restaurantId).then((data) => {
         setVouchers(data);
       });
     } catch (error) {
@@ -122,6 +177,7 @@ export default function VoucherManagement() {
             <tr>
               <th className="py-3 px-4 text-left">Code</th>
               <th className="py-3 px-4 text-left">Giảm</th>
+              <th className="py-3 px-4 text-left">Áp dụng cho</th>
               <th className="py-3 px-4 text-left">Trạng thái</th>
               <th className="py-3 px-4 text-left">Khóa</th>
               <th className="py-3 px-4 text-left">Action</th>
@@ -133,6 +189,22 @@ export default function VoucherManagement() {
                 <td className="py-3 px-4">{voucher.code}</td>
                 <td className="py-3 px-4">
                   {voucher.type === 'PERCENTAGE' ? `${voucher.value.toLocaleString()}%` : `${voucher.value.toLocaleString()}đ`}
+                </td>
+                <td className="py-3 px-4">
+                  {voucher.applyType === "ALL" ? (
+                    <span className="text-500">Tất cả</span>
+                  ) : (
+                    <button
+                      className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                      onClick={() => {
+                        setSelectedVoucher(voucher);
+                        setShowModalDetails(true);
+                        getFoods();
+                      }}
+                    >
+                      Chi tiết món
+                    </button>
+                  )}
                 </td>
                 <td className="py-3 px-4">
                   {voucher.active ? (
@@ -150,7 +222,7 @@ export default function VoucherManagement() {
                       Mở
                     </button>
                   ) : (
-                    !voucher.active && (
+                     (
                       <button
                         className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
                         onClick={() => {handleUpdate(voucher.id)}}
@@ -165,41 +237,54 @@ export default function VoucherManagement() {
                     className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
                     onClick={() => handleDelete(voucher.id)}
                   >
-                    Delete
+                    Xóa
                   </button>
                   <button
-                    className="bg-pink-500 text-white px-3 py-1 rounded hover:bg-pink-600"
+                    className="ml-1 bg-pink-500 text-white px-3 py-1 rounded hover:bg-pink-600"
                     onClick={() => {
-                      setShowModal(true);
+                      setShowModalVoucher(true);
                       setSelectedVoucher(voucher);
                     }}
                   >
                     Chi tiết
                   </button>
-                  {voucher.status === 'ACTIVE' && !voucher.active && (
+                  {!voucher.active && (
                     <button
-                      className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                      className="ml-1 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
                       onClick={() => {
                         setShowModalDetail(true);
                         setSelectedVoucher(voucher);
                       }}
                     >
-                      Tạo mới
+                      Sử dụng lại
                     </button>
                   )}
                   {showModalDetail && (
                     <ModalAddDetail
                       voucherId={selectedVoucher?.id}
+                      applyType={selectedVoucher?.applyType}
+                      foodIds={selectedVoucher?.foodIds}
+                      restaurantId={Number(restaurantId)}
                       isOpen={showModalDetail}
                       onClose={() => setShowModalDetail(false)}
                       onSubmit={handleAddVoucherDetail}
                     />
                   )}
-                  {selectedVoucher && (
+
+                  {selectedVoucher && showModalVoucher && (
                     <ModalVoucher
-                      isOpen={showModal}
-                      onClose={() => setShowModal(false)}
+                      isOpen={showModalVoucher}
+                      onClose={() => setShowModalVoucher(false)}
                       voucher={selectedVoucher}
+                    />
+                  )}
+
+                  {selectedVoucher && showModalDetails && (
+                    <ModalDetails
+                      isOpen={showModalDetails}
+                      onClose={() => setShowModalDetails(false)}
+                      voucher={selectedVoucher}
+                      foods={foods}
                     />
                   )}
                 </td>
@@ -210,9 +295,9 @@ export default function VoucherManagement() {
       </div>
 
       {isModalOpen && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg w-full max-w-md">
-        <h2 className="text-xl font-bold text-green-500 mb-4"> New AddVoucher</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center overflow-y-auto">
+        <div className="bg-white p-10 rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-bold text-green-500 mb-4">Thêm giảm giá</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Voucher Code</label>
@@ -227,7 +312,7 @@ export default function VoucherManagement() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <label className="block text-sm font-medium text-gray-700">Mô tả</label>
             <input
               type="text"
               name="description"
@@ -239,20 +324,62 @@ export default function VoucherManagement() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Minimum Order Value (VND)</label>
-            <input
-              type="number"
-              name="minRequire"
-              value={formData.minRequire}
+            <label className="block text-sm font-medium text-gray-700">Áp dụng cho</label>
+            <select
+              name="applyType"
+              value={formData.applyType}
               onChange={handleChange}
-              placeholder="e.g., 200000"
               className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-              min="0"
               required
-            />
+            >
+              <option value="ALL">Tất cả</option>
+              <option value="SPECIFIC">Chọn món</option>
+            </select>
+            {formData.applyType === 'SPECIFIC' && (
+  <>
+              {/* Thanh tìm kiếm món ăn */}
+              <input
+                type="text"
+                placeholder="Tìm món ăn theo tên..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="mt-1 w-full p-2 mb-1 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+
+              {/* Danh sách món ăn đã lọc */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+                {filteredFoods.map((food) => (
+                  <label
+                    key={food.id}
+                    className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-gray-50 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      value={food.id}
+                      checked={formData.foodIds?.includes(food.id) || false}
+                      onChange={(e) => {
+                        const isChecked = e.target.checked;
+                        setFormData((prev) => ({
+                          ...prev,
+                          foodIds: isChecked
+                            ? [...(prev.foodIds || []), food.id]
+                            : prev.foodIds?.filter((id) => id !== food.id) || [],
+                        }));
+                      }}
+                    />
+                    <div>
+                      <div className="font-medium">{food.name}</div>
+                      <div className="text-sm text-gray-500">{food.price} đ</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </>
+          )}
+
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Discount Type</label>
+            <label className="block text-sm font-medium text-gray-700">Đơn vị giảm</label>
             <select
               name="type"
               value={formData.type}
@@ -260,13 +387,13 @@ export default function VoucherManagement() {
               className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
               required
             >
-              <option value="FIXED">Fixed Amount (VND)</option>
-              <option value="PERCENTAGE">Percentage (%)</option>
+              <option value="FIXED">Cố định (VND)</option>
+              <option value="PERCENTAGE">Phần trăm (%)</option>
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Discount Value ({formData.type === 'FIXED' ? 'VND' : '%'})
+              Giá trị giảm giá ({formData.type === 'FIXED' ? 'VND' : '%'})
             </label>
             <input
               type="number"
@@ -279,19 +406,51 @@ export default function VoucherManagement() {
               required
             />
           </div>
+          <div className="mb-4">
+            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
+              Ngày bắt đầu
+            </label>
+            <input
+              type="datetime-local"
+              id="startDate"
+              name="startDate"
+              value={formData.startDate}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+              Ngày kết thúc
+            </label>
+            <input
+              type="datetime-local"
+              id="endDate"
+              name="endDate"
+              value={formData.endDate}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              required
+            />
+          </div>
           <div className="mt-6 flex justify-end space-x-2">
             <button
               type="button"
-              onClick={() => setIsModalOpen(false)}
+              onClick={() => {
+                setIsModalOpen(false);
+                setFormData(initialForm);
+                setFoods([]);
+              }}
               className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
             >
-              Cancel
+              Thoát
             </button>
             <button
               type="submit"
               className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
             >
-              Add
+              Thêm
             </button>
           </div>
         </form>

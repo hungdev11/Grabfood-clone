@@ -6,6 +6,8 @@ import com.api.utils.VoucherType;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,11 +29,14 @@ public class VoucherResponse {
 
     private VoucherApplyType applyType;
 
-    private String endTime;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
     private VoucherStatus status;
 
     private String restaurant_name;
 
     private boolean isActive;
+
+    private List<Long> foodIds;
 }
