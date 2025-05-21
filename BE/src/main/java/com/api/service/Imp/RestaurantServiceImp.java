@@ -161,7 +161,7 @@ public class RestaurantServiceImp implements RestaurantService {
         log.info("Update Restaurant info: {}", request);
 
         Restaurant restaurant = getRestaurant(restaurantId);
-
+        log.error("{}", request.getAddress() != null);
         if (request.getName() != null) restaurant.setName(request.getName());
         if (request.getImage() != null && !request.getImage().isBlank()) restaurant.setImage(request.getImage());
         if (request.getDescription() != null) restaurant.setDescription(request.getDescription());
@@ -307,7 +307,8 @@ public class RestaurantServiceImp implements RestaurantService {
     private String getAddressText(Address address) {
         log.info("parse address to text");
         StringJoiner sj = new StringJoiner(", ");
-        return sj.add(address.getWard())
+        return sj.add(address.getDetail())
+                .add(address.getWard())
                 .add(address.getDistrict())
                 .add(address.getProvince())
                 .toString();
