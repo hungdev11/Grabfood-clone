@@ -1,6 +1,6 @@
 
 import axios from 'axios';
-import { AddVoucherDetailRequestRes, Voucher } from '@/components/types/voucher';
+import { AddAdminVoucherRequest, AddVoucherDetailRequestRes, Voucher } from '@/components/types/voucher';
 import { VoucherRequest, AddVoucherDetailRequest } from '@/components/types/voucher';
 import { toast } from 'react-toastify';
 import { tr } from 'date-fns/locale';
@@ -44,7 +44,7 @@ export const fetchVouchersRestaurant = async (restaurantId: string): Promise<Vou
   }
 };
 
-export const createVoucher = async (data: VoucherRequest) => {
+export const createVoucher = async (data: AddAdminVoucherRequest) => {
   try {
     const response = await axios.post<ApiResponse>('http://localhost:6969/grab/vouchers', data, {
       headers: {
@@ -52,9 +52,10 @@ export const createVoucher = async (data: VoucherRequest) => {
       },
     });
     if (response.data.code === 200) {
+      toast.success('Tạo voucher thành công!');
       return response.data.code;
     } else {
-      throw new Error(response.data.message || 'Failed to create vouchers');
+      toast.error(`Lỗi: ${response.data.message}`);
     }
   } catch (error: any) {
     throw error.response?.data || error.message;
@@ -137,3 +138,38 @@ export const deleteVoucherRes = async (restaurantId: string, voucherId: number) 
       toast.error('Đã xảy ra lỗi khi xóa!');
   }
 }
+
+export const fetchAdminVouchers = async (): Promise<Voucher[]> => {
+  try {
+    const response = await axios.get<ApiResponse>('http://localhost:6969/grab/vouchers/admin');
+    if (response.data.code === 200) {
+      return response.data.data;
+    } else {
+      toast.error('Lấy danh sách voucher thất bại!');
+      throw new Error(response.data.message || 'Failed to fetch vouchers');
+    }
+  } catch (error) {
+    toast.error('Đã xảy ra lỗi khi lấy danh sách voucher!');
+    console.error('Error fetching vouchers:', (error as Error).message);
+      return [];
+
+  }
+}
+
+export const addAdminVoucherDetail = async (data: AddVoucherDetailRequest) => {
+  try {
+    const response = await axios.post<ApiResponse>('http://localhost:6969/grab/voucherDetails', data, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (response.data.code === 200) {
+      toast.success('Thêm chi tiết voucher thành công!');
+    } else {
+       toast.error(`Lỗi: ${response.data.message}`);
+    }
+  } catch (error: any) {
+    toast.error('Đã xảy ra lỗi khi thêm chi tiết voucher!');
+  }
+}
+

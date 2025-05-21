@@ -104,4 +104,12 @@ public class VoucherController {
                 .build();
     }
 
+    @GetMapping("/admin")
+    public ApiResponse<List<VoucherResponse>> getAdminVoucher() {
+        return ApiResponse.<List<VoucherResponse>>builder()
+                .code(200)
+                .message("OK")
+                .data(voucherService.getAdminVoucher())
+                .build();
+    }
 }

@@ -41,6 +41,7 @@ public enum ErrorCode {
     VOUCHER_EXPIRED(0202, "Voucher expired", HttpStatus.BAD_REQUEST),
     VOUCHER_MIN_REQUIRE(0203, "Order price is less than min require", HttpStatus.BAD_REQUEST),
     VOUCHER_DUPLICATED(0452, "Existed voucher duplicated code in restaurant", HttpStatus.BAD_REQUEST),
+    VOUCHER_CODE_EXISTED(0453, "Code đã được sử dụng", HttpStatus.BAD_REQUEST),
 
     USER_NOT_FOUND(0300, "User not found", HttpStatus.BAD_REQUEST),
     CART_NOT_FOUND(0301, "Cart not found", HttpStatus.BAD_REQUEST),
