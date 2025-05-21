@@ -57,8 +57,6 @@ public class LocationServiceImp implements LocationService {
 //            String to = getLocationDisplayName(lat2, lon2);
             // Xây dựng response
             return LocationDistanceResponse.builder()
-                    .from("from")
-                    .to("to")
                     .distance(distance)
                     .duration(duration)
                     .build();

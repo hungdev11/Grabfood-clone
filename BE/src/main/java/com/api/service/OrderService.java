@@ -2,10 +2,7 @@ package com.api.service;
 
 import com.api.dto.request.ApplyVoucherRequest;
 import com.api.dto.request.CreateOrderRequest;
-import com.api.dto.response.ApplyVoucherResponse;
-import com.api.dto.response.GetOrderGroupResponse;
-import com.api.dto.response.OrderResponse;
-import com.api.dto.response.PageResponse;
+import com.api.dto.response.*;
 import com.api.entity.CartDetail;
 import com.api.entity.Order;
 
@@ -25,4 +22,5 @@ public interface OrderService {
     List<Order> listAllOrdersOfRestaurant(Long restaurantId);
     void updateOrderStatus(Order order, OrderStatus status);
     boolean reorder(long userId, long orderId);
+    CheckDistanceResponse checkDistanceOrder(long userId, double lat, double lon);
 }

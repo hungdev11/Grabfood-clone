@@ -50,6 +50,7 @@ public class OrderServiceImp implements OrderService {
     private final ReviewService reviewService;
     private final CartService cartService;
     private final UserService userService;
+    private final LocationService locationService;
 
     @Override
     @Transactional
@@ -86,10 +87,11 @@ public class OrderServiceImp implements OrderService {
                         .orElseThrow(() -> new AppException(ErrorCode.VOUCHER_NOT_FOUND));
                 log.info("voucher >>>"+ voucher.getId() + ">>> code >>>" + request.getVoucherCode());
                 if (checkApplyVoucher(voucher, order.getTotalPrice())) {
+                    VoucherDetail detail = voucherDetailRepository.findByVoucherIdAndEndDateAfter(voucher.getId(), LocalDateTime.now());
                     OrderVoucher orderVoucher = OrderVoucher.builder()
                             .timeApplied(LocalDateTime.now())
                             .order(order)
-                            .voucherDetail(voucherDetailRepository.findByVoucherIdAndEndDateAfter(voucher.getId(), LocalDateTime.now()))
+                            .voucherDetail(detail)
                             .build();
                     if(voucher.getType().equals(VoucherType.PERCENTAGE)) {
                         if (voucher.getApplyType().equals(VoucherApplyType.ORDER)) {
@@ -109,6 +111,8 @@ public class OrderServiceImp implements OrderService {
                             discountShippingFee = discountShippingFee.add(voucher.getValue());
                         }
                     }
+                    detail.setQuantity(detail.getQuantity() - 1);
+                    voucherDetailRepository.save(detail);
                     orderVoucherRepository.save(orderVoucher);
                 }
             }
@@ -217,6 +221,9 @@ public class OrderServiceImp implements OrderService {
         List<OrderVoucher> orderVoucherList = order.getOrderVoucherList();
         if(!orderVoucherList.isEmpty()) {
             for (OrderVoucher orderVoucher: orderVoucherList) {
+                VoucherDetail detail = orderVoucher.getVoucherDetail();
+                detail.setQuantity(detail.getQuantity() + 1);
+                voucherDetailRepository.save(detail);
                 orderVoucherRepository.deleteById(orderVoucher.getId());
             }
         }
@@ -487,5 +494,26 @@ public class OrderServiceImp implements OrderService {
         log.info("Reorder completed");
         // move to checkout or do something to notify customer
         return !cartOpt.get().getCartDetails().isEmpty();
+    }
+
+    @Override
+    public CheckDistanceResponse checkDistanceOrder(long userId, double lat, double lon) {
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() ->
+                new AppException(ErrorCode.USER_NOT_FOUND));
+        List<CartDetail> cartDetails = cartDetailRepository.findByCartIdAndOrderIsNull(cart.getId());
+        if (!cartDetails.isEmpty()) {
+            Restaurant restaurant = cartDetails.getFirst().getFood().getRestaurant();
+            LocationDistanceResponse locationDistanceResponse = locationService.getDistance(lat, lon, restaurant.getAddress().getLat(), restaurant.getAddress().getLon());
+            return CheckDistanceResponse.builder()
+                    .check(locationDistanceResponse.getDistance() < 10000.00)
+                    .distance(locationDistanceResponse.getDistance())
+                    .duration(locationDistanceResponse.getDuration())
+                    .build();
+        }
+        return CheckDistanceResponse.builder()
+                .check(false)
+                .distance(-1.0)
+                .duration(-1.0)
+                .build();
     }
 }

@@ -113,4 +113,14 @@ public class OrderController {
                 .message("Success")
                 .build();
     }
+
+    @GetMapping("/checkDistance")
+    public ApiResponse<CheckDistanceResponse> checkDistance(@RequestParam Long userId, @RequestParam double lat, @RequestParam double lon)
+    {
+        return ApiResponse.<CheckDistanceResponse>builder()
+                .data(orderService.checkDistanceOrder(userId, lat, lon))
+                .code(200)
+                .message("OK")
+                .build();
+    }
 }

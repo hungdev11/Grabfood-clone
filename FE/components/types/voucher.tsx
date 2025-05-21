@@ -28,6 +28,17 @@ export interface VoucherRequest {
   endDate: string;
 }
 
+export interface AddAdminVoucherRequest {
+  code: string;
+  description: string;
+  minRequire: number;
+  type: 'PERCENTAGE' | 'FIXED';
+  value: number;
+  applyType: 'ORDER' | 'SHIPPING';
+  status: 'ACTIVE' | 'INACTIVE';
+}
+
+
 export interface AddVoucherDetailRequest {
   quantity: number;
   startDate: string;

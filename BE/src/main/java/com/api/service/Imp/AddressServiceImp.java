@@ -167,6 +167,8 @@ public class AddressServiceImp implements AddressService {
                 .detail(address.getDetail())
                 .displayName(address.getWard()+ ", " + address.getDistrict() + ", " + address.getProvince())
                 .isDefault(address.isDefault())
+                .lat(address.getLat())
+                .lon(address.getLon())
                 .build();
     }
 }

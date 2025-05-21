@@ -134,7 +134,9 @@ public class VoucherServiceImp implements VoucherService {
         List<Voucher> listVoucherApply = new ArrayList<>();
         List<Voucher> voucherList = voucherRepository.findByRestaurantIdIsNullAndStatusAndMinRequireLessThanEqual(VoucherStatus.ACTIVE, totalPrice);
         for (Voucher voucher : voucherList) {
-            if (voucherDetailRepository.findByVoucherIdAndEndDateAfter(voucher.getId(), LocalDateTime.now()) != null)
+            VoucherDetail detail = voucherDetailRepository.findByVoucherIdAndEndDateAfter(voucher.getId(), LocalDateTime.now());
+
+            if (detail != null && detail.getQuantity() > 0)
             {
                 listVoucherApply.add(voucher);
             }

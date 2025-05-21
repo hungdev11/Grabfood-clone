@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useCart } from "../context/CartContext";
-import Link from "next/link";
 import axiosInstance from "@/utils/axiosInstance";
 import axios, { AxiosError } from "axios";
 import { useState, useEffect } from "react";
@@ -19,7 +18,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { CartProvider } from "../context/CartContext";
-import { tr } from "date-fns/locale";
 import { set } from "date-fns";
 
 export default function Checkout() {
@@ -39,7 +37,10 @@ export default function Checkout() {
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [addressLoading, setAddressLoading] = useState<boolean>(false);
   const [showAddressSelector, setShowAddressSelector] =
-    useState<boolean>(false);
+  useState<boolean>(false);
+
+    //check xem khoảng cách có < 10km không?
+  const [isDistanceOk, setIsDistanceOk] = useState<boolean>(false);
   const fetchAddresses = async () => {
     try {
       setAddressLoading(true);
@@ -60,10 +61,15 @@ export default function Checkout() {
 
         if (defaultAddress) {
           setSelectedAddress(defaultAddress);
+          console.log("Default address:", defaultAddress);
         } else if (response.data.length > 0) {
           // If no default, use first address
           setSelectedAddress(response.data[0]);
         }
+        checkDistance(
+          userId,
+          defaultAddress?.lat || response.data[0]?.lat,
+          defaultAddress?.lon || response.data[0]?.lon  )
       }
     } catch (error) {
       console.error("Error fetching addresses:", error);
@@ -75,6 +81,48 @@ export default function Checkout() {
   useEffect(() => {
     fetchAddresses();
   }, []);
+
+  useEffect(() => {
+    if (selectedAddress) {
+      const userId = localStorage.getItem("grabUserId");
+      if (!userId) throw new Error("User ID not found");
+      checkDistance(userId, selectedAddress.lat, selectedAddress.lon);
+    }
+  }
+  , [selectedAddress]);
+
+  const [distance, setDistance] = useState<number>(0);
+  const [duration, setDuration] = useState<number>(0);
+
+    const checkDistance = async (userId: any,lat: any, lon: any) => {
+      try {
+        const response = await axiosInstance.get(
+          "http://localhost:6969/grab/order/checkDistance",
+          {
+            params: {
+              userId: userId,
+              lat: lat,
+              lon: lon
+            },
+          }
+        );
+        console.log("Khoảng cách:", response.data);
+        if (response.data.code === 200) {
+          if (response.data.data.check === false) {
+            toast.error("Khoảng cách quá xa, không thể giao hàng.");
+            setDistance(0);
+            setDuration(0);
+          } else {
+            setDistance(response.data.data.distance);
+            setDuration(response.data.data.duration);
+          }
+          setIsDistanceOk(response.data.data.check);
+          //console.log("Khoảng cách:", response.data.data);
+        }
+      } catch (error) {  
+        console.error("Lỗi kiểm tra khoảng cách:", error);
+      }
+    };
 
   // Add this dialog component
   const AddressSelector = ({
@@ -546,6 +594,19 @@ export default function Checkout() {
     }
   };
 
+  const formatDistance = (distance: number) => {
+    if (distance < 1000) {
+      return `${distance} m`;
+    } else {
+      return `${(distance / 1000).toFixed(1)} km`;
+    }
+  }
+
+  const formatDuration = (duration: number) => {
+    const minutes = Math.floor(duration / 60) + 10 ;
+    return minutes
+  }
+
   return (
     <CartProvider>
       <div>
@@ -558,7 +619,7 @@ export default function Checkout() {
           <div className="bg-white p-4 rounded-lg shadow-md mb-4">
             <h2 className="text-lg font-semibold mb-3">Giao đến</h2>
             <p className="text-sm text-gray-600 mb-3">
-              Delivery arrival time: 25 min (3.4 km away)
+              Thời gian giao dự kiến: {duration > 0 ? formatDuration(duration): '0'} phút ({formatDistance(distance)})
             </p>
             <div className="flex gap-4">
               <div className="w-1/2">
@@ -922,7 +983,7 @@ export default function Checkout() {
             id="order-button"
             className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-base"
             onClick={handleOrderButton}
-            disabled={loading}
+            disabled={loading || !isDistanceOk}
           >
             {loading ? "Đang xử lý..." : "Đặt đơn"}
           </Button>
