@@ -68,7 +68,7 @@ export const createVoucherRestaurant = async (data: VoucherRequest) => {
         'Content-Type': 'application/json',
       },
     });
-    if (response.data.code === 200) {
+    if (response.data.code === 200 && response.data.data !== -1) {
       return response.data.code;
     } else {
       throw new Error(response.data.message || 'Failed to create vouchers');
@@ -89,9 +89,9 @@ export const deleteVoucher = async (voucherId: number) => {
     } else {
       toast.error('Đã xảy ra lỗi khi xóa, vui lòng thử lại!');
     }
-  } catch (error: any) {
-    toast.error('Đã xảy ra lỗi khi xóa!');
-}
+    } catch (error: any) {
+      toast.error('Đã xảy ra lỗi khi xóa!');
+  }
 }
 
 export const updateVoucher = async (voucherId: number) => {
@@ -125,3 +125,15 @@ export const addVoucherDetailRes = async (data: AddVoucherDetailRequestRes ) => 
   }
 }
 
+export const deleteVoucherRes = async (restaurantId: string, voucherId: number) => {
+  try {
+    const response = await axios.delete(`http://localhost:6969/grab/vouchers/${voucherId}/restaurant/${restaurantId}`);
+    if (response.data.code === 200 && response.data.data === true) {
+      toast.success('Xóa thành công!');
+    } else {
+      toast.error('Không thể xóa voucher!');
+    }
+    } catch (error: any) {
+      toast.error('Đã xảy ra lỗi khi xóa!');
+  }
+}

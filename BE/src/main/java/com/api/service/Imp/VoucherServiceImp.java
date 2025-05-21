@@ -252,6 +252,9 @@ public class VoucherServiceImp implements VoucherService {
     @Transactional
     public long addVoucherRestaurant(VoucherRequest request) {
         checkValidTime(request.getStartDate(), request.getEndDate());
+        if (!LocalDateTime.now().isBefore(request.getStartDate().plusMinutes(1))) { // add 1 min is request is long and now() can in-consistence
+            return -1;
+        }
         Restaurant restaurant = restaurantService.getRestaurant(request.getRestaurant_id());
 
         if (voucherRepository.existsByCodeAndRestaurant(request.getCode(), restaurant)) {
@@ -337,6 +340,28 @@ public class VoucherServiceImp implements VoucherService {
                             foodRepository.save(f);
                         }));
         voucherRepository.save(voucher);
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteVoucherRestaurant(long restaurantId, long voucherId) {
+        Restaurant restaurant = restaurantService.getRestaurant(restaurantId);
+        Voucher restaurantVoucher = voucherRepository.findById(voucherId).orElse(null);
+        if (restaurantVoucher == null) {
+            return false;
+        }
+        if (!restaurantVoucher.getRestaurant().equals(restaurant)) {
+            return false;
+        }
+        var check = restaurantVoucher.getVoucherDetails().stream()
+                .filter(vd -> vd.getStartDate().isBefore(LocalDateTime.now()))
+                .findAny();
+        if (check.isPresent()) {
+            return false;
+        }
+        voucherDetailRepository.deleteAll(restaurantVoucher.getVoucherDetails());
+        voucherRepository.delete(restaurantVoucher);
         return true;
     }
 

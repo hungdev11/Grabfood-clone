@@ -95,4 +95,13 @@ public class VoucherController {
                 .build();
     }
 
+    @DeleteMapping("/{voucherId}/restaurant/{restaurantId}")
+    public ApiResponse deleteVoucherRestaurant(@PathVariable Long voucherId, @PathVariable Long restaurantId) {
+        return ApiResponse.builder()
+                .code(200)
+                .message("OK")
+                .data(voucherService.deleteVoucherRestaurant(restaurantId, voucherId))
+                .build();
+    }
+
 }

@@ -2,7 +2,7 @@
 
 import { useState , useEffect} from 'react';
 import { Voucher, VoucherRequest } from '@/components/types/voucher';
-import { fetchVouchersRestaurant, createVoucher, deleteVoucher, updateVoucher , addVoucherDetailRes, createVoucherRestaurant} from '@/utils/apiVoucher';
+import { fetchVouchersRestaurant, createVoucher, deleteVoucherRes, updateVoucher , addVoucherDetailRes, createVoucherRestaurant} from '@/utils/apiVoucher';
 import { useRouter } from 'next/navigation';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -123,7 +123,7 @@ export default function VoucherManagement() {
 
   const handleDelete = async (voucherId: number) => {
     try {
-      await deleteVoucher(voucherId);
+      await deleteVoucherRes(restaurantId, voucherId);
       fetchVouchersRestaurant(restaurantId).then((data) => {
         setVouchers(data);
       });
