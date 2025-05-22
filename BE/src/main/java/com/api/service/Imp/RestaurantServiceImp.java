@@ -6,15 +6,13 @@ import com.api.dto.request.UpdateRestaurantRequest;
 import com.api.dto.response.GetFoodResponse;
 import com.api.dto.response.PageResponse;
 import com.api.dto.response.RestaurantResponse;
-import com.api.entity.Account;
-import com.api.entity.Address;
-import com.api.entity.Order;
+import com.api.entity.*;
 import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
-import com.api.entity.Restaurant;
 import com.api.repository.AddressRepository;
 import com.api.repository.OrderRepository;
 import com.api.repository.RestaurantRepository;
+import com.api.repository.RoleRepository;
 import com.api.service.*;
 import com.api.service.strategy.OrderNotificationStrategyFactory;
 import com.api.service.strategy.OrderStatusNotificationStrategy;
@@ -35,6 +33,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +47,8 @@ public class RestaurantServiceImp implements RestaurantService {
     private final ReviewService reviewService;
     private final OrderRepository orderRepository;
     private final NotificationService notificationService;
+    private final EmailService emailService;
+    private final RoleRepository roleRepository;
 
     private static final double MOVING_SPEED_PER_HOUR = 50;
     private final AddressRepository addressRepository;
@@ -66,13 +67,13 @@ public class RestaurantServiceImp implements RestaurantService {
                 .description(request.getDescription())
                 .build();
 
-        long accountId = accountService.addNewAccount(request.getUsername(), request.getPassword());
+//        long accountId = accountService.addNewAccount(request.getUsername(), request.getPassword());
         long addressId = addressService.addNewAddress(request.getAddress());
 
-        log.info("Add Restaurant address and account");
-        newRestaurant.setAccount(accountService.getAccountById(accountId));
+        log.info("Add Restaurant address");
+//        newRestaurant.setAccount(accountService.getAccountById(accountId));
         newRestaurant.setAddress(addressService.getAddressById(addressId));
-        newRestaurant.setStatus(RestaurantStatus.ACTIVE);
+        newRestaurant.setStatus(RestaurantStatus.PENDING);
 
         log.info("Persist Restaurant");
         return restaurantRepository.save(newRestaurant).getId();
@@ -180,6 +181,57 @@ public class RestaurantServiceImp implements RestaurantService {
             addressRepository.save(address);
         }
         restaurantRepository.save(restaurant);
+    }
+
+    @Override
+    @Transactional
+    public void approveRestaurant(long restaurantId) {
+        Restaurant restaurant = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new RuntimeException("Restaurant not found with id: " + restaurantId));
+
+        // Change status to ACTIVE
+        restaurant.setStatus(RestaurantStatus.ACTIVE);
+
+        // Create user account for restaurant with phone number as username
+        String username = restaurant.getPhone();
+        String password = "123";
+        Role role = roleRepository.findByRoleName("ROLE_RES");
+        Account account = Account.builder()
+                .username(username)
+                .password(password)
+                .role(role)
+                .build();
+        restaurant.setAccount(account);
+
+        restaurantRepository.save(restaurant);
+
+        // Send email with account information
+        emailService.sendRestaurantAccountInfo(restaurant.getEmail(), username, password);
+
+        log.info("Restaurant approved and account created for restaurant ID: {}", restaurantId);
+    }
+
+    @Override
+    public void rejectRestaurant(long restaurantId) {
+        Restaurant restaurant = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new RuntimeException("Restaurant not found with id: " + restaurantId));
+    // Check if restaurant is already active and has an account
+        if (restaurant.getStatus() == RestaurantStatus.ACTIVE && restaurant.getAccount() != null) {
+            log.error("Cannot reject restaurant with ID: {} because it's already active with an account", restaurantId);
+            throw new AppException(ErrorCode.RESTAURANT_ALREADY_ACTIVE);
+        }
+        restaurant.setStatus(RestaurantStatus.REJECTED);
+        restaurantRepository.save(restaurant);
+
+        log.info("Restaurant rejected with ID: {}", restaurantId);
+    }
+
+    @Override
+    public List<RestaurantResponse> getPendingRestaurants() {
+        List<Restaurant> pendingRestaurants = restaurantRepository.findAllByStatus(RestaurantStatus.PENDING);
+        return pendingRestaurants.stream()
+                .map(this::mapToRestaurantResponse)
+                .collect(Collectors.toList());
     }
 
 
@@ -312,5 +364,23 @@ public class RestaurantServiceImp implements RestaurantService {
                 .add(address.getDistrict())
                 .add(address.getProvince())
                 .toString();
+    }
+    private RestaurantResponse mapToRestaurantResponse(Restaurant restaurant) {
+        // Implement mapping logic from Restaurant entity to RestaurantResponse
+        return RestaurantResponse.builder()
+                .id(restaurant.getId())
+                .name(restaurant.getName())
+                .description(restaurant.getDescription())
+                .image(restaurant.getImage())
+                .rating(reviewService.calculateAvgRating(restaurant.getId()))
+                .address(restaurant.getAddress().getDetail() + ", " +
+                        restaurant.getAddress().getWard() + ", " +
+                        restaurant.getAddress().getDistrict() + ", " +
+                        restaurant.getAddress().getProvince())
+                .phone(restaurant.getPhone())
+                .status(restaurant.getStatus()+"")
+
+                // Add other fields as needed
+                .build();
     }
 }

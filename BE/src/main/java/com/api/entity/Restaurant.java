@@ -53,7 +53,7 @@ public class Restaurant extends BaseEntity {
     private Address address;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "account_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "account_id", referencedColumnName = "id")
     private Account account;
 
     @Builder.Default

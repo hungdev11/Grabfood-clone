@@ -25,4 +25,8 @@ public interface RestaurantService {
     void handleOrder(long restaurantId, long orderId, OrderStatus status);
 
     void updateRestaurantInfo(long restaurantId, UpdateRestaurantRequest request);
+    // Add to RestaurantService interface
+    void approveRestaurant(long restaurantId);
+    void rejectRestaurant(long restaurantId);
+    List<RestaurantResponse> getPendingRestaurants();
 }

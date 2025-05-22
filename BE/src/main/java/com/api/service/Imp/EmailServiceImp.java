@@ -30,4 +30,19 @@ public class EmailServiceImp implements EmailService {
         mailSender.send(message);
         log.info("Password reset email sent to: {}", to);
     }
+
+    @Override
+    public void sendRestaurantAccountInfo(String to, String username, String password) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("Restaurant Account Information");
+        message.setText("Your restaurant registration has been approved. Here are your account details:\n\n" +
+                "Username: " + username + "\n" +
+                "Password: " + password + "\n\n" +
+                "You can login at: " + frontendUrl + "/login\n\n" +
+                "Please change your password after the first login.");
+
+        mailSender.send(message);
+        log.info("Restaurant account information email sent to: {}", to);
+    }
 }

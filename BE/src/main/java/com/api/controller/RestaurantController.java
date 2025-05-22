@@ -10,6 +10,7 @@ import com.api.utils.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,6 +29,8 @@ public class RestaurantController {
                 .data(restaurantService.addRestaurant(newRestaurant))
                 .build();
     }
+
+
 
     @GetMapping("/{restaurantId}")
     public ApiResponse<RestaurantResponse> getRestaurantById(
@@ -80,6 +83,32 @@ public class RestaurantController {
         return ApiResponse.<RestaurantResponse>builder()
                 .code(200)
                 .message("Success")
+                .build();
+    }
+    @PutMapping("/{restaurantId}/approve")
+    public ApiResponse<?> approveRestaurant(@PathVariable long restaurantId) {
+        restaurantService.approveRestaurant(restaurantId);
+        return ApiResponse.builder()
+                .code(200)
+                .message("Restaurant approved successfully")
+                .build();
+    }
+
+    @PutMapping("/{restaurantId}/reject")
+    public ApiResponse<?> rejectRestaurant(@PathVariable long restaurantId) {
+        restaurantService.rejectRestaurant(restaurantId);
+        return ApiResponse.builder()
+                .code(200)
+                .message("Restaurant rejected successfully")
+                .build();
+    }
+
+    @GetMapping("/pending")
+    public ApiResponse<?> getPendingRestaurants() {
+        return ApiResponse.builder()
+                .code(200)
+                .message("Success")
+                .data(restaurantService.getPendingRestaurants())
                 .build();
     }
 }

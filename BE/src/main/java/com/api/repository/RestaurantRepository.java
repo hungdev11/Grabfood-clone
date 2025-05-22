@@ -1,6 +1,7 @@
 package com.api.repository;
 
 import com.api.entity.Restaurant;
+import com.api.utils.RestaurantStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,4 +34,5 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
             @Param("minLon") double minLon,
             @Param("maxLon") double maxLon
     );
+    List<Restaurant> findAllByStatus(RestaurantStatus status);
 }

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
     // Add to ErrorCode.java
+    RESTAURANT_ALREADY_ACTIVE(0150, "Restaurant is already active and cannot be rejected", HttpStatus.BAD_REQUEST),
     GOOGLE_ACCOUNT_NO_PASSWORD(1003, "Google account cannot reset password", HttpStatus.BAD_REQUEST),
     NOT_FOUND(404, "Resource not found", HttpStatus.NOT_FOUND),
     //RESET PASSWORD

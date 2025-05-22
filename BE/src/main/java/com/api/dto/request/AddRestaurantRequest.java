@@ -18,6 +18,6 @@ public class AddRestaurantRequest {
     private LocalTime closingHour;
     private String description;
     private AddressRequest address;
-    private String username;
-    private String password;
+//    private String username;
+//    private String password;
 }

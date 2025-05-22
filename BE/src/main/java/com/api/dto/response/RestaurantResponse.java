@@ -19,6 +19,7 @@ public class RestaurantResponse {
     private String name;
     private String image;
     private String phone;
+    private String status;
     private LocalTime openingHour;
     private LocalTime closingHour;
     private String description;
