@@ -126,15 +126,30 @@ export default function LoginPage() {
           body: JSON.stringify(requestBody),
         }
       );
+      
+
+      const responseText = await response.text();
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || "Login failed");
-      } // Get response as text since the backend returns a plain string token
-      const token = await response.text();
+        alert(
+          responseText ||
+            "Login failed. Please check your account and try again."
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      // Kiểm tra responseText có đúng định dạng token không (phải có dấu #)
+      if (!responseText.includes("#")) {
+        alert(
+            "Login failed. Please check your account and try again."
+        );
+        setIsLoading(false);
+        return;
+      }
 
       // Use our new function to handle login success
-      await handleLoginSuccess(token);
+      await handleLoginSuccess(responseText);
 
       // Success message
       alert("Login successful!");
