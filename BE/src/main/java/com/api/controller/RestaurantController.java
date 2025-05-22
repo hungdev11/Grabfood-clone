@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -86,29 +88,64 @@ public class RestaurantController {
                 .build();
     }
     @PutMapping("/{restaurantId}/approve")
-    public ApiResponse<?> approveRestaurant(@PathVariable long restaurantId) {
+    public ApiResponse<Void> approveRestaurant(@PathVariable long restaurantId) {
         restaurantService.approveRestaurant(restaurantId);
-        return ApiResponse.builder()
+        return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Restaurant approved successfully")
                 .build();
     }
 
     @PutMapping("/{restaurantId}/reject")
-    public ApiResponse<?> rejectRestaurant(@PathVariable long restaurantId) {
+    public ApiResponse<Void> rejectRestaurant(@PathVariable long restaurantId) {
         restaurantService.rejectRestaurant(restaurantId);
-        return ApiResponse.builder()
+        return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Restaurant rejected successfully")
                 .build();
     }
+    @PutMapping("/{restaurantId}/inactive")
+    public ApiResponse<Void> setRestaurantInactive(@PathVariable long restaurantId) {
+        restaurantService.setRestaurantStatus(restaurantId, "INACTIVE");
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Restaurant set to inactive successfully")
+                .build();
+    }
+
+    @PutMapping("/{restaurantId}/active")
+    public ApiResponse<Void> setRestaurantActive(@PathVariable long restaurantId) {
+        restaurantService.setRestaurantStatus(restaurantId, "ACTIVE");
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Restaurant set to active successfully")
+                .build();
+    }
 
     @GetMapping("/pending")
-    public ApiResponse<?> getPendingRestaurants() {
-        return ApiResponse.builder()
+    public ApiResponse<List<RestaurantResponse>> getPendingRestaurants() {
+        List<RestaurantResponse> pendingRestaurants = restaurantService.getPendingRestaurants();
+        return ApiResponse.<List<RestaurantResponse>>builder()
                 .code(200)
                 .message("Success")
-                .data(restaurantService.getPendingRestaurants())
+                .data(pendingRestaurants)
+                .build();
+    }
+    @GetMapping("/all")
+    public ApiResponse<List<RestaurantResponse>> getAllRestaurants() {
+        return ApiResponse.<List<RestaurantResponse>>builder()
+                .code(200)
+                .message("Success")
+                .data(restaurantService.getAllRestaurants())
+                .build();
+    }
+    @GetMapping("/username/{username}")
+    public ApiResponse<Long> getRestaurantByUsername(@PathVariable String username) {
+        Long restaurantId = restaurantService.getRestaurantByUsername(username);
+        return ApiResponse.<Long>builder()
+                .code(200)
+                .message("Success")
+                .data(restaurantId)
                 .build();
     }
 }

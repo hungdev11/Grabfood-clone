@@ -29,4 +29,7 @@ public interface RestaurantService {
     void approveRestaurant(long restaurantId);
     void rejectRestaurant(long restaurantId);
     List<RestaurantResponse> getPendingRestaurants();
+    Long getRestaurantByUsername(String username);
+    List<RestaurantResponse> getAllRestaurants();
+    void setRestaurantStatus(long restaurantId, String status);
 }

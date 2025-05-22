@@ -30,6 +30,7 @@ public class JwtService {
         Map<String, Object> claims = new HashMap<>();
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(()-> new AppException(ErrorCode.ACCOUNT_PASSWORD_NOT_MATCH));
+        claims.put("role", account.getRole().getRoleName());
         long accountId = account.getUser() == null ? 1L : account.getUser().getId();
         return accountId + "#" + createToken(claims, username);
     }

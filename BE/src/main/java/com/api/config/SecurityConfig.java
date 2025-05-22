@@ -111,6 +111,7 @@ public class SecurityConfig {
                                 .requestMatchers("/order/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/restaurants").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/restaurants/**", "/restaurants").permitAll()
                                 .requestMatchers("/cart/**").hasAuthority("ROLE_USER")
                                 .requestMatchers("/order/**").permitAll()//hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
