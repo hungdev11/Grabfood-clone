@@ -24,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -52,6 +53,7 @@ public class RestaurantServiceImp implements RestaurantService {
 
     private static final double MOVING_SPEED_PER_HOUR = 50;
     private final AddressRepository addressRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -198,7 +200,7 @@ public class RestaurantServiceImp implements RestaurantService {
         Role role = roleRepository.findByRoleName("ROLE_RES");
         Account account = Account.builder()
                 .username(username)
-                .password(password)
+                .password(passwordEncoder.encode(password))
                 .role(role)
                 .build();
         restaurant.setAccount(account);
@@ -216,7 +218,7 @@ public class RestaurantServiceImp implements RestaurantService {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found with id: " + restaurantId));
     // Check if restaurant is already active and has an account
-        if (restaurant.getStatus() == RestaurantStatus.ACTIVE && restaurant.getAccount() != null) {
+        if ((restaurant.getStatus() == RestaurantStatus.ACTIVE || restaurant.getStatus() == RestaurantStatus.INACTIVE) && restaurant.getAccount() != null) {
             log.error("Cannot reject restaurant with ID: {} because it's already active with an account", restaurantId);
             throw new AppException(ErrorCode.RESTAURANT_ALREADY_ACTIVE);
         }
@@ -225,11 +227,45 @@ public class RestaurantServiceImp implements RestaurantService {
 
         log.info("Restaurant rejected with ID: {}", restaurantId);
     }
+    @Override
+    public void setRestaurantStatus(long restaurantId, String status) {
+        Restaurant restaurant = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new AppException(ErrorCode.RESTAURANT_NOT_FOUND));
+        if ("ACTIVE".equalsIgnoreCase(status)) {
+            restaurant.setStatus(RestaurantStatus.ACTIVE);
+        } else if ("INACTIVE".equalsIgnoreCase(status)) {
+            restaurant.setStatus(RestaurantStatus.INACTIVE);
+        } else {
+            throw new AppException(ErrorCode.INVALID_STATUS);
+        }
+        restaurantRepository.save(restaurant);
+    }
 
     @Override
     public List<RestaurantResponse> getPendingRestaurants() {
         List<Restaurant> pendingRestaurants = restaurantRepository.findAllByStatus(RestaurantStatus.PENDING);
         return pendingRestaurants.stream()
+                .map(this::mapToRestaurantResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Long getRestaurantByUsername(String username) {
+        log.info("Get restaurant by username: {}", username);
+        Account account = accountService.getAccountByUsername(username);
+        if (account == null) {
+            log.error("Account not found with username: {}", username);
+            throw new AppException(ErrorCode.ACCOUNT_NOT_FOUND);
+        }
+        Restaurant restaurant = restaurantRepository.findByAccount(account)
+                .orElseThrow(() -> new AppException(ErrorCode.RESTAURANT_NOT_FOUND));
+        return restaurant.getId();
+    }
+
+    @Override
+    public List<RestaurantResponse> getAllRestaurants() {
+        return restaurantRepository.findAll()
+                .stream()
                 .map(this::mapToRestaurantResponse)
                 .collect(Collectors.toList());
     }
@@ -379,6 +415,9 @@ public class RestaurantServiceImp implements RestaurantService {
                         restaurant.getAddress().getProvince())
                 .phone(restaurant.getPhone())
                 .status(restaurant.getStatus()+"")
+                .email(restaurant.getEmail())
+                .openingHour(restaurant.getOpeningHour())
+                .closingHour(restaurant.getClosingHour())
 
                 // Add other fields as needed
                 .build();
