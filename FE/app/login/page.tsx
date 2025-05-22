@@ -1,5 +1,6 @@
 "use client";
 
+import RegisterRestaurantForm from "@/components/RegisterRestaurantForm";
 import React, { useState, useEffect } from "react";
 import ForgotPassword from "@/components/ForgotPassword";
 import { useRouter } from "next/navigation";
@@ -18,60 +19,54 @@ import { Label } from "@/components/ui/label";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import Link from "next/link";
+import { handleLoginSuccess } from "@/utils/authService";
 
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+  const [showRegisterRes, setShowRegisterRes] = useState(false);
 
   // Check for token when component mounts (for OAuth redirect)
   useEffect(() => {
-    try {
-      console.log("Full URL:", window.location.href);
-      const queryParams = new URLSearchParams(window.location.search);
-      let token = queryParams.get("token");
+    const processOAuthToken = async () => {
+      try {
+        console.log("Full URL:", window.location.href);
+        const queryParams = new URLSearchParams(window.location.search);
+        let token = queryParams.get("token");
 
-      console.log("Token from query params:", token);
+        console.log("Token from query params:", token);
 
-      const fragment = window.location.hash.substring(1);
-      console.log("URL fragment:", fragment);
+        const fragment = window.location.hash.substring(1);
+        console.log("URL fragment:", fragment);
 
-      // Combine token and fragment to get the full token
-      if (token && fragment) {
-        token = token + "#" + fragment;
-        console.log("Combined token:", token);
-      }
-
-      if (token) {
-        // Process the token in the same format as regular login (UserId#token)
-        const [userIdPart, jwtPart] = token.split("#");
-
-        console.log("Token parts:", { userIdPart, jwtPart }); // Debug token parsing
-
-        if (!userIdPart || !jwtPart) {
-          alert("Invalid token format received from OAuth login");
-          return;
+        // Combine token and fragment to get the full token
+        if (token && fragment) {
+          token = token + "#" + fragment;
+          console.log("Combined token:", token);
         }
 
-        // Store token parts in localStorage
-        localStorage.setItem("grabToken", jwtPart);
-        localStorage.setItem("grabUserId", userIdPart);
+        if (token) {
+          // Process the token using our handleLoginSuccess function
+          await handleLoginSuccess(token);
 
-        // Clean URL
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname
-        );
+          // Clean URL
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
 
-        // Notify user and redirect
-        alert("Google login successful!");
-        window.location.href = "/";
+          // Notify user
+          alert("Google login successful!");
+        }
+      } catch (error) {
+        console.error("Error processing OAuth redirect:", error);
+        alert("Something went wrong with the login process. Please try again.");
       }
-    } catch (error) {
-      console.error("Error processing OAuth redirect:", error);
-      alert("Something went wrong with the login process. Please try again.");
-    }
+    };
+
+    processOAuthToken();
   }, []);
 
   // Login form state
@@ -135,25 +130,14 @@ export default function LoginPage() {
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText || "Login failed");
-      }
-
-      // Get response as text since the backend returns a plain string token
+      } // Get response as text since the backend returns a plain string token
       const token = await response.text();
 
-      const [userIdPart, jwtPart] = token.split("#");
-
-      if (!userIdPart || !jwtPart) {
-        throw new Error("Invalid token format received from server");
-      }
-
-      // Lưu vào localStorage
-      localStorage.setItem("grabToken", jwtPart);
-      localStorage.setItem("grabUserId", userIdPart);
+      // Use our new function to handle login success
+      await handleLoginSuccess(token);
 
       // Success message
       alert("Login successful!");
-      // Redirect to home page
-      window.location.href = "/";
     } catch (error: any) {
       console.error("Login error:", error);
       alert("Login failed. Please check your account and try again.");
@@ -395,6 +379,22 @@ export default function LoginPage() {
               </div>
             </CardContent>
           </Card>
+          <Button
+            variant="outline"
+            className="w-full mt-4"
+            onClick={() => setShowRegisterRes(true)}
+          >
+            Đăng ký nhà hàng
+          </Button>
+          {showRegisterRes && (
+            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg shadow-lg p-4 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                <RegisterRestaurantForm
+                  onClose={() => setShowRegisterRes(false)}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
