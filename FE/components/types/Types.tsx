@@ -34,8 +34,24 @@ export interface ApiResponse<T> {
     distance: string;
     latitude?: number;
     longitude?: number;
+
   }
-  
+  export interface UpdateRestaurant {
+    name: string;
+    description: string;
+    address: AddressRequest;
+    openingHour: string;
+    closingHour: string;
+    phone: string;
+  }
+  export interface AddressRequest {
+    detail: string;
+    ward: string;
+    province: string;
+    district: string;
+    latitude: string;
+    longitude: string;
+  }
   export interface AdditionalFood {
     id: number;
     name: string;

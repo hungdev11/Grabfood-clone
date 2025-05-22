@@ -16,4 +16,5 @@ public class UpdateRestaurantRequest {
     private LocalTime openingHour;
     private LocalTime closingHour;
     private String description;
+    private AddressRequest address;
 }
