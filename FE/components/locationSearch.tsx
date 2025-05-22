@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { MapPin, Crosshair } from "lucide-react";
 
 interface LocationSearchProps {
-  onSelectLocation?: (lat: string, lon: string) => void;
+  onSelectLocation?: (lat: string, lon: string, displayName: string) => void;
 }
 
 interface Place {
@@ -37,7 +37,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
 
           setQuery(display_name);
           if (onSelectLocation) {
-            onSelectLocation(latitude.toString(), longitude.toString());
+            onSelectLocation(latitude.toString(), longitude.toString(), display_name);
           }
         } catch (error) {
           console.error("Lỗi khi reverse geocoding:", error);
@@ -85,7 +85,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
     console.log("Selected place:", place.lat, place.lon);
 
     if (onSelectLocation) {
-      onSelectLocation(place.lat, place.lon);
+      onSelectLocation(place.lat, place.lon, place.display_name);
     }
   };
   return (

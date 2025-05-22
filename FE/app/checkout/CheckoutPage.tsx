@@ -95,6 +95,11 @@ export default function Checkout() {
   const [duration, setDuration] = useState<number>(0);
 
     const checkDistance = async (userId: any,lat: any, lon: any) => {
+      if (lat === undefined || lon === undefined) {
+        alert("Vui lòng chọn địa chỉ giao hàng.");
+        setIsDistanceOk(false);
+        return;
+      }
       try {
         const response = await axiosInstance.get(
           "http://localhost:6969/grab/order/checkDistance",
@@ -121,6 +126,7 @@ export default function Checkout() {
         }
       } catch (error) {  
         console.error("Lỗi kiểm tra khoảng cách:", error);
+        toast.error("Lỗi kiểm tra khoảng cách. Vui lòng thử lại.");
       }
     };
 
