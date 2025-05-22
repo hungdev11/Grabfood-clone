@@ -290,7 +290,16 @@ public class RestaurantServiceImp implements RestaurantService {
         List<RestaurantResponse> content = restaurantRepository
                 .findAll(Sort.by(Sort.Direction.ASC, sortBy))
                 .stream()
-                .filter(r -> r.getStatus().equals(RestaurantStatus.ACTIVE))
+                .filter(r -> {
+                    if (userLat != -1 && userLon != -1) {
+                        log.info("user lat: {} lon: {}", userLat, userLon);
+                        double distance = GeoUtils.haversine(userLat, userLon,
+                                r.getAddress().getLat(), r.getAddress().getLon());
+                        log.info("distance: {}", distance);
+                        return r.getStatus().equals(RestaurantStatus.ACTIVE) && distance <= 8;
+                    }
+                    return r.getStatus().equals(RestaurantStatus.ACTIVE);
+                })
                 .map(restaurant -> {
                     RestaurantResponse response = RestaurantResponse.builder()
                             .id(restaurant.getId())
