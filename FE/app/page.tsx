@@ -25,9 +25,10 @@ import { RestaurantHome, Food } from "@/components/types/Types";
 import { CartProvider } from "./context/CartContext";
 
 export default function Home() {
-  const [location, setLocation] = useState<{ lat: string; lon: string }>({
+  const [location, setLocation] = useState<{ lat: string; lon: string, displayName: string }>({
     lat: "-1",
     lon: "-1",
+    displayName: "N/A",
   });
   const [restaurants, setRestaurants] = useState<RestaurantHome[]>([]);
   const [searchResults, setSearchResults] = useState<Food[]>([]);
@@ -35,9 +36,9 @@ export default function Home() {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
 
-  const handleLocationSelect = (lat: string, lon: string) => {
-    setLocation({ lat, lon });
-    console.log("Đã chọn vị trí:", lat, lon);
+  const handleLocationSelect = (lat: string, lon: string, displayName: string) => {
+    setLocation({ lat, lon, displayName });
+    console.log("Đã chọn vị trí:", lat, lon, displayName);
   };
   const handleSearchResults = (foods: Food[]) => {
     setSearchResults(foods);
@@ -207,8 +208,8 @@ export default function Home() {
         )}{" "}
         {/* Deals Section */}
         <div className="mx-auto max-w-7xl px-4 py-8">
-          <h2 className="mb-6 text-xl font-bold">
-            Ưu đãi GrabFood tại <span className="text-[#00B14F]">Hà Nội</span>
+          <h2 className="mb-6 text-xl font-bold w-[70ch] truncate">
+            Ưu đãi GrabFood tại <span className="text-[#00B14F]">{location.displayName}</span>
           </h2>
           <ResListHome restaurants={restaurants} location={location} />
           <div className="mt-4 rounded-md border border-gray-200 p-3 text-center text-sm text-gray-600">

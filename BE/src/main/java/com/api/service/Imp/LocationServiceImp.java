@@ -2,6 +2,7 @@ package com.api.service.Imp;
 
 import com.api.dto.response.LocationDistanceResponse;
 import com.api.service.LocationService;
+import com.api.utils.ShippingFeeUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,7 @@ public class LocationServiceImp implements LocationService {
             return LocationDistanceResponse.builder()
                     .distance(distance)
                     .duration(duration)
+                    .shippingFee(ShippingFeeUtil.calculateShippingFee(distance))
                     .build();
 
         } catch (Exception e) {

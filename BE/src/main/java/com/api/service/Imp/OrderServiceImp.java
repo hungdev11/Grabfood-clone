@@ -508,12 +508,14 @@ public class OrderServiceImp implements OrderService {
                     .check(locationDistanceResponse.getDistance() < 10000.00)
                     .distance(locationDistanceResponse.getDistance())
                     .duration(locationDistanceResponse.getDuration())
+                    .shippingFee(locationDistanceResponse.getShippingFee())
                     .build();
         }
         return CheckDistanceResponse.builder()
                 .check(false)
                 .distance(-1.0)
                 .duration(-1.0)
+                .shippingFee(BigDecimal.ZERO)
                 .build();
     }
 }

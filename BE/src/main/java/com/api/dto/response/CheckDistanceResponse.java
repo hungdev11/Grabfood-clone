@@ -2,6 +2,8 @@ package com.api.dto.response;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -11,4 +13,5 @@ public class CheckDistanceResponse {
     private boolean check;
     private Double distance;
     private Double duration;
+    private BigDecimal shippingFee;
 }

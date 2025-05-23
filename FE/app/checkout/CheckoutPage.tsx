@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { CartProvider } from "../context/CartContext";
 import { set } from "date-fns";
+import { de } from "date-fns/locale";
 
 export default function Checkout() {
   const { cartId, cartItems, updateQuantity, totalPrice, setCartItems } =
@@ -41,6 +42,9 @@ export default function Checkout() {
 
     //check xem khoảng cách có < 10km không?
   const [isDistanceOk, setIsDistanceOk] = useState<boolean>(false);
+
+  const [deliveryFee, setDeliveryFee] = useState<number>(13000);
+  const grandTotal = totalPrice + deliveryFee;
   const fetchAddresses = async () => {
     try {
       setAddressLoading(true);
@@ -117,9 +121,11 @@ export default function Checkout() {
             toast.error("Khoảng cách quá xa, không thể giao hàng.");
             setDistance(0);
             setDuration(0);
+            setDeliveryFee(0);
           } else {
             setDistance(response.data.data.distance);
             setDuration(response.data.data.duration);
+            setDeliveryFee(response.data.data.shippingFee);
           }
           setIsDistanceOk(response.data.data.check);
           //console.log("Khoảng cách:", response.data.data);
@@ -216,6 +222,8 @@ export default function Checkout() {
 
   // state lưu payment_method
   const [paymentMethod, setPaymentMethod] = useState<string>("cod");
+
+  
 
   const handlePaymentMethodChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -369,8 +377,7 @@ export default function Checkout() {
     toast.success(`Đã xóa mã khuyến mãi ${codeToRemove}!`);
   };
 
-  const deliveryFee = 25000;
-  const grandTotal = totalPrice + deliveryFee;
+
 
   const increaseQuantity = (id: number) => {
     const item = cartItems.find((i) => i.id === id);
@@ -420,7 +427,7 @@ export default function Checkout() {
       cartId,
       address,
       note,
-      shippingFee: 25000,
+      shippingFee: deliveryFee,
       voucherCode: voucherCodes || [],
     };
     try {
@@ -489,7 +496,7 @@ export default function Checkout() {
       cartId,
       address,
       note,
-      shippingFee: 25000,
+      shippingFee: deliveryFee ,
       voucherCode: voucherCodes || [],
     };
     try {
@@ -539,7 +546,7 @@ export default function Checkout() {
       cartId,
       address,
       note,
-      shippingFee: 25000,
+      shippingFee: deliveryFee,
       voucherCode: voucherCodes || [],
       bankCode: "NCB",
     };
