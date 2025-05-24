@@ -3,6 +3,7 @@
 import AdminVoucher from "@/components/admin/AdminVoucher";
 import { useState } from "react";
 import RestaurantManagement from "@/components/admin/RestaurantManagement";
+import OrderList from "@/components/admin/OrderAdmin";
 
 const Dashboard = () => {
   const [activeButton, setActiveButton] = useState<string | null>(null);
@@ -22,11 +23,11 @@ const Dashboard = () => {
           <div className="mt-4">
             <button
               className={`w-full p-4 text-left text-gray-600 ${
-                activeButton === "Đơn hàng"
+                activeButton === "Order"
                   ? "bg-green-500 text-white rounded-lg"
                   : ""
               }`}
-              onClick={() => handleButtonClick("Đơn hàng")}
+              onClick={() => handleButtonClick("Order")}
             >
               Đơn hàng
             </button>
@@ -68,7 +69,7 @@ const Dashboard = () => {
       <div className="flex-1 p-6">
         {activeButton === "Voucher" && <AdminVoucher />}
         {activeButton === "Restaurant" && <RestaurantManagement />}
-        {/* Bạn có thể thêm các component khác cho các nút khác nếu cần */}
+        {activeButton === "Order" && <OrderList />}
       </div>
     </div>
   );

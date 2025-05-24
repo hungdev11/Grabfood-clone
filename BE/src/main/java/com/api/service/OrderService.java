@@ -23,4 +23,8 @@ public interface OrderService {
     void updateOrderStatus(Order order, OrderStatus status);
     boolean reorder(long userId, long orderId);
     CheckDistanceResponse checkDistanceOrder(long userId, double lat, double lon);
+
+    PageResponse<List<OrderResponse>> getOrderAdmin(int page, int size);
+
+    void cancelOrder(long orderId);
 }

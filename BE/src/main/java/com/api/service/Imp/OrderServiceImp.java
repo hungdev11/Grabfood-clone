@@ -518,4 +518,44 @@ public class OrderServiceImp implements OrderService {
                 .shippingFee(BigDecimal.ZERO)
                 .build();
     }
+
+    @Override
+    public PageResponse<List<OrderResponse>> getOrderAdmin(int page, int size) {
+        Pageable paging = PageRequest.of(page, size, Sort.by("orderDate").descending());
+        Page<Order> orderPage = orderRepository.findAll(paging);
+
+        List<OrderResponse> responseList = orderPage.getContent().stream().map(order -> {
+            OrderResponse reponse = OrderResponse.builder()
+                    .id(order.getId())
+                    .userName(order.getUser().getName())
+                    .address(order.getAddress())
+                    .status(order.getStatus())
+                    .note(order.getNote())
+                    .totalPrice(order.getTotalPrice())
+                    .shippingFee(order.getShippingFee())
+                    .discountOrderPrice(order.getDiscountOrderPrice())
+                    .discountShippingFee(order.getDiscountShippingFee())
+                    .createdAt(order.getOrderDate())
+                    .restaurantName(order.getCartDetails().getFirst().getFood().getRestaurant().getName())
+                    .cartDetails(order.getCartDetails()
+                            .stream()
+                            .map(this::toCartDetailResponse)
+                            .toList())
+                    .build();
+            return reponse;
+        }).toList();
+        return PageResponse.<List<OrderResponse>>builder()
+                .items(responseList)
+                .page(page)
+                .size(size)
+                .total(orderPage.getTotalElements())
+                .build();
+    }
+
+    @Override
+    public void cancelOrder(long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+    }
 }
