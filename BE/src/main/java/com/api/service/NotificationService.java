@@ -12,6 +12,8 @@ public interface NotificationService {
     long createNewNotification(Account account, String subject, String body, NotificationType type);
     void sendNewOrderNotification(long restaurantId);
     void sendUserNotificationWhenOrderStatusChanged(long userId);
+    public void sendDeliveryGuyNotificationWhenOrderStatusChanged(long deliveryGuyId);
+    public void sendAdminNotification(long userId);
     List<NotificationResponse> fetchNotificationsPopup(Account account);
     void markAsRead(long accountNotificationId);
     void markDeleted(long accountNotificationId);

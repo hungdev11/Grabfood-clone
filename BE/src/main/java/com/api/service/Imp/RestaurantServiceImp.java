@@ -150,6 +150,15 @@ public class RestaurantServiceImp implements RestaurantService {
             log.info("Change order {} status from PENDING to {}", orderId, status);
             order.setStatus(status);
         } else if (status.equals(OrderStatus.SHIPPING)) {
+//            flow can be changed when app has function that delivery guy can approve order or not
+//            algorithm for find delivery guy
+//            Shipper shipper = shipperRepository.findById(1L);
+//            assign order to shipper
+//            shipper.getOrders().add(order);
+//            order.shipper(shipper);
+//            shipperRepository.save(shipper);
+//            send notification to delivery guy
+//            sendNotifyToDeliveryWhenResChangeOrderToShipping(shipper, order);
             log.info("Change order {} status from PROCESSING to {}", orderId, status);
             order.setStatus(status);
         }
@@ -284,6 +293,19 @@ public class RestaurantServiceImp implements RestaurantService {
         notificationService.sendUserNotificationWhenOrderStatusChanged(userId);
         log.info("send order notify to user {}", userId);
     }
+
+//    private void sendNotifyToDeliveryWhenResChangeOrderToShipping(Shipper shipper, Order order) {
+//        Account account = shipper.getAccount();
+//        // create notification here
+//        Restaurant restaurant = order.getCartDetails().getFirst().getFood().getRestaurant();
+//        String subject = "Có đơn hàng tại mới";
+//        String body = "Nhận tại nhà hàng " + restaurant.getName() + ".\n" +
+//                "Từ " + getAddressText(restaurant.getAddress()) + " đến " + order.getAddress();
+//        notificationService.createNewNotification(account, subject, body, NotificationType.NEW_ORDER_TO_SHIPPING);
+//
+//        notificationService.sendDeliveryGuyNotificationWhenOrderStatusChanged(shipper.getId());
+//        log.info("send order notify to delivery guy id {}", shipper.getId());
+//    }
 
     @Override
     public List<RestaurantResponse> getRestaurants(String sortBy, double userLat, double userLon) {

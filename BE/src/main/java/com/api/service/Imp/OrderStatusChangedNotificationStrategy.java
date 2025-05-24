@@ -33,7 +33,7 @@ public class OrderStatusChangedNotificationStrategy implements NotificationStrat
         Notification notification = Notification.builder()
                 .subject(subject)
                 .body(body)
-                .type(NotificationType.NEW_ORDER)
+                .type(NotificationType.ORDER_STATUS_CHANGED)
                 .date(LocalDateTime.now())
                 .build();
 

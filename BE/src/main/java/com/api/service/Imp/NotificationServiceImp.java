@@ -51,6 +51,18 @@ public class NotificationServiceImp implements NotificationService {
     }
 
     @Override
+    public void sendDeliveryGuyNotificationWhenOrderStatusChanged(long deliveryGuyId) {
+        log.info("Sending message to delivery guy {}", deliveryGuyId);
+        messagingTemplate.convertAndSend("/topic/ship/" + deliveryGuyId, "");
+    }
+
+    @Override
+    public void sendAdminNotification(long userId) {
+        log.info("Sending message to admin {}", userId);
+        messagingTemplate.convertAndSend("/topic/admin/" + userId, "");
+    }
+
+    @Override
     public void markAsRead(long accountNotificationId) {
         accountNotificationRepository.findById(accountNotificationId).ifPresent(an -> {
             an.setRead(true);
