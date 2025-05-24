@@ -123,4 +123,25 @@ public class OrderController {
                 .message("OK")
                 .build();
     }
+
+    @GetMapping("/admin")
+    public ApiResponse<PageResponse<List<OrderResponse>>> getOrderAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size)
+    {
+        return ApiResponse.<PageResponse<List<OrderResponse>>>builder()
+                .message("OK")
+                .code(200)
+                .data(orderService.getOrderAdmin(page,size))
+                .build();
+    }
+
+    @PutMapping("/admin/cancel/{orderId}")
+    public ApiResponse<Void> cancelOrder(@PathVariable long orderId) {
+        orderService.cancelOrder(orderId);
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("OK")
+                .build();
+    }
 }

@@ -123,7 +123,6 @@ export default function AdminVoucher() {
                       <button
                         className="bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition shadow-sm"
                         onClick={() => handleUpdate(voucher.id)}
-
                       >
                         Khóa
                       </button>
