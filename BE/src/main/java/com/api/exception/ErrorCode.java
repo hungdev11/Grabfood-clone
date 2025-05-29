@@ -13,7 +13,7 @@ public enum ErrorCode {
     RESTAURANT_ALREADY_ACTIVE(0150, "Restaurant is already active and cannot be rejected", HttpStatus.BAD_REQUEST),
     GOOGLE_ACCOUNT_NO_PASSWORD(1003, "Google account cannot reset password", HttpStatus.BAD_REQUEST),
     NOT_FOUND(404, "Resource not found", HttpStatus.NOT_FOUND),
-    //RESET PASSWORD
+    // RESET PASSWORD
     INVALID_TOKEN(1000, "Invalid token", HttpStatus.BAD_REQUEST),
     EXPIRED_TOKEN(1001, "Token has expired", HttpStatus.BAD_REQUEST),
     INVALID_PASSWORD(1002, "Invalid password", HttpStatus.BAD_REQUEST),
@@ -22,11 +22,11 @@ public enum ErrorCode {
     UNAUTHORIZED(401, "Unauthorized access", HttpStatus.UNAUTHORIZED),
     SOME_THING_WENT_WRONG(9999, "Not OK", HttpStatus.BAD_REQUEST),
     RESOURCE_NOT_FOUND(404, "Not Found", HttpStatus.NOT_FOUND),
-    //ACCOUNT
+    // ACCOUNT
     ACCOUNT_USERNAME_DUPLICATED(0000, "Username of an account is duplicated", HttpStatus.BAD_REQUEST),
     ACCOUNT_USERNAME_NOT_EXISTED(0001, "Username of an account not found", HttpStatus.BAD_REQUEST),
     ACCOUNT_PASSWORD_NOT_MATCH(0002, "Wrong password", HttpStatus.BAD_REQUEST),
-    //FOOD - FOOD TYPE
+    // FOOD - FOOD TYPE
     FOODTYPE_NAME_EXISTED(0050, "Type of food is already existed", HttpStatus.BAD_REQUEST),
     FOODTYPE_NAME_NOT_EXISTED(0051, "Type of food not found", HttpStatus.BAD_REQUEST),
     FOOD_OF_RETAURANT_EXISTED(0052, "Food type and kind of retaurant already existed", HttpStatus.BAD_REQUEST),
@@ -37,9 +37,9 @@ public enum ErrorCode {
     FOOD_NOT_PUBLIC_FOR_CUSTOMER(0055, "Food not found", HttpStatus.BAD_REQUEST),
     FOOD_ADDITIONAL(0056, "Food is additional", HttpStatus.BAD_REQUEST),
     ADDITIONAL_FOOD_NOT_FOUND(0057, "Additional food not found or belong to food", HttpStatus.BAD_REQUEST),
-    //RESTAURANT
+    // RESTAURANT
     RESTAURANT_NOT_FOUND(0100, "Restaurant not found", HttpStatus.BAD_REQUEST),
-    //VOUCHER
+    // VOUCHER
     VOUCHER_NOT_FOUND(0100, "Voucher not found", HttpStatus.BAD_REQUEST),
     VOUCHER_VALUE_CONFLICT(0200, "Voucher value is conflict", HttpStatus.BAD_REQUEST),
     VOUCHER_ID_EXISTED(0201, "The voucher ID has already been used and cannot be processed", HttpStatus.BAD_REQUEST),
@@ -61,6 +61,7 @@ public enum ErrorCode {
     REVIEW_NOT_FOUND(0450, "Review not found", HttpStatus.BAD_REQUEST),
     CANNOT_WRITE_REVIEW_DUE_DATE(0451, "Can't write review due date", HttpStatus.BAD_REQUEST),
     HANDLE_NOT_PENDING_ORDER(0452, "Can not handle order not pending", HttpStatus.BAD_REQUEST);
+
     private final int code;
     private final String message;
     private final HttpStatus statusCode;

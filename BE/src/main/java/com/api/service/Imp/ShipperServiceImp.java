@@ -66,9 +66,6 @@ public class ShipperServiceImp implements ShipperService {
         if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
             shipper.setEmail(request.getEmail().trim());
         }
-        if (request.getVehicleType() != null) {
-            shipper.setVehicleType(request.getVehicleType());
-        }
         if (request.getVehicleNumber() != null) {
             shipper.setVehicleNumber(request.getVehicleNumber());
         }

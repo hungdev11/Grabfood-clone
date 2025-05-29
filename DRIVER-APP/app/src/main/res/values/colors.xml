@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors -->
+    <color name="primary_color">#00B14F</color>
+    <color name="primary_dark">#009A43</color>
+    <color name="primary_light">#4CAF50</color>
+    
+    <!-- Secondary Colors -->
+    <color name="secondary_color">#FF6B35</color>
+    <color name="secondary_dark">#E55722</color>
+    <color name="secondary_light">#FF8A65</color>
+    
+    <!-- Accent Color -->
+    <color name="accent_color">#03DAC6</color>
+    
+    <!-- Background Colors -->
+    <color name="background_color">#F5F5F5</color>
+    <color name="background_light">#FAFAFA</color>
+    <color name="surface_color">#FFFFFF</color>
+    <color name="card_background">#FFFFFF</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#BDBDBD</color>
+    <color name="text_white">#FFFFFF</color>
+    
+    <!-- Status Colors -->
+    <color name="success_color">#4CAF50</color>
+    <color name="warning_color">#FF9800</color>
+    <color name="warning_light">#FFF3E0</color>
+    <color name="error_color">#F44336</color>
+    <color name="info_color">#2196F3</color>
+    
+    <!-- Order Status Colors -->
+    <color name="status_pending">#FF9800</color>
+    <color name="status_accepted">#2196F3</color>
+    <color name="status_picked_up">#9C27B0</color>
+    <color name="status_delivering">#FF5722</color>
+    <color name="status_completed">#4CAF50</color>
+    <color name="status_cancelled">#F44336</color>
+    
+    <!-- Gem Colors -->
+    <color name="gem_color">#FFD700</color>
+    <color name="gem_background">#FFF8E1</color>
+    
+    <!-- Divider -->
+    <color name="divider_color">#E0E0E0</color>
+    
+    <!-- Transparent -->
+    <color name="transparent">#00000000</color>
+    <color name="black_overlay">#66000000</color>
+</resources>

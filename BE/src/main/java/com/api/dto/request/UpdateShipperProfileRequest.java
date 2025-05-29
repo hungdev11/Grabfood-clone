@@ -10,7 +10,6 @@ import lombok.*;
 public class UpdateShipperProfileRequest {
     private String name;
     private String email;
-    private String vehicleType;
     private String vehicleNumber;
     private String licensePlate;
 }
