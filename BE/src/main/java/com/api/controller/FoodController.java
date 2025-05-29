@@ -151,6 +151,7 @@ public class FoodController {
                 .code(200)
                 .build();
     }
+
     @GetMapping("/search")
     public ApiResponse<?> searchFoods(
             @RequestParam String query,
@@ -159,10 +160,17 @@ public class FoodController {
 
         log.debug("Searching for foods with query: {}, restaurantId: {}", query, restaurantId);
 
+        if (restaurantId != null) {
+            return ApiResponse.builder()
+                    .code(200)
+                    .message("Success")
+                    .data(foodService.searchFoods(query, restaurantId, isForCustomer))
+                    .build();
+        }
         return ApiResponse.builder()
                 .code(200)
                 .message("Success")
-                .data(foodService.searchFoods(query, restaurantId, isForCustomer))
+                .data(foodService.searchFoodsAndRestaurants(query, isForCustomer))
                 .build();
     }
 }

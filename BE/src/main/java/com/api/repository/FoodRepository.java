@@ -22,14 +22,20 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
     Page<Food> findByRestaurantAndStatus(Restaurant restaurant, FoodStatus status, Pageable pageable);
     Page<Food> findByRestaurant(Restaurant restaurant, Pageable pageable);
     @Query("SELECT f FROM Food f WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
-            "AND (:status IS NULL OR f.status = :status)")
-    List<Food> findByNameContainingIgnoreCase(@Param("query") String query, @Param("status") FoodStatus status);
+            "AND (:status IS NULL OR f.status = :status)" +
+            "AND (:kind IS NULL OR f.kind = :kind)")
+    List<Food> findByNameContainingIgnoreCase(
+            @Param("query") String query,
+            @Param("status") FoodStatus status,
+            @Param("kind") FoodKind kind);
 
     @Query("SELECT f FROM Food f WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "AND f.restaurant.id = :restaurantId " +
-            "AND (:status IS NULL OR f.status = :status)")
+            "AND (:status IS NULL OR f.status = :status)" +
+            "AND (:kind IS NULL OR f.kind = :kind)")
     List<Food> findByNameContainingIgnoreCaseAndRestaurantId(
             @Param("query") String query,
             @Param("restaurantId") Long restaurantId,
-            @Param("status") FoodStatus status);
+            @Param("status") FoodStatus status,
+            @Param("kind") FoodKind kind);
 }
