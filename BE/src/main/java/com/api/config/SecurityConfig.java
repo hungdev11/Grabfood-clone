@@ -38,29 +38,38 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     // Constructor injection for required dependencies
     public SecurityConfig(@Lazy JwtAuthFilter jwtAuthFilter,
-                          UserDetailsService userDetailsService, OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
+            UserDetailsService userDetailsService,
+            OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler,
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+            CustomAccessDeniedHandler customAccessDeniedHandler) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
         this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
+        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+        this.customAccessDeniedHandler = customAccessDeniedHandler;
     }
 
-
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http
-//                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Corrected method usage
-//                .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers(new AntPathRequestMatcher("/restaurants")).permitAll() // Allow API access
-//                        .anyRequest().authenticated()) // Secure other endpoints
-//                .formLogin(form -> form.disable()) // Disable form login
-//                .httpBasic(httpBasic -> httpBasic.disable()); // Disable basic auth
-//
-//        return http.build();
-//    }
+    // @Bean
+    // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws
+    // Exception {
+    // http
+    // .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅
+    // Corrected method usage
+    // .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
+    // .authorizeHttpRequests(auth -> auth
+    // .requestMatchers(new AntPathRequestMatcher("/restaurants")).permitAll() //
+    // Allow API access
+    // .anyRequest().authenticated()) // Secure other endpoints
+    // .formLogin(form -> form.disable()) // Disable form login
+    // .httpBasic(httpBasic -> httpBasic.disable()); // Disable basic auth
+    //
+    // return http.build();
+    // }
 
     // ✅ Corrected: Add the missing CORS Configuration Source method
     @Bean
@@ -94,41 +103,47 @@ public class SecurityConfig {
 
                 // Configure endpoint authorization
                 .authorizeHttpRequests(auth -> auth
-                                // Public endpoints
-                                .requestMatchers("/auth/welcome", "/auth/addNewAccount", "/auth/addNewAccount2", "/auth/generateToken", "/auth/generateToken2").permitAll()
-                                //
-                                .requestMatchers("/reviews/**").permitAll()
-                                .requestMatchers("/ws/**").permitAll()
-                                .requestMatchers("/push-noti/**").permitAll()
-                                .requestMatchers("/cart/test").permitAll()
-                                .requestMatchers("/report/**").permitAll()
-                                .requestMatchers("/notifications/**").permitAll()
-                                //
-                                // Role-based endpoints
-                                .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
-                                .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
-                                .requestMatchers("/cart/**").permitAll()
-                                .requestMatchers("/order/**").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/restaurants").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/restaurants/**", "/restaurants").permitAll()
-                                .requestMatchers("/cart/**").hasAuthority("ROLE_USER")
-                                .requestMatchers("/order/**").permitAll()//hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                                //.requestMatchers({HttpMethod.POST, HttpMethod.PUT}, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
-                                .requestMatchers(/*HttpMethod.GET,*/ "/restaurants/**", "/restaurants").permitAll()
-                                .requestMatchers("/login/oauth2/**", "/oauth2/**","/oauth2/authorization/google").permitAll()
-                                .requestMatchers("/foods/**").permitAll()
-                                .requestMatchers("/food-types/**").permitAll()
-                                .requestMatchers("/vouchers/**", "/voucherDetails/**").permitAll()
-                                .requestMatchers("/payments/**").permitAll()
-                                .requestMatchers("/location/**").permitAll()
-//                        .requestMatchers("/cart/**", "/order/**", "/restaurants/**").permitAll()
-//                        .requestMatchers("/foods/**","food-types").permitAll()
-//                        .requestMatchers("/vouchers/**", "/voucherDetails/**").permitAll()
-                                // All other endpoints require authentication
-                                .anyRequest().authenticated()
-                )
+                        // Public endpoints
+                        .requestMatchers("/auth/welcome", "/auth/addNewAccount", "/auth/addNewAccount2",
+                                "/auth/generateToken", "/auth/generateToken2")
+                        .permitAll()
+                        //
+                        .requestMatchers("/reviews/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/push-noti/**").permitAll()
+                        .requestMatchers("/cart/test").permitAll()
+                        .requestMatchers("/report/**").permitAll()
+                        .requestMatchers("/notifications/**").permitAll()
+                        //
+                        // Shipper authentication endpoints - public
+                        .requestMatchers("/api/auth/shipper/login").permitAll()
+                        //
+                        // Role-based endpoints
+                        .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
+                        .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/cart/**").permitAll()
+                        .requestMatchers("/order/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/restaurants").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/restaurants/**", "/restaurants").permitAll()
+                        .requestMatchers("/cart/**").hasAuthority("ROLE_USER")
+                        .requestMatchers("/order/**").permitAll()// hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                        // .requestMatchers({HttpMethod.POST, HttpMethod.PUT},
+                        // "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
+                        .requestMatchers(/* HttpMethod.GET, */ "/restaurants/**", "/restaurants").permitAll()
+                        .requestMatchers("/login/oauth2/**", "/oauth2/**", "/oauth2/authorization/google").permitAll()
+                        .requestMatchers("/foods/**").permitAll()
+                        .requestMatchers("/food-types/**").permitAll()
+                        .requestMatchers("/vouchers/**", "/voucherDetails/**").permitAll()
+                        .requestMatchers("/payments/**").permitAll()
+                        .requestMatchers("/location/**").permitAll()
+                        //
+                        // Shipper endpoints - require SHIPPER role
+                        .requestMatchers("/api/auth/shipper/**").hasAuthority("ROLE_SHIPPER")
+                        .requestMatchers("/api/shippers/**").hasAuthority("ROLE_SHIPPER")
+                        // All other endpoints require authentication
+                        .anyRequest().authenticated())
 
                 // Stateless session (required for JWT)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -138,13 +153,19 @@ public class SecurityConfig {
 
                 // Add JWT filter before Spring Security's default filter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
+                // Configure exception handling for JSON responses
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler))
+
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2AuthenticationSuccessHandler)
-                        .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService()))
-        );
+                        .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService())));
 
         return http.build();
     }
+
     @Bean
     public OAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService() {
         DefaultOAuth2UserService delegate = new DefaultOAuth2UserService();

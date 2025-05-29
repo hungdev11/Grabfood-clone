@@ -1,6 +1,5 @@
 package com.api.jwt;
 
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,14 +29,27 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-            username = jwtService.extractUsername(token);
+            String fullToken = authHeader.substring(7);
+
+            // Handle custom token format: accountId#actualToken
+            if (fullToken.contains("#")) {
+                token = fullToken.substring(fullToken.indexOf("#") + 1);
+            } else {
+                token = fullToken;
+            }
+
+            try {
+                username = jwtService.extractUsername(token);
+            } catch (Exception e) {
+                logger.debug("Token parsing failed: " + e.getMessage());
+            }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

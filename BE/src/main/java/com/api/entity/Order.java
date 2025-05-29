@@ -16,48 +16,49 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Builder
-@NamedStoredProcedureQuery(
-        name = "Order.getAllOrdersOfRestaurant",
-        procedureName = "get_all_orders_of_restaurant",
-        parameters = {
+@NamedStoredProcedureQuery(name = "Order.getAllOrdersOfRestaurant", procedureName = "get_all_orders_of_restaurant", parameters = {
                 @StoredProcedureParameter(mode = ParameterMode.IN, name = "restaurant_id", type = Long.class)
-        }
-)
+})
 @Table(name = "orders") // order conflict with ORDER in mysql
-public class Order extends BaseEntity{
+public class Order extends BaseEntity {
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+        @ManyToOne
+        @JoinColumn(name = "user_id", nullable = false)
+        private User user;
 
-    @Column(nullable = false, precision = 11, scale = 2)
-    private BigDecimal totalPrice;
+        @Column(nullable = false, precision = 11, scale = 2)
+        private BigDecimal totalPrice;
 
-    @Column(nullable = false)
-    private String address;
+        @Column(nullable = false)
+        private String address;
 
-    @Column(nullable = false)
-    private LocalDateTime orderDate;
+        @Column(nullable = false)
+        private LocalDateTime orderDate;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+        @Column(nullable = false)
+        @Enumerated(EnumType.STRING)
+        private OrderStatus status;
 
-    private String note;
+        private String note;
 
-    @Column(nullable = false, precision = 9, scale = 2)
-    private BigDecimal shippingFee;
+        @Column(nullable = false, precision = 9, scale = 2)
+        private BigDecimal shippingFee;
 
-    @Column(nullable = false, precision = 9, scale = 2)
-    private BigDecimal discountShippingFee;
+        @Column(nullable = false, precision = 9, scale = 2)
+        private BigDecimal discountShippingFee;
 
-    @Column(nullable = false, precision = 9, scale = 2)
-    private BigDecimal discountOrderPrice;
+        @Column(nullable = false, precision = 9, scale = 2)
+        private BigDecimal discountOrderPrice;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
-    @JsonIgnore
-    private List<CartDetail> cartDetails = new ArrayList<>();
+        @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
+        @JsonIgnore
+        private List<CartDetail> cartDetails = new ArrayList<>();
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
-    private List<OrderVoucher> orderVoucherList = new ArrayList<>();
+        @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
+        private List<OrderVoucher> orderVoucherList = new ArrayList<>();
+
+        // Shipper relationship - added for shipper system
+        @ManyToOne
+        @JoinColumn(name = "shipper_id")
+        private Shipper shipper;
 }
