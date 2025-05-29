@@ -25,7 +25,11 @@ import { RestaurantHome, Food } from "@/components/types/Types";
 import { CartProvider } from "./context/CartContext";
 
 export default function Home() {
-  const [location, setLocation] = useState<{ lat: string; lon: string, displayName: string }>({
+  const [location, setLocation] = useState<{
+    lat: string;
+    lon: string;
+    displayName: string;
+  }>({
     lat: "-1",
     lon: "-1",
     displayName: "N/A",
@@ -33,16 +37,28 @@ export default function Home() {
   const [restaurants, setRestaurants] = useState<RestaurantHome[]>([]);
   const [searchResults, setSearchResults] = useState<Food[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [restaurantSearchResults, setRestaurantSearchResults] = useState<
+    RestaurantHome[]
+  >([]);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
 
-  const handleLocationSelect = (lat: string, lon: string, displayName: string) => {
+  const handleLocationSelect = (
+    lat: string,
+    lon: string,
+    displayName: string
+  ) => {
     setLocation({ lat, lon, displayName });
     console.log("Đã chọn vị trí:", lat, lon, displayName);
   };
   const handleSearchResults = (foods: Food[]) => {
     setSearchResults(foods);
     setShowSearchResults(foods.length > 0);
+  };
+  const handleRestaurantSearchResults = (restaurants: RestaurantHome[]) => {
+    setRestaurantSearchResults(restaurants);
+    // Nếu có kết quả nhà hàng hoặc món ăn, hiển thị phần kết quả tìm kiếm
+    setShowSearchResults(restaurants.length > 0 || searchResults.length > 0);
   };
 
   const handleFoodClick = (food: Food) => {
@@ -105,6 +121,7 @@ export default function Home() {
                   {/* Food Search Box - Now integrated into the banner */}
                   <FoodSearch
                     onResults={handleSearchResults}
+                    onRestaurantResults={handleRestaurantSearchResults}
                     placeholder="Tìm kiếm món ăn..."
                     className="text-sm"
                   />
@@ -124,7 +141,7 @@ export default function Home() {
               </div>
             </div>{" "}
           </div>
-        </div>
+        </div>{" "}
         {/* Search Results Section */}
         {showSearchResults && (
           <div className="mx-auto max-w-7xl px-4 py-8">
@@ -133,83 +150,150 @@ export default function Home() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowSearchResults(false)}
+                onClick={() => {
+                  setShowSearchResults(false);
+                  setSearchResults([]);
+                  setRestaurantSearchResults([]);
+                }}
                 className="text-sm"
               >
                 <X className="h-4 w-4 mr-1" />
                 Clear Results
               </Button>
-            </div>{" "}
-            {searchResults.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {searchResults.map((food) => (
-                  <div
-                    key={food.id}
-                    onClick={() => handleFoodClick(food)}
-                    className="flex items-center p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all hover:border-green-400 group cursor-pointer"
-                  >
-                    <div className="w-24 h-24 rounded-md overflow-hidden relative">
-                      <img
-                        src={food.image || "/placeholder.svg"}
-                        alt={food.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      {food.type && (
-                        <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center py-1">
-                          {food.type}
-                        </span>
-                      )}
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <h3 className="text-lg font-bold group-hover:text-green-600 transition-colors">
-                        {food.name}
-                      </h3>
-                      <p className="text-gray-500 text-sm line-clamp-2">
-                        {food.description || ""}
-                      </p>
-                      <p className="text-xl font-bold mt-2">
-                        {typeof food.discountPrice === "number" &&
-                        food.discountPrice < food.price ? (
-                          <>
-                            <span className="line-through text-gray-500 mr-2">
-                              {food.price.toLocaleString()}đ
-                            </span>
-                            <span className="text-red-500">
-                              {food.discountPrice.toLocaleString()}đ
-                            </span>
-                          </>
-                        ) : (
-                          <span>{food.price.toLocaleString()}đ</span>
-                        )}
-                      </p>
-                    </div>
-                    <Button
-                      variant="success"
-                      size="icon"
-                      className="ml-4 text-lg rounded-full"
-                    >
-                      +
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-100 shadow-sm">
-                <div className="text-5xl mb-4">🍽️</div>
-                <h3 className="text-lg font-medium mb-2">
-                  No matching dishes found
+            </div>
+
+            {/* Restaurant Search Results */}
+            {restaurantSearchResults.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-4 border-b pb-2">
+                  Restaurants
                 </h3>
-                <p className="text-gray-500">
-                  Try a different search term or browse our categories below.
-                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  {restaurantSearchResults.map((restaurant) => (
+                    <Link
+                      href={`/restaurant/${restaurant.id}`}
+                      key={restaurant.id}
+                    >
+                      <div className="flex flex-col border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all hover:border-green-400 group cursor-pointer h-full overflow-hidden">
+                        <div className="w-full h-40 overflow-hidden relative">
+                          <img
+                            src={restaurant.image || "/placeholder.svg"}
+                            alt={restaurant.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent py-2">
+                            <div className="px-3 text-white">
+                              <div className="flex items-center">
+                                <Star className="h-3 w-3 mr-1 text-yellow-400" />
+                                <span className="text-xs">
+                                  {restaurant.rating.toFixed(1)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex-1 p-4">
+                          <h3 className="text-lg font-bold line-clamp-1 group-hover:text-green-600 transition-colors">
+                            {restaurant.name}
+                          </h3>
+                          <p className="text-gray-500 text-sm line-clamp-2 mt-1">
+                            {restaurant.description || ""}
+                          </p>
+                          <div className="flex items-center mt-2 text-sm text-gray-600">
+                            <Clock className="h-3 w-3 mr-1" />
+                            <span>
+                              {restaurant.timeDistance || "15-30 min"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               </div>
             )}
+
+            {/* Food Search Results */}
+            {searchResults.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4 border-b pb-2">
+                  Foods
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  {searchResults.map((food) => (
+                    <div
+                      key={food.id}
+                      onClick={() => handleFoodClick(food)}
+                      className="flex items-center p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all hover:border-green-400 group cursor-pointer"
+                    >
+                      <div className="w-24 h-24 rounded-md overflow-hidden relative">
+                        <img
+                          src={food.image || "/placeholder.svg"}
+                          alt={food.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        {food.type && (
+                          <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center py-1">
+                            {food.type}
+                          </span>
+                        )}
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <h3 className="text-lg font-bold group-hover:text-green-600 transition-colors">
+                          {food.name}
+                        </h3>
+                        <p className="text-gray-500 text-sm line-clamp-2">
+                          {food.description || ""}
+                        </p>
+                        <p className="text-xl font-bold mt-2">
+                          {typeof food.discountPrice === "number" &&
+                          food.discountPrice < food.price ? (
+                            <>
+                              <span className="line-through text-gray-500 mr-2">
+                                {food.price.toLocaleString()}đ
+                              </span>
+                              <span className="text-red-500">
+                                {food.discountPrice.toLocaleString()}đ
+                              </span>
+                            </>
+                          ) : (
+                            <span>{food.price.toLocaleString()}đ</span>
+                          )}
+                        </p>
+                      </div>
+                      <Button
+                        variant="success"
+                        size="icon"
+                        className="ml-4 text-lg rounded-full"
+                      >
+                        +
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* No Results Message */}
+            {searchResults.length === 0 &&
+              restaurantSearchResults.length === 0 && (
+                <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-100 shadow-sm">
+                  <div className="text-5xl mb-4">🍽️</div>
+                  <h3 className="text-lg font-medium mb-2">
+                    No matching results found
+                  </h3>
+                  <p className="text-gray-500">
+                    Try a different search term or browse our categories below.
+                  </p>
+                </div>
+              )}
           </div>
         )}{" "}
         {/* Deals Section */}
         <div className="mx-auto max-w-7xl px-4 py-8">
           <h2 className="mb-6 text-xl font-bold w-[70ch] truncate">
-            Ưu đãi GrabFood tại <span className="text-[#00B14F]">{location.displayName}</span>
+            Ưu đãi GrabFood tại{" "}
+            <span className="text-[#00B14F]">{location.displayName}</span>
           </h2>
           <ResListHome restaurants={restaurants} location={location} />
           <div className="mt-4 rounded-md border border-gray-200 p-3 text-center text-sm text-gray-600">
