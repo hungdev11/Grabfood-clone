@@ -16,4 +16,6 @@ public class AddressResponse {
     private String detail;
     private String displayName;
     private boolean isDefault;
+    private double lat;
+    private double lon;
 }

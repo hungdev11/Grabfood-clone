@@ -47,8 +47,6 @@ public class CartActivity extends AppCompatActivity {
     ImageButton btnCartBack;
     Button btnOrder;
     private Long cartId;
-
-
     private TokenManager tokenManager;
 
     @Override

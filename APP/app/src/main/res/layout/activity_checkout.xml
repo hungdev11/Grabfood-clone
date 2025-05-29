@@ -25,9 +25,18 @@
             android:textColor="#000000" />
 
         <TextView
+            android:id="@+id/checkoutDistance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Cách bạn: 6.2km"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginTop="4dp" />
+        <TextView
+            android:id="@+id/checkoutDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thời gian giao dự kiến: ...km"
             android:textSize="14sp"
             android:textColor="#666666"
             android:layout_marginTop="4dp" />

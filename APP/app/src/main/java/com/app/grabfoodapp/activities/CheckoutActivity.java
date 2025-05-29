@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -37,6 +38,7 @@ import com.app.grabfoodapp.dto.request.ApplyVoucherRequest;
 import com.app.grabfoodapp.dto.request.CreateOrderRequest;
 import com.app.grabfoodapp.dto.response.AddressResponse;
 import com.app.grabfoodapp.dto.response.ApplyVoucherResponse;
+import com.app.grabfoodapp.dto.response.CheckDistanceResponse;
 import com.app.grabfoodapp.dto.response.OrderResponse;
 import com.app.grabfoodapp.dto.response.VoucherResponse;
 import com.app.grabfoodapp.utils.LocationStorage;
@@ -57,7 +59,6 @@ import retrofit2.Response;
 public class CheckoutActivity extends AppCompatActivity {
     List<CartDetailDTO> cartItems = new ArrayList<>();
     String restaurantName;
-
     TextView txtRestaurant;
     RecyclerView recyclerView;
     CartAdapter adapter;
@@ -65,14 +66,15 @@ public class CheckoutActivity extends AppCompatActivity {
     TextView deliveryFeeText;
     TextView totalPriceText;
     TextView discountAmount;
-
     TextView txtShippingAddress;
     TextView discountShipping;
     LinearLayout voucherLayout;
+    TextView txtDistance;
+    TextView txtDuration;
     BigDecimal totalPrice = BigDecimal.ZERO;
     private static final int REQUEST_CODE_VOUCHER = 100;
     private Long cartId;
-
+    private String userId;
     private List<String> voucherCodes = new ArrayList<>();
 
     private String location = "N/A";
@@ -93,6 +95,8 @@ public class CheckoutActivity extends AppCompatActivity {
         discountAmount = findViewById(R.id.txtDiscountAmount);
         discountShipping = findViewById(R.id.txtDiscountShipping);
         txtShippingAddress = findViewById(R.id.txtShippingAddress);
+        txtDistance = findViewById(R.id.checkoutDistance);
+        txtDuration = findViewById(R.id.checkoutDuration);
         cartItems = (ArrayList<CartDetailDTO>) getIntent().getSerializableExtra("cartItems");
         cartId = getIntent().getLongExtra("cartId", 0);
         updateTotalPrice();
@@ -307,7 +311,7 @@ public class CheckoutActivity extends AppCompatActivity {
     }
     private void loadUserAddresses(boolean showDialogAfterLoad) {
         String token = "Bearer " + new TokenManager(this).getToken();
-        String userId = new TokenManager(this).getUserId();
+        userId = new TokenManager(this).getUserId();
 
         AddressService addressService = ApiClient.getClient().create(AddressService.class);
         Call<List<AddressResponse>> call = addressService.getUserAddresses(token, userId);
@@ -326,6 +330,7 @@ public class CheckoutActivity extends AppCompatActivity {
                             String addressText = buildAddressText(address);
                             location = addressText;
                             txtShippingAddress.setText(addressText);
+                           // checkDistance(Long.valueOf(userId), selectedAddress.getLat(), selectedAddress.getLon());
                             break;
                         }
                     }
@@ -336,6 +341,7 @@ public class CheckoutActivity extends AppCompatActivity {
                         String addressText = buildAddressText(selectedAddress);
                         location = addressText;
                         txtShippingAddress.setText(addressText);
+                        //checkDistance(Long.valueOf(userId), selectedAddress.getLat(), selectedAddress.getLon());
                     }
 
                     if (showDialogAfterLoad) {
@@ -344,6 +350,9 @@ public class CheckoutActivity extends AppCompatActivity {
                 } else {
                     // Fallback to current location if no saved addresses
                     useCurrentLocation();
+                }
+                if (selectedAddress != null) {
+                    checkDistance(Long.valueOf(userId), selectedAddress.getLat(), selectedAddress.getLon());
                 }
             }
 
@@ -374,6 +383,9 @@ public class CheckoutActivity extends AppCompatActivity {
             selectedAddress = address;
             location = addressTexts[which];
             txtShippingAddress.setText(location);
+            if (selectedAddress != null) {
+                checkDistance(Long.valueOf(userId), selectedAddress.getLat(), selectedAddress.getLon());
+            }
         });
 
         builder.setPositiveButton("Add New Address", (dialog, which) -> {
@@ -400,4 +412,50 @@ public class CheckoutActivity extends AppCompatActivity {
         return builder.toString();
     }
 
+    private void checkDistance(Long userId, double lat, double lon) {
+
+        OrderService orderService = ApiClient.getClient().create(OrderService.class);
+        Call<ApiResponse<CheckDistanceResponse>> call = orderService.checkDistance(userId, lat, lon);
+        call.enqueue(new Callback<ApiResponse<CheckDistanceResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<CheckDistanceResponse>> call, Response<ApiResponse<CheckDistanceResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<CheckDistanceResponse> apiResponse = response.body();
+                    if (apiResponse.getCode() ==200) {
+                        if (!apiResponse.getData().isCheck()) {
+                            Toast.makeText(CheckoutActivity.this, "Khoảng cách quá xa, vui lòng chọn địa chỉ khác", Toast.LENGTH_LONG).show();
+                            txtDistance.setText("");
+                            txtDuration.setText("");
+                            btnPayment.setEnabled(false);
+                            btnPayment.setBackgroundColor(ContextCompat.getColor(CheckoutActivity.this, R.color.gray));
+                        } else {
+                            btnPayment.setBackgroundColor(ContextCompat.getColor(CheckoutActivity.this, R.color.green));
+                            txtDistance.setText("Cách bạn: " +formatDistance(apiResponse.getData().getDistance()) + "km");
+                            txtDuration.setText("Thời gian giao dự kiến: "+formatDuration(apiResponse.getData().getDuration()) + "phút");
+                            btnPayment.setEnabled(true);
+                        }
+
+                    }
+                }
+                else {
+                    Toast.makeText(CheckoutActivity.this, "Đã xảy ra lỗi, thử lai!", Toast.LENGTH_SHORT).show();
+                    Log.e("API", "Lỗi server: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<CheckDistanceResponse>> call, Throwable t) {
+                Toast.makeText(CheckoutActivity.this, "Network error", Toast.LENGTH_SHORT).show();
+                Log.e("API", "Lỗi mạng hoặc URL: " + t.getMessage());
+            }
+        });
+
+    }
+
+    private String formatDistance(double distance) {
+        return String.format("%.1f", distance/1000);
+    }
+    private int formatDuration(double duration) {
+        return (int) duration/60 + 10;
+    }
 }
