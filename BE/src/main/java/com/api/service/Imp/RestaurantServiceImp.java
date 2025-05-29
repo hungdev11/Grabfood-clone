@@ -251,6 +251,20 @@ public class RestaurantServiceImp implements RestaurantService {
     }
 
     @Override
+    public List<RestaurantResponse> searchRestaurants(String query, boolean isForCustomer) {
+        List<Restaurant> restaurants;
+        if (isForCustomer) {
+            restaurants = restaurantRepository.findByNameContainingIgnoreCaseAndStatus(query, RestaurantStatus.ACTIVE);
+        } else {
+            restaurants = restaurantRepository.findByNameContainingIgnoreCase(query);
+        }
+
+        return restaurants.stream()
+                .map(this::mapToRestaurantResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<RestaurantResponse> getPendingRestaurants() {
         List<Restaurant> pendingRestaurants = restaurantRepository.findAllByStatus(RestaurantStatus.PENDING);
         return pendingRestaurants.stream()
