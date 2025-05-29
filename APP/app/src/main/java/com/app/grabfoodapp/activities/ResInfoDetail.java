@@ -1,5 +1,6 @@
 package com.app.grabfoodapp.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -108,6 +109,9 @@ public class ResInfoDetail extends AppCompatActivity {
         finish();
     }
     public void lookReviews (View view) {
-
+        long restaurantId = selectedResInfo.getId();
+        Intent intent = new Intent(this, ReviewsPage.class);
+        intent.putExtra("restaurantId", restaurantId);
+        startActivity(intent);
     }
 }
