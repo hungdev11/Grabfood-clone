@@ -34,18 +34,11 @@ public class Shipper extends BaseEntity {
     @Builder.Default
     private Boolean isOnline = false;
 
-    // Database has both current_latitude/longitude AND current_lat/lon
     @Column(name = "current_latitude")
     private Double currentLatitude;
 
     @Column(name = "current_longitude")
     private Double currentLongitude;
-
-    @Column(name = "current_lat")
-    private Double currentLat;
-
-    @Column(name = "current_lon")
-    private Double currentLon;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -72,10 +65,6 @@ public class Shipper extends BaseEntity {
     @Builder.Default
     private Float cancellationRate = 0.0f;
 
-    @Column(name = "total_earnings", nullable = false)
-    @Builder.Default
-    private Long totalEarnings = 0L;
-
     @Column(name = "gems", nullable = false)
     @Builder.Default
     private Integer gems = 0;
@@ -86,13 +75,8 @@ public class Shipper extends BaseEntity {
     @Column(name = "vehicle_number")
     private String vehicleNumber;
 
-    // Additional fields from database
     @Column(name = "license_plate", nullable = false)
     private String licensePlate;
-
-    @Column(name = "wallet_balance", nullable = false, precision = 12, scale = 2)
-    @Builder.Default
-    private BigDecimal walletBalance = BigDecimal.ZERO;
 
     @CreationTimestamp
     @Column(name = "created_date", nullable = false, updatable = false)
@@ -106,6 +90,10 @@ public class Shipper extends BaseEntity {
     @JoinColumn(name = "account_id", referencedColumnName = "id")
     private Account account;
 
+    // Quan hệ với Wallet - tất cả thông tin tài chính được quản lý ở đây
+    @OneToOne(mappedBy = "shipper", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Wallet wallet;
+
     // Business methods
     public BigDecimal getAcceptanceRateDecimal() {
         if (totalOrders == 0)
@@ -117,5 +105,10 @@ public class Shipper extends BaseEntity {
 
     public boolean isAvailableForOrder() {
         return isOnline && status == ShipperStatus.ACTIVE;
+    }
+
+    // Tiện ích để lấy tổng thu nhập từ wallet
+    public Long getTotalEarnings() {
+        return wallet != null ? wallet.getTotalEarnings() : 0L;
     }
 }

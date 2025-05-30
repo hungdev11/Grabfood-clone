@@ -22,11 +22,16 @@ public class ShipperProfileResponse {
     private Integer completedOrders;
     private Float acceptanceRate;
     private Float cancellationRate;
-    private Long totalEarnings;
     private Integer gems;
     private String vehicleType;
     private String vehicleNumber;
+    private String licensePlate;
     private Double currentLatitude;
     private Double currentLongitude;
     private LocalDateTime createdDate;
+
+    // Wallet information (có thể được thêm riêng nếu cần)
+    private Long totalEarnings; // Sẽ được lấy từ wallet
+    private Long currentBalance;
+    private Long todayEarnings;
 }

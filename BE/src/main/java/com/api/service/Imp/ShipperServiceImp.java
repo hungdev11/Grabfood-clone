@@ -48,9 +48,6 @@ public class ShipperServiceImp implements ShipperService {
         Shipper shipper = getShipperById(shipperId);
         shipper.setCurrentLatitude(latitude);
         shipper.setCurrentLongitude(longitude);
-        // Update both location fields for compatibility
-        shipper.setCurrentLat(latitude);
-        shipper.setCurrentLon(longitude);
         return shipperRepository.save(shipper);
     }
 

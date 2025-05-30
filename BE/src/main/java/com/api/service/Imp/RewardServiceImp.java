@@ -243,6 +243,10 @@ public class RewardServiceImp implements RewardService {
             case WEEKLY -> today.with(WeekFields.of(Locale.getDefault()).dayOfWeek(), 1).atStartOfDay();
             case MONTHLY -> today.withDayOfMonth(1).atStartOfDay();
             case ACHIEVEMENT -> LocalDateTime.of(2020, 1, 1, 0, 0); // All time
+            case PEAK_HOUR -> today.atStartOfDay(); // Same as daily for peak hour rewards
+            case DISTANCE -> today.withDayOfMonth(1).atStartOfDay(); // Monthly distance tracking
+            case RATING -> LocalDateTime.of(2020, 1, 1, 0, 0); // All time for rating
+            case BONUS -> today.atStartOfDay(); // Daily for bonus rewards
         };
     }
 

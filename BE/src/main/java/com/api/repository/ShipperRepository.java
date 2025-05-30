@@ -21,13 +21,13 @@ public interface ShipperRepository extends JpaRepository<Shipper, Long> {
             SELECT s.* FROM shipper s
             WHERE s.status = 'ACTIVE'
             AND s.is_online = true
-            AND s.current_lat IS NOT NULL
-            AND s.current_lon IS NOT NULL
+            AND s.current_latitude IS NOT NULL
+            AND s.current_longitude IS NOT NULL
             AND (
                 6371 * ACOS(
-                    COS(RADIANS(:lat)) * COS(RADIANS(s.current_lat)) *
-                    COS(RADIANS(s.current_lon) - RADIANS(:lon)) +
-                    SIN(RADIANS(:lat)) * SIN(RADIANS(s.current_lat))
+                    COS(RADIANS(:lat)) * COS(RADIANS(s.current_latitude)) *
+                    COS(RADIANS(s.current_longitude) - RADIANS(:lon)) +
+                    SIN(RADIANS(:lat)) * SIN(RADIANS(s.current_latitude))
                 )
             ) < :radiusKm
             """, nativeQuery = true)

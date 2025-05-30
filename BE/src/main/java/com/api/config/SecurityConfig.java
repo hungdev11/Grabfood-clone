@@ -115,23 +115,18 @@ public class SecurityConfig {
                         .requestMatchers("/report/**").permitAll()
                         .requestMatchers("/notifications/**").permitAll()
                         //
-                        // Shipper authentication endpoints - public
+                        // Shipper authentication endpoints - public (MUST come before protected ones)
                         .requestMatchers("/api/auth/shipper/login").permitAll()
                         //
                         // Role-based endpoints
                         .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
                         .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/cart/**").permitAll()
+                        .requestMatchers("/cart/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                         .requestMatchers("/order/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/restaurants").permitAll()
                         .requestMatchers(HttpMethod.POST, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
                         .requestMatchers(HttpMethod.GET, "/restaurants/**", "/restaurants").permitAll()
-                        .requestMatchers("/cart/**").hasAuthority("ROLE_USER")
-                        .requestMatchers("/order/**").permitAll()// hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                        // .requestMatchers({HttpMethod.POST, HttpMethod.PUT},
-                        // "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
-                        .requestMatchers(/* HttpMethod.GET, */ "/restaurants/**", "/restaurants").permitAll()
                         .requestMatchers("/login/oauth2/**", "/oauth2/**", "/oauth2/authorization/google").permitAll()
                         .requestMatchers("/foods/**").permitAll()
                         .requestMatchers("/food-types/**").permitAll()
@@ -139,7 +134,7 @@ public class SecurityConfig {
                         .requestMatchers("/payments/**").permitAll()
                         .requestMatchers("/location/**").permitAll()
                         //
-                        // Shipper endpoints - require SHIPPER role
+                        // Shipper endpoints - require SHIPPER role (MUST come after public ones)
                         .requestMatchers("/api/auth/shipper/**").hasAuthority("ROLE_SHIPPER")
                         .requestMatchers("/api/shippers/**").hasAuthority("ROLE_SHIPPER")
                         .requestMatchers("/api/orders/**").hasAuthority("ROLE_SHIPPER") // Shipper order management

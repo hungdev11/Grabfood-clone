@@ -131,6 +131,7 @@ public class ShipperAuthController {
                     .gems(shipper.getGems())
                     .vehicleType(shipper.getVehicleType())
                     .vehicleNumber(shipper.getVehicleNumber())
+                    .licensePlate(shipper.getLicensePlate())
                     .currentLatitude(shipper.getCurrentLatitude())
                     .currentLongitude(shipper.getCurrentLongitude())
                     .createdDate(shipper.getCreatedDate())
