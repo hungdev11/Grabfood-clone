@@ -103,6 +103,7 @@ public class RestaurantServiceImp implements RestaurantService {
                 .openingHour(restaurant.getOpeningHour())
                 .closingHour(restaurant.getClosingHour())
                 .phone(restaurant.getPhone())
+                .email(restaurant.getEmail())
                 .rating(reviewService.calculateAvgRating(restaurant.getId()))
                 .build();
         return addDistance(userLat, userLon, restaurant, restaurantResponse);

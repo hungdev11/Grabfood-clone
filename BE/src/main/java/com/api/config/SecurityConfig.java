@@ -105,8 +105,8 @@ public class SecurityConfig {
                                 .requestMatchers("/notifications/**").permitAll()
                                 //
                                 // Role-based endpoints
-                                .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
-                                .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
+                                .requestMatchers("/auth/**").hasAnyAuthority("ROLE_USER","ROLE_ADMIN", "ROLE_RES")
+
                                 .requestMatchers("/cart/**").permitAll()
                                 .requestMatchers("/order/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/restaurants").permitAll()

@@ -4,12 +4,14 @@ import com.api.dto.request.*;
 import com.api.dto.response.LoginResponse;
 import com.api.dto.response.UserResponse;
 import com.api.entity.Account;
+import com.api.entity.Restaurant;
 import com.api.entity.User;
 import com.api.exception.AppException;
 import com.api.service.AccountService;
 import com.api.jwt.JwtService;
 import com.api.jwt.UserInfoService;
 import com.api.service.UserService;
+import com.api.utils.RestaurantStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -181,6 +183,12 @@ public class UserController {
             );
 
             if (authentication.isAuthenticated()) {
+                Account account = accountService.getAccountByUsername(authRequest.getUsername());
+                Restaurant restaurant = account.getRestaurant();
+                if (restaurant != null && restaurant.getStatus() != RestaurantStatus.ACTIVE) {
+                    log.warn("Login attempt for inactive restaurant by user: {}", authRequest.getUsername());
+                    throw new UsernameNotFoundException("Restaurant is not active");
+                }
                 log.debug("Authentication successful for user: {}", authRequest.getUsername());
                 return jwtService.generateToken(authRequest.getUsername());
             }

@@ -24,6 +24,9 @@ public class Account extends BaseEntity {
     @OneToOne(mappedBy = "account")
     private User user;
 
+    @OneToOne(mappedBy = "account")
+    private Restaurant restaurant;
+
     @ManyToOne
     @JoinColumn(name = "id_role", nullable = false)
     private Role role;
