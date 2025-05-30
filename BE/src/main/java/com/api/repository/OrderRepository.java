@@ -78,17 +78,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                                 SIN(RADIANS(:lat)) * SIN(RADIANS(o.delivery_latitude))
                             )
                         ) < :radiusKm
-                        ORDER BY (
-                            6371 * ACOS(
-                                COS(RADIANS(:lat)) * COS(RADIANS(o.delivery_latitude)) *
-                                COS(RADIANS(o.delivery_longitude) - RADIANS(:lon)) +
-                                SIN(RADIANS(:lat)) * SIN(RADIANS(o.delivery_latitude))
-                            )
-                        ) ASC
                         """, nativeQuery = true)
         Page<Order> findNearbyAvailableOrders(
                         @Param("lat") double lat,
                         @Param("lon") double lon,
                         @Param("radiusKm") double radiusKm,
                         Pageable pageable);
+
+        /**
+         * Lấy tất cả orders của một shipper cụ thể
+         */
+        @Query("SELECT o FROM Order o WHERE o.shipper.id = :shipperId ORDER BY o.orderDate DESC")
+        List<Order> findAllByShipperId(@Param("shipperId") Long shipperId);
 }

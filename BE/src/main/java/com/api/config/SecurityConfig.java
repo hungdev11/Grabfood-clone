@@ -143,6 +143,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/shipper/**").hasAuthority("ROLE_SHIPPER")
                         .requestMatchers("/api/shippers/**").hasAuthority("ROLE_SHIPPER")
                         .requestMatchers("/api/orders/**").hasAuthority("ROLE_SHIPPER") // Shipper order management
+                        .requestMatchers("/api/dashboard/**").hasAuthority("ROLE_SHIPPER") // Shipper dashboard
+                        .requestMatchers("/api/rewards/**").hasAuthority("ROLE_SHIPPER") // Shipper rewards
                         // All other endpoints require authentication
                         .anyRequest().authenticated())
 
