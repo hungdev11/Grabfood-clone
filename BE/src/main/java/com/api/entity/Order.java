@@ -1,6 +1,7 @@
 package com.api.entity;
 
 import com.api.utils.OrderStatus;
+import com.api.utils.PaymentMethod;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -61,4 +62,45 @@ public class Order extends BaseEntity {
         @ManyToOne
         @JoinColumn(name = "shipper_id")
         private Shipper shipper;
+
+        // ==== SHIPPER TRACKING FIELDS ====
+
+        // Payment method
+        @Enumerated(EnumType.STRING)
+        private PaymentMethod paymentMethod;
+
+        // Delivery coordinates
+        @Column(name = "delivery_latitude")
+        private Double deliveryLatitude;
+
+        @Column(name = "delivery_longitude")
+        private Double deliveryLongitude;
+
+        // Distance and time estimates
+        private Float distance; // in meters
+
+        @Column(name = "estimated_time")
+        private Integer estimatedTime; // in minutes
+
+        // Shipper timeline tracking
+        @Column(name = "assigned_at")
+        private LocalDateTime assignedAt;
+
+        @Column(name = "accepted_at")
+        private LocalDateTime acceptedAt;
+
+        @Column(name = "picked_up_at")
+        private LocalDateTime pickedUpAt;
+
+        @Column(name = "delivered_at")
+        private LocalDateTime deliveredAt;
+
+        // Shipper earnings
+        @Column(name = "shipper_earning", precision = 9, scale = 2)
+        private BigDecimal shipperEarning;
+
+        private Long tip; // customer tip for shipper
+
+        @Column(name = "gems_earned")
+        private Integer gemsEarned; // gamification points
 }

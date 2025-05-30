@@ -58,6 +58,16 @@ public enum ErrorCode {
     ORDER_NOT_BELONG_TO_RES(0400, "Order not belong to restaurant", HttpStatus.BAD_REQUEST),
     ORDER_NOT_BELONG_TO_CUSTOMER(0401, "Order not belong to customer", HttpStatus.BAD_REQUEST),
     ORDER_NOT_ELIGIBLE_FOR_REORDER(0402, "Can not reorder with order not completed", HttpStatus.BAD_REQUEST),
+
+    // SHIPPER ORDER ERRORS
+    ORDER_ALREADY_ASSIGNED(403, "Order is already assigned to another shipper", HttpStatus.BAD_REQUEST),
+    ORDER_CANNOT_BE_ACCEPTED(404, "Order cannot be accepted in current status", HttpStatus.BAD_REQUEST),
+    ORDER_ACCESS_DENIED(405, "Access denied for this order", HttpStatus.FORBIDDEN),
+    ORDER_CANNOT_BE_REJECTED(406, "Order cannot be rejected in current status", HttpStatus.BAD_REQUEST),
+    ORDER_CANNOT_BE_PICKED_UP(407, "Order cannot be picked up in current status", HttpStatus.BAD_REQUEST),
+    ORDER_CANNOT_BE_COMPLETED(408, "Order cannot be completed in current status", HttpStatus.BAD_REQUEST),
+    ORDER_CANNOT_BE_CANCELLED(409, "Order cannot be cancelled in current status", HttpStatus.BAD_REQUEST),
+
     REVIEW_NOT_FOUND(0450, "Review not found", HttpStatus.BAD_REQUEST),
     CANNOT_WRITE_REVIEW_DUE_DATE(0451, "Can't write review due date", HttpStatus.BAD_REQUEST),
     HANDLE_NOT_PENDING_ORDER(0452, "Can not handle order not pending", HttpStatus.BAD_REQUEST);

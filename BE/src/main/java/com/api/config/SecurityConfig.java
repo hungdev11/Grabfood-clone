@@ -142,6 +142,7 @@ public class SecurityConfig {
                         // Shipper endpoints - require SHIPPER role
                         .requestMatchers("/api/auth/shipper/**").hasAuthority("ROLE_SHIPPER")
                         .requestMatchers("/api/shippers/**").hasAuthority("ROLE_SHIPPER")
+                        .requestMatchers("/api/orders/**").hasAuthority("ROLE_SHIPPER") // Shipper order management
                         // All other endpoints require authentication
                         .anyRequest().authenticated())
 
