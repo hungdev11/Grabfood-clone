@@ -19,21 +19,22 @@ export interface RestaurantHome {
   description?: string;
   timeDistance?: string;
 }
+
 export interface Restaurant {
   id: number;
   name: string;
   image: string;
   description: string;
-  address?: string;
-  openingHour?: string;
-  closingHour?: string;
+  address: string;
+  openingHour: string;
+  closingHour: string;
   rating: number;
-  phone?: string;
-  timeDistance?: string;
-  distance?: string;
+  phone: string;
+  timeDistance: string;
+  distance: string;
   latitude?: number;
   longitude?: number;
-  status?: string;
+  email?: string;
 }
 export interface UpdateRestaurant {
   name: string;

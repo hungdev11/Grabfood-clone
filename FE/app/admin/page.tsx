@@ -4,6 +4,8 @@ import AdminVoucher from "@/components/admin/AdminVoucher";
 import { useState } from "react";
 import RestaurantManagement from "@/components/admin/RestaurantManagement";
 import OrderList from "@/components/admin/OrderAdmin";
+import { LogOut } from "lucide-react";
+import { logout } from "@/utils/authService";
 
 const Dashboard = () => {
   const [activeButton, setActiveButton] = useState<string | null>(null);
@@ -60,6 +62,13 @@ const Dashboard = () => {
               onClick={() => handleButtonClick("Shadow")}
             >
               Shadow
+            </button>
+            <button
+              className="w-full p-4 text-left text-red-600 flex items-center gap-2 hover:bg-red-100 rounded-lg mt-4"
+              onClick={logout}
+            >
+              <LogOut size={18} />
+              Đăng xuất
             </button>
           </div>
         </nav>
