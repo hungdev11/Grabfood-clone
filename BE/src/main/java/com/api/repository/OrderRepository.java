@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -31,4 +33,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("restaurantId") Integer restaurantId,
             @Param("year") Integer year
     );
+    @Query("SELECT COALESCE(SUM(o.totalPrice + o.shippingFee*0.15), 0) FROM Order o " +
+            "WHERE o.status = 'COMPLETED' " +
+            "AND o.orderDate BETWEEN :startDate AND :endDate")
+    BigDecimal calculateRevenueForPeriod(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }
