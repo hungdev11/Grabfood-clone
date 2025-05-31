@@ -21,4 +21,9 @@ public interface RewardService {
      * Claim phần thưởng khi đã đủ điều kiện
      */
     String claimReward(Long rewardId, String shipperPhone);
+
+    /**
+     * Lấy trạng thái của một reward cụ thể cho shipper
+     */
+    RewardResponse getRewardStatusForShipper(Long rewardId, String shipperPhone);
 }

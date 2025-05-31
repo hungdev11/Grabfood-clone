@@ -167,6 +167,25 @@ public class RewardServiceImp implements RewardService {
         }
     }
 
+    @Override
+    public RewardResponse getRewardStatusForShipper(Long rewardId, String shipperPhone) {
+        try {
+            // Get shipper
+            Shipper shipper = shipperService.getShipperByPhone(shipperPhone);
+
+            // Get reward
+            Reward reward = rewardRepository.findById(rewardId)
+                    .orElseThrow(() -> new RuntimeException("Reward not found"));
+
+            // Build response using existing helper method
+            return buildRewardResponse(reward, shipper);
+
+        } catch (Exception e) {
+            log.error("Error getting reward status {} for shipper {}", rewardId, shipperPhone, e);
+            throw new RuntimeException("Failed to get reward status: " + e.getMessage());
+        }
+    }
+
     // ===== HELPER METHODS =====
 
     private RewardResponse buildRewardResponse(Reward reward, Shipper shipper) {

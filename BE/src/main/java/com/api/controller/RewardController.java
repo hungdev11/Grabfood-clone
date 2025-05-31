@@ -107,4 +107,33 @@ public class RewardController {
                     .build());
         }
     }
+
+    /**
+     * GET /api/rewards/{id}/status - Kiểm tra trạng thái reward cụ thể
+     */
+    @GetMapping("/{id}/status")
+    public ResponseEntity<ApiResponse<RewardResponse>> getRewardStatus(@PathVariable Long id) {
+        try {
+            // Get authenticated shipper
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String phone = authentication.getName();
+
+            log.debug("Checking reward {} status for shipper: {}", id, phone);
+
+            RewardResponse reward = rewardService.getRewardStatusForShipper(id, phone);
+
+            return ResponseEntity.ok(ApiResponse.<RewardResponse>builder()
+                    .code(200)
+                    .message("Success")
+                    .data(reward)
+                    .build());
+
+        } catch (Exception e) {
+            log.error("Error getting reward status {}", id, e);
+            return ResponseEntity.status(404).body(ApiResponse.<RewardResponse>builder()
+                    .code(404)
+                    .message("Reward not found: " + e.getMessage())
+                    .build());
+        }
+    }
 }
