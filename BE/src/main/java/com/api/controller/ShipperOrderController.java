@@ -26,9 +26,10 @@ public class ShipperOrderController {
 
     /**
      * GET /api/orders - Lấy danh sách đơn hàng (có filter theo trạng thái)
+     * Trả về List để Android app dễ xử lý
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<ShipperOrderResponse>>> getOrders(
+    public ResponseEntity<ApiResponse<List<ShipperOrderResponse>>> getOrders(
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -39,6 +40,43 @@ public class ShipperOrderController {
             String phone = authentication.getName();
 
             log.debug("Getting orders for shipper: {}, status: {}, page: {}, size: {}",
+                    phone, status, page, size);
+
+            Page<ShipperOrderResponse> orders = orderService.getOrdersForShipper(phone, status, page, size);
+
+            // Convert Page to List for Android compatibility
+            List<ShipperOrderResponse> orderList = orders.getContent();
+
+            return ResponseEntity.ok(ApiResponse.<List<ShipperOrderResponse>>builder()
+                    .code(200)
+                    .message("Success")
+                    .data(orderList)
+                    .build());
+
+        } catch (Exception e) {
+            log.error("Error getting orders for shipper", e);
+            return ResponseEntity.status(500).body(ApiResponse.<List<ShipperOrderResponse>>builder()
+                    .code(500)
+                    .message("Internal server error: " + e.getMessage())
+                    .build());
+        }
+    }
+
+    /**
+     * GET /api/orders/page - Lấy danh sách đơn hàng với pagination info (nếu cần)
+     */
+    @GetMapping("/page")
+    public ResponseEntity<ApiResponse<Page<ShipperOrderResponse>>> getOrdersWithPagination(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        try {
+            // Get authenticated shipper
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String phone = authentication.getName();
+
+            log.debug("Getting orders with pagination for shipper: {}, status: {}, page: {}, size: {}",
                     phone, status, page, size);
 
             Page<ShipperOrderResponse> orders = orderService.getOrdersForShipper(phone, status, page, size);

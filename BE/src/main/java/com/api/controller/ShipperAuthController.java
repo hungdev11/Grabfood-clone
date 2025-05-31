@@ -88,6 +88,13 @@ public class ShipperAuthController {
         }
     }
 
+    @PostMapping("/test-password")
+    public ResponseEntity<String> testPassword(@RequestParam String password, @RequestParam String hash) {
+        boolean matches = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().matches(password,
+                hash);
+        return ResponseEntity.ok("Password '" + password + "' matches hash: " + matches);
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         // Clear security context

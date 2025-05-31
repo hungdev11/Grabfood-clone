@@ -53,8 +53,10 @@ public class CartServiceImp implements CartService {
 
     private boolean compareTwoList(List<Long> list1, List<Long> list2) {
         log.debug("🔎 Comparing lists -> list1: {}, list2: {}", list1, list2);
-        if (list1 == null || list2 == null) return false;
-        if (list1.size() != list2.size()) return false;
+        if (list1 == null || list2 == null)
+            return false;
+        if (list1.size() != list2.size())
+            return false;
         List<Long> copy1 = new ArrayList<>(list1);
         List<Long> copy2 = new ArrayList<>(list2);
         Collections.sort(copy1);
@@ -63,7 +65,6 @@ public class CartServiceImp implements CartService {
         log.debug("✅ Compare result: {}", isEqual);
         return isEqual;
     }
-
 
     @Override
     public void createCart(Long userId) {
@@ -106,16 +107,16 @@ public class CartServiceImp implements CartService {
         CartDetail existingCartDetail = currentItems.stream()
                 .filter(item -> item.getFood().getId().equals(request.getFoodId())
                         && compareTwoList(item.getIds(), request.getAdditionalItems()))
-                .findFirst()  // Trả về phần tử đầu tiên thỏa mãn điều kiện
+                .findFirst() // Trả về phần tử đầu tiên thỏa mãn điều kiện
                 .orElse(null); // Nếu không tìm thấy thì trả về null
-
 
         if (existingCartDetail != null) {
             int updatedQuantity = existingCartDetail.getQuantity() + request.getQuantity();
             existingCartDetail.setQuantity(updatedQuantity);
             existingCartDetail.setNote(request.getNote());
             cartDetailRepository.save(existingCartDetail);
-            log.info("Updated quantity for foodId: {} in cartId: {} to {}", request.getFoodId(), cart.getId(), updatedQuantity);
+            log.info("Updated quantity for foodId: {} in cartId: {} to {}", request.getFoodId(), cart.getId(),
+                    updatedQuantity);
             return;
         }
 
@@ -124,9 +125,8 @@ public class CartServiceImp implements CartService {
             Food additionalFood = foodRepository.findById(foodId)
                     .orElseThrow(() -> new AppException(ErrorCode.FOOD_NOT_FOUND));
 
-            boolean isValid = food.getMainFoods().stream().anyMatch(fma ->
-                    fma.getMainFood().equals(food) && fma.getAdditionFood().equals(additionalFood)
-            );
+            boolean isValid = food.getMainFoods().stream()
+                    .anyMatch(fma -> fma.getMainFood().equals(food) && fma.getAdditionFood().equals(additionalFood));
 
             if (!isValid) {
                 throw new AppException(ErrorCode.ADDITIONAL_FOOD_NOT_FOUND);
@@ -182,7 +182,6 @@ public class CartServiceImp implements CartService {
             log.warn("Item with foodId: {} not found in cartId: {}", foodId, cart.getId());
         }
     }
-
 
     @Override
     public void updateCart(CartUpdateRequest request) {
@@ -243,14 +242,13 @@ public class CartServiceImp implements CartService {
         // Nếu update chính nó
         cartDetail.setQuantity(request.getNewQuantity());
         cartDetail.setIds(request.getAdditionFoodIds());
-        //cartDetail.setNote(request.get);
+        // cartDetail.setNote(request.get);
 
         cartDetailRepository.save(cartDetail);
 
         log.info("✅ Updated cartDetailId: {} with new quantity: {}, additionFoodIds: {}",
                 cartDetail.getId(), request.getNewQuantity(), request.getAdditionFoodIds());
     }
-
 
     @Override
     public void updateCartDetailQuantity(CartUpdateRequest request) {
@@ -274,7 +272,6 @@ public class CartServiceImp implements CartService {
         // Lưu thay đổi vào database
         cartDetailRepository.save(cartDetail);
     }
-
 
     @Transactional
     @Override
@@ -328,8 +325,7 @@ public class CartServiceImp implements CartService {
         // Food-level voucher details
         List<VoucherDetail> validVoucherDetails = voucherDetailService
                 .getVoucherDetailByVoucherInAndFoodInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                        allVouchers, mainFoods, now
-                );
+                        allVouchers, mainFoods, now);
 
         Map<Long, VoucherDetail> foodIdToVoucherDetail = validVoucherDetails.stream()
                 .collect(Collectors.toMap(
@@ -353,7 +349,8 @@ public class CartServiceImp implements CartService {
                     Food aFood = aFoodOpt.get();
                     if (aFood.getStatus() == FoodStatus.ACTIVE) {
                         BigDecimal aBasePrice = foodService.getCurrentPrice(aFood.getId());
-                        BigDecimal aFinalPrice = applyVouchers(aBasePrice, aFood, validRestaurantVouchers, foodIdToVoucherDetail);
+                        BigDecimal aFinalPrice = applyVouchers(aBasePrice, aFood, validRestaurantVouchers,
+                                foodIdToVoucherDetail);
 
                         additionalItems.add(AdditionalFoodCartResponse.builder()
                                 .id(aFood.getId())
@@ -389,7 +386,6 @@ public class CartServiceImp implements CartService {
                 .build();
     }
 
-
     @Override
     public void deleteCartDetail(Long cartDetailId) {
         cartDetailRepository.deleteById(cartDetailId);
@@ -401,14 +397,17 @@ public class CartServiceImp implements CartService {
         boolean isRestaurantOpen = false;
         if (!cartDetails.isEmpty()) {
             Restaurant restaurant = cartDetails.getFirst().getFood().getRestaurant();
-            isRestaurantOpen = restaurant.getOpeningHour().isBefore(LocalTime.now()) && restaurant.getClosingHour().isAfter(LocalTime.now());
+            isRestaurantOpen = restaurant.getOpeningHour().isBefore(LocalTime.now())
+                    && restaurant.getClosingHour().isAfter(LocalTime.now());
         }
         return isRestaurantOpen;
     }
+
     private BigDecimal applyVouchers(BigDecimal originalPrice, Food food,
-                                     List<Voucher> restaurantVouchers,
-                                     Map<Long, VoucherDetail> foodIdToVoucherDetail) {
-        if (originalPrice == null) return BigDecimal.ZERO;
+            List<Voucher> restaurantVouchers,
+            Map<Long, VoucherDetail> foodIdToVoucherDetail) {
+        if (originalPrice == null)
+            return BigDecimal.ZERO;
 
         BigDecimal price = originalPrice;
 
