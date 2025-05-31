@@ -72,6 +72,8 @@ public class CheckoutActivity extends AppCompatActivity {
     TextView txtDistance;
     TextView txtDuration;
     BigDecimal totalPrice = BigDecimal.ZERO;
+
+    BigDecimal shippingFee = BigDecimal.ZERO;
     private static final int REQUEST_CODE_VOUCHER = 100;
     private Long cartId;
     private String userId;
@@ -152,7 +154,7 @@ public class CheckoutActivity extends AppCompatActivity {
 
                 ApplyVoucherRequest request = ApplyVoucherRequest.builder()
                         .listCode(voucherCodes)
-                        .shippingFee(BigDecimal.valueOf(25000))
+                        .shippingFee(shippingFee)
                         .totalPrice(totalPrice)
                         .build();
                 applyVoucher(request);
@@ -213,8 +215,8 @@ public class CheckoutActivity extends AppCompatActivity {
 
         NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
         txtTotalCartAmount.setText(formatter.format(totalPrice) + "đ");
-        deliveryFeeText.setText("25.000đ");
-        totalPriceText.setText(formatter.format(totalPrice.add(BigDecimal.valueOf(25000))) + "đ");
+        deliveryFeeText.setText(formatter.format(shippingFee) + "đ");
+        totalPriceText.setText(formatter.format(totalPrice.add(shippingFee)) + "đ");
         discountAmount.setText("");
         discountShipping.setText("");
     }
@@ -235,7 +237,7 @@ public class CheckoutActivity extends AppCompatActivity {
                         .cartId(cartId)
                         .note("App Order")
                         .address(location)
-                        .shippingFee(BigDecimal.valueOf(25000))
+                        .shippingFee(shippingFee)
                         .voucherCode(voucherCodes)
                         .build();
 
@@ -413,7 +415,7 @@ public class CheckoutActivity extends AppCompatActivity {
     }
 
     private void checkDistance(Long userId, double lat, double lon) {
-
+        NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
         OrderService orderService = ApiClient.getClient().create(OrderService.class);
         Call<ApiResponse<CheckDistanceResponse>> call = orderService.checkDistance(userId, lat, lon);
         call.enqueue(new Callback<ApiResponse<CheckDistanceResponse>>() {
@@ -426,12 +428,17 @@ public class CheckoutActivity extends AppCompatActivity {
                             Toast.makeText(CheckoutActivity.this, "Khoảng cách quá xa, vui lòng chọn địa chỉ khác", Toast.LENGTH_LONG).show();
                             txtDistance.setText("");
                             txtDuration.setText("");
+                            deliveryFeeText.setText("0đ");
+                            totalPriceText.setText(formatter.format(totalPrice) + "đ");
                             btnPayment.setEnabled(false);
                             btnPayment.setBackgroundColor(ContextCompat.getColor(CheckoutActivity.this, R.color.gray));
                         } else {
                             btnPayment.setBackgroundColor(ContextCompat.getColor(CheckoutActivity.this, R.color.green));
                             txtDistance.setText("Cách bạn: " +formatDistance(apiResponse.getData().getDistance()) + "km");
                             txtDuration.setText("Thời gian giao dự kiến: "+formatDuration(apiResponse.getData().getDuration()) + "phút");
+                            shippingFee = apiResponse.getData().getShippingFee();
+                            deliveryFeeText.setText(formatter.format(shippingFee) + "đ");
+                            totalPriceText.setText(formatter.format(totalPrice.add(shippingFee)) + "đ");
                             btnPayment.setEnabled(true);
                         }
 
