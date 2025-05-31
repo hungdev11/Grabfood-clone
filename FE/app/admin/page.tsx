@@ -4,6 +4,7 @@ import AdminVoucher from "@/components/admin/AdminVoucher";
 import { useState } from "react";
 import RestaurantManagement from "@/components/admin/RestaurantManagement";
 import OrderList from "@/components/admin/OrderAdmin";
+import RevenueTracking from "@/components/admin/RevenueTracking";
 import { LogOut } from "lucide-react";
 import { logout } from "@/utils/authService";
 
@@ -55,13 +56,13 @@ const Dashboard = () => {
             </button>
             <button
               className={`w-full p-4 text-left text-gray-600 ${
-                activeButton === "Shadow"
+                activeButton === "Revenue"
                   ? "bg-green-500 text-white rounded-lg"
                   : ""
               }`}
-              onClick={() => handleButtonClick("Shadow")}
+              onClick={() => handleButtonClick("Revenue")}
             >
-              Shadow
+              Doanh thu
             </button>
             <button
               className="w-full p-4 text-left text-red-600 flex items-center gap-2 hover:bg-red-100 rounded-lg mt-4"
@@ -79,6 +80,7 @@ const Dashboard = () => {
         {activeButton === "Voucher" && <AdminVoucher />}
         {activeButton === "Restaurant" && <RestaurantManagement />}
         {activeButton === "Order" && <OrderList />}
+        {activeButton === "Revenue" && <RevenueTracking />}
       </div>
     </div>
   );

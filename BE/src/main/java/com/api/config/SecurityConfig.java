@@ -102,8 +102,11 @@ public class SecurityConfig {
                                 .requestMatchers("/push-noti/**").permitAll()
                                 .requestMatchers("/cart/test").permitAll()
                                 .requestMatchers("/report/**").permitAll()
+                                .requestMatchers("/reminders/**", "/reminders").permitAll()
                                 .requestMatchers("/notifications/**").permitAll()
                                 //
+                                //ADMIN
+                                .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                                 // Role-based endpoints
                                 .requestMatchers("/auth/**").hasAnyAuthority("ROLE_USER","ROLE_ADMIN", "ROLE_RES")
 

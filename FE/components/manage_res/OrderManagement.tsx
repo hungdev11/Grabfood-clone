@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import { Order, CartDetail } from "../types/Types"
+import axiosInstance from "@/utils/axiosInstance";
 
 
 export default function OrdersManagement() {
@@ -63,7 +64,7 @@ export default function OrdersManagement() {
       if (!replyContent) return;
 
       try {
-        await axios.post("http://localhost:6969/grab/reviews/reply", {
+        await axiosInstance.post("http://localhost:6969/grab/reviews/reply", {
           reviewId: reviewObj.reviewId,
           replyMessage: replyContent,
         });
@@ -107,7 +108,7 @@ export default function OrdersManagement() {
       try {
         const restaurantId = params?.restaurantId as string;
     
-        await axios.put(
+        await axiosInstance.put(
           `http://localhost:6969/grab/restaurants/${restaurantId}/handle-order/${order.id}`,
           null, // PUT body is empty
           {

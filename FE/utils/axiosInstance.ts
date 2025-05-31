@@ -3,7 +3,7 @@ import axios from 'axios';
 // Create a custom axios instance
 const axiosInstance = axios.create({
   baseURL: 'http://localhost:6969',
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
