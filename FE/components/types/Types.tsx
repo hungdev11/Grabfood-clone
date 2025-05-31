@@ -139,3 +139,11 @@ export interface Notification {
   timeArrived: string;
   read: boolean;
 }
+
+export interface Reminder {
+  id: string;
+  title: string;
+  description: string;
+  reminderTime: string;
+  isProcessed: boolean;
+}

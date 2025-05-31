@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import { Food, AdditionalFood } from "../types/Types";
+import axiosInstance from "@/utils/axiosInstance";
 
 export default function MenuManagement() {
   const kinds = ["MAIN", "ADDITIONAL", "BOTH"];
@@ -153,7 +154,7 @@ export default function MenuManagement() {
 
     console.log("Payload to save:", payload); 
     try {
-      await axios.put(
+      await axiosInstance.put(
         `http://localhost:6969/grab/foods/info/${selectedFood.id}?restaurantId=${restaurantId}`,
         payload
       );
@@ -195,7 +196,7 @@ export default function MenuManagement() {
   const handleDelete = async () => {
     if (!confirm("Bạn có chắc muốn xóa món này?")) return;
     try {
-      await axios.delete(`http://localhost:6969/grab/foods/${selectedFood?.id}`);
+      await axiosInstance.delete(`http://localhost:6969/grab/foods/${selectedFood?.id}`);
       alert("Đã xóa món ăn!");
       setSelectedFood(null);
       await fetchFoods();
@@ -230,7 +231,7 @@ export default function MenuManagement() {
     const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";
     try {
       // Cập nhật trạng thái món ăn thông qua PUT request
-      const response = await axios.put(
+      const response = await axiosInstance.put(
         `http://localhost:6969/grab/foods/${foodId}`,  // Đảm bảo URL đúng với API bạn đang sử dụng
         null,
         { params: { restaurantId, foodStatus: newStatus } }
