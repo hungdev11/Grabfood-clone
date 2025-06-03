@@ -104,7 +104,7 @@ export default function OrdersManagement() {
         // Toggle expanded state for each order
         setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
       };
-    const changeStatus = async (order: Order, status: "PROCESSING" | "REJECTED" | "SHIPPING") => {
+    const changeStatus = async (order: Order, status: "PROCESSING" | "REJECTED" | "READY_FOR_PICKUP") => {
       try {
         const restaurantId = params?.restaurantId as string;
     
@@ -228,11 +228,29 @@ export default function OrdersManagement() {
                         )}
                         {order.status === "PROCESSING" && (
                           <button
-                            onClick={() => changeStatus(order, "SHIPPING")}
+                            onClick={() => changeStatus(order, "READY_FOR_PICKUP")}
                             className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
                           >
                             Hoàn thành
                           </button>
+                        )}
+                        {order.status === "READY_FOR_PICKUP" && (
+                          <div className="p-4 mt-2 bg-gray-50 rounded-xl shadow-sm border border-gray-200">
+                            <p className="text-base font-semibold text-gray-800 mb-2">
+                              Thông tin tài xế
+                            </p>
+                            {order.shipperPickUpInfoResponse ? (
+                              <ul className="text-sm text-gray-700 space-y-1 pl-2">
+                                <li><strong>Tên:</strong> {order.shipperPickUpInfoResponse.name}</li>
+                                <li><strong>Số điện thoại:</strong> {order.shipperPickUpInfoResponse.phoneNumber}</li>
+                                <li><strong>Loại xe:</strong> {order.shipperPickUpInfoResponse.vehicleType}</li>
+                                <li><strong>Biển số xe:</strong> {order.shipperPickUpInfoResponse.vehicleNumber}</li>
+                                <li><strong>Hình thức thanh toán:</strong> {order.shipperPickUpInfoResponse.paymentMethod}</li>
+                              </ul>
+                            ) : (
+                              <p className="text-sm text-red-500 italic">Chưa có tài xế nhận đơn</p>
+                            )}
+                          </div>
                         )}
                         {order.status === "COMPLETED" && order.reviewResponse && (
                         <div className="w-full mt-3 space-y-2">
