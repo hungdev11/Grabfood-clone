@@ -8,6 +8,7 @@ import com.api.exception.ErrorCode;
 import com.api.jwt.JwtService;
 import com.api.repository.*;
 import com.api.service.DriverService;
+import com.api.service.OrderAssignmentService;
 import com.api.utils.OrderStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +54,7 @@ public class DriverServiceImp implements DriverService {
     private final ShipperRewardRepository shipperRewardRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final OrderAssignmentService orderAssignmentService;
 
     // ===============================
     // AUTHENTICATION & PROFILE
@@ -263,28 +265,24 @@ public class DriverServiceImp implements DriverService {
 
     @Override
     public void acceptOrder(Long shipperId, Long orderId, OrderActionRequest request) {
-        Shipper shipper = getShipperById(shipperId);
+        log.info("Shipper {} accept order {}", shipperId, orderId);
+
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND, "Không tìm thấy đơn hàng"));
 
-        // Tìm assignment
+        // Tìm assignment hiện tại
         OrderAssignment assignment = orderAssignmentRepository.findByOrderIdAndShipperId(orderId, shipperId)
-                .orElse(null);
+                .orElseThrow(() -> new AppException(ErrorCode.FORBIDDEN, "Bạn không được assign đơn hàng này"));
 
-        if (assignment == null) {
-            // Tạo assignment mới nếu chưa có
-            assignment = OrderAssignment.builder()
-                    .order(order)
-                    .shipper(shipper)
-                    .status(OrderAssignment.AssignmentStatus.ASSIGNED)
-                    .assignedAt(LocalDateTime.now())
-                    .build();
+        // Kiểm tra assignment đang ở trạng thái ASSIGNED
+        if (assignment.getStatus() != OrderAssignment.AssignmentStatus.ASSIGNED) {
+            throw new AppException(ErrorCode.INVALID_KEY, "Đơn hàng không ở trạng thái có thể accept");
         }
 
-        // Chấp nhận đơn hàng
+        // Accept assignment
         assignment.acceptOrder();
 
-        // Cập nhật thời gian dự kiến nếu có
+        // Set estimated times nếu có
         if (request != null) {
             if (request.getEstimatedPickupTime() != null) {
                 assignment.setEstimatedPickupTime(
@@ -298,19 +296,21 @@ public class DriverServiceImp implements DriverService {
 
         orderAssignmentRepository.save(assignment);
 
-        // Cập nhật trạng thái đơn hàng
-        order.setStatus(OrderStatus.SHIPPING);
-        orderRepository.save(order);
+        // ✅ CANCEL TIMEOUT CHECK CHO SHIPPER NÀY
+        orderAssignmentService.cancelTimeoutCheck(orderId, shipperId);
 
         // Cập nhật thống kê shipper
+        Shipper shipper = getShipperById(shipperId);
         shipper.incrementTotalOrders();
         shipperRepository.save(shipper);
 
-        log.info("Shipper {} đã chấp nhận đơn hàng {}", shipperId, orderId);
+        log.info("Shipper {} đã accept order {} thành công", shipperId, orderId);
     }
 
     @Override
     public void rejectOrder(Long shipperId, Long orderId, OrderActionRequest request) {
+        log.info("Shipper {} reject order {}", shipperId, orderId);
+
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND, "Không tìm thấy đơn hàng"));
 
@@ -319,7 +319,7 @@ public class DriverServiceImp implements DriverService {
                 .orElse(null);
 
         if (assignment == null) {
-            // Tạo assignment mới nếu chưa có
+            // Tạo assignment mới nếu chưa có (edge case)
             assignment = OrderAssignment.builder()
                     .order(order)
                     .shipper(getShipperById(shipperId))
@@ -331,10 +331,21 @@ public class DriverServiceImp implements DriverService {
         // Từ chối đơn hàng
         String rejectionReason = request != null ? request.getRejectionReason() : "Không có lý do";
         assignment.rejectOrder(rejectionReason);
-
         orderAssignmentRepository.save(assignment);
 
-        log.info("Shipper {} đã từ chối đơn hàng {} với lý do: {}", shipperId, orderId, rejectionReason);
+        log.info("Đã lưu rejection: Shipper {} reject order {} - lý do: {}", shipperId, orderId, rejectionReason);
+
+        // ✅ CANCEL TIMEOUT CHECK CHO SHIPPER NÀY
+        orderAssignmentService.cancelTimeoutCheck(orderId, shipperId);
+
+        // ✅ TỰ ĐỘNG TÌM SHIPPER KHÁC (RETRY LOGIC)
+        boolean foundNewShipper = orderAssignmentService.handleOrderRejection(orderId, shipperId);
+
+        if (foundNewShipper) {
+            log.info("Đã tìm được shipper khác cho order {} sau khi shipper {} reject", orderId, shipperId);
+        } else {
+            log.warn("Không tìm được shipper khác cho order {} sau khi shipper {} reject", orderId, shipperId);
+        }
     }
 
     @Override
