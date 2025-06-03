@@ -62,10 +62,11 @@ public class DriverServiceImp implements DriverService {
     public DriverLoginResponse login(DriverLoginRequest request) {
         try {
             log.info("Đăng nhập cho shipper với phone: {}", request.getPhone());
-            
+
             // Tìm shipper theo phone
             Shipper shipper = shipperRepository.findByPhone(request.getPhone())
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, "Không tìm thấy shipper với số điện thoại này"));
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND,
+                            "Không tìm thấy shipper với số điện thoại này"));
 
             // Kiểm tra trạng thái shipper
             if (shipper.getStatus() == Shipper.ShipperStatus.SUSPENDED) {
@@ -84,8 +85,7 @@ public class DriverServiceImp implements DriverService {
 
             // Xác thực mật khẩu
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(account.getUsername(), request.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(account.getUsername(), request.getPassword()));
 
             if (!authentication.isAuthenticated()) {
                 throw new AppException(ErrorCode.ACCOUNT_PASSWORD_NOT_MATCH, "Mật khẩu không chính xác");
@@ -174,13 +174,13 @@ public class DriverServiceImp implements DriverService {
     // ===============================
 
     @Override
-    @CacheEvict(value = {"activeDrivers", "driverLocations"}, key = "#shipperId")
+    @CacheEvict(value = { "activeDrivers", "driverLocations" }, key = "#shipperId")
     public void updateLocation(Long shipperId, UpdateLocationRequest request) {
         Shipper shipper = getShipperById(shipperId);
-        
+
         // Cập nhật vị trí
         shipper.updateLocation(request.getLatitude(), request.getLongitude());
-        
+
         // Cập nhật trạng thái online nếu có
         if (request.getIsOnline() != null) {
             shipper.setIsOnline(request.getIsOnline());
@@ -194,7 +194,7 @@ public class DriverServiceImp implements DriverService {
     @Cacheable(value = "driverLocations", key = "#shipperId")
     public UpdateLocationRequest getCurrentLocation(Long shipperId) {
         Shipper shipper = getShipperById(shipperId);
-        
+
         return UpdateLocationRequest.builder()
                 .latitude(shipper.getCurrentLatitude())
                 .longitude(shipper.getCurrentLongitude())
@@ -210,11 +210,11 @@ public class DriverServiceImp implements DriverService {
     @Override
     public List<DriverOrderResponse> getAvailableOrders(Long shipperId) {
         Shipper shipper = getShipperById(shipperId);
-        
+
         // Chỉ lấy đơn hàng với status PROCESSING hoặc READY_FOR_PICKUP
         List<Order> availableOrders = orderRepository.findAll().stream()
-                .filter(order -> order.getStatus() == OrderStatus.PROCESSING || 
-                               order.getStatus() == OrderStatus.SHIPPING)
+                .filter(order -> order.getStatus() == OrderStatus.PROCESSING ||
+                        order.getStatus() == OrderStatus.READY_FOR_PICKUP)
                 .filter(order -> !orderAssignmentRepository.existsByOrderIdAndShipperId(order.getId(), shipperId))
                 .collect(Collectors.toList());
 
@@ -227,7 +227,7 @@ public class DriverServiceImp implements DriverService {
     public List<DriverOrderResponse> getAssignedOrders(Long shipperId) {
         List<OrderAssignment> assignments = orderAssignmentRepository.findByShipperIdAndStatus(
                 shipperId, OrderAssignment.AssignmentStatus.ACCEPTED);
-        
+
         return assignments.stream()
                 .map(assignment -> mapToDriverOrderResponse(assignment.getOrder()))
                 .collect(Collectors.toList());
@@ -236,11 +236,11 @@ public class DriverServiceImp implements DriverService {
     @Override
     public List<DriverOrderResponse> getOrderHistory(Long shipperId, Pageable pageable) {
         List<OrderAssignment> assignments = orderAssignmentRepository.findByShipperId(shipperId);
-        
+
         // Áp dụng pagination thủ công
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), assignments.size());
-        
+
         List<OrderAssignment> pagedAssignments = assignments.subList(start, end);
 
         return pagedAssignments.stream()
@@ -283,14 +283,16 @@ public class DriverServiceImp implements DriverService {
 
         // Chấp nhận đơn hàng
         assignment.acceptOrder();
-        
+
         // Cập nhật thời gian dự kiến nếu có
         if (request != null) {
             if (request.getEstimatedPickupTime() != null) {
-                assignment.setEstimatedPickupTime(LocalDateTime.now().plusMinutes(request.getEstimatedPickupTime().longValue()));
+                assignment.setEstimatedPickupTime(
+                        LocalDateTime.now().plusMinutes(request.getEstimatedPickupTime().longValue()));
             }
             if (request.getEstimatedDeliveryTime() != null) {
-                assignment.setEstimatedDeliveryTime(LocalDateTime.now().plusMinutes(request.getEstimatedDeliveryTime().longValue()));
+                assignment.setEstimatedDeliveryTime(
+                        LocalDateTime.now().plusMinutes(request.getEstimatedDeliveryTime().longValue()));
             }
         }
 
@@ -399,7 +401,8 @@ public class DriverServiceImp implements DriverService {
 
     @Override
     public Integer getPendingOrdersCount(Long shipperId) {
-        List<OrderAssignment> pendingAssignments = orderAssignmentRepository.findPendingAssignmentsByShipperId(shipperId);
+        List<OrderAssignment> pendingAssignments = orderAssignmentRepository
+                .findPendingAssignmentsByShipperId(shipperId);
         return pendingAssignments.size();
     }
 
@@ -410,7 +413,7 @@ public class DriverServiceImp implements DriverService {
     @Override
     public DriverLoginResponse getProfile(Long shipperId) {
         Shipper shipper = getShipperById(shipperId);
-        
+
         return DriverLoginResponse.builder()
                 .shipperId(shipper.getId())
                 .name(shipper.getName())
@@ -433,7 +436,7 @@ public class DriverServiceImp implements DriverService {
     @Override
     public void updateProfile(Long shipperId, UpdateProfileRequest request) {
         Shipper shipper = getShipperById(shipperId);
-        
+
         // Cập nhật thông tin cơ bản
         if (request.getName() != null) {
             shipper.setName(request.getName());
@@ -447,8 +450,7 @@ public class DriverServiceImp implements DriverService {
         if (request.getLicensePlate() != null) {
             shipper.setLicensePlate(request.getLicensePlate());
         }
-        
-        
+
         shipperRepository.save(shipper);
         log.info("Đã cập nhật profile cho shipper ID: {}", shipperId);
     }
@@ -456,24 +458,24 @@ public class DriverServiceImp implements DriverService {
     @Override
     public ProfileStatsResponse getProfileStats(Long shipperId) {
         Shipper shipper = getShipperById(shipperId);
-        
+
         // Lấy thống kê từ database
         List<OrderAssignment> allAssignments = orderAssignmentRepository.findByShipperId(shipperId);
-        
+
         int totalOrders = shipper.getTotalOrders();
         int completedOrders = shipper.getCompletedOrders();
         int cancelledOrders = (int) allAssignments.stream()
                 .filter(a -> a.getStatus() == OrderAssignment.AssignmentStatus.REJECTED)
                 .count();
-        
+
         double acceptanceRate = shipper.getAcceptanceRate();
         double completionRate = totalOrders > 0 ? (double) completedOrders / totalOrders * 100 : 0;
-        
+
         // Lấy thống kê thu nhập
         Long todayEarnings = transactionRepository.getTodayEarningsByShipper(shipperId);
         Long weekEarnings = transactionRepository.getWeekEarningsByShipper(shipperId);
         Long monthEarnings = transactionRepository.getMonthEarningsByShipper(shipperId);
-        
+
         return ProfileStatsResponse.builder()
                 .totalOrders(totalOrders)
                 .completedOrders(completedOrders)
@@ -489,9 +491,9 @@ public class DriverServiceImp implements DriverService {
                 .todayEarnings(BigDecimal.valueOf(todayEarnings != null ? todayEarnings : 0))
                 .weekEarnings(BigDecimal.valueOf(weekEarnings != null ? weekEarnings : 0))
                 .monthEarnings(BigDecimal.valueOf(monthEarnings != null ? monthEarnings : 0))
-                .averageEarningPerOrder(totalOrders > 0 ? 
-                        BigDecimal.valueOf((monthEarnings != null ? monthEarnings : 0) / totalOrders) : 
-                        BigDecimal.ZERO)
+                .averageEarningPerOrder(
+                        totalOrders > 0 ? BigDecimal.valueOf((monthEarnings != null ? monthEarnings : 0) / totalOrders)
+                                : BigDecimal.ZERO)
                 .totalGems(shipper.getGems())
                 .gemsEarnedThisMonth(0) // Có thể thêm sau
                 .totalRewardsClaimed(0) // Từ ShipperRewardRepository
@@ -500,7 +502,7 @@ public class DriverServiceImp implements DriverService {
                 .averageDeliveryTimeMinutes(30) // Ước tính
                 .currentRank("BRONZE") // Có thể tính toán dựa trên rating/orders
                 .rankPosition(0)
-                .achievements(new String[]{}) // Có thể thêm sau
+                .achievements(new String[] {}) // Có thể thêm sau
                 .lastUpdated(LocalDateTime.now())
                 .memberSince(shipper.getCreatedDate()) // Use createdDate instead of createdAt
                 .build();
@@ -511,7 +513,9 @@ public class DriverServiceImp implements DriverService {
         Shipper shipper = getShipperById(shipperId);
         // Note: profile_image_url field doesn't exist in Shipper entity
         // This method will need database schema update to add the field
-        log.info("Avatar upload not implemented - profile_image_url field missing in database schema for shipper ID: {}", shipperId);
+        log.info(
+                "Avatar upload not implemented - profile_image_url field missing in database schema for shipper ID: {}",
+                shipperId);
         // shipper.setProfileImageUrl(imageUrl);
         // shipperRepository.save(shipper);
     }
@@ -523,11 +527,11 @@ public class DriverServiceImp implements DriverService {
     @Override
     public WalletResponse getWallet(Long shipperId) {
         Shipper shipper = getShipperById(shipperId);
-        
+
         // Tìm ví của shipper
         Wallet wallet = walletRepository.findByShipperId(shipperId)
                 .orElse(null);
-        
+
         if (wallet == null) {
             // Tạo ví mới nếu chưa có
             wallet = Wallet.builder()
@@ -542,7 +546,7 @@ public class DriverServiceImp implements DriverService {
                     .build();
             wallet = walletRepository.save(wallet);
         }
-        
+
         // Đếm giao dịch
         List<Transaction> allTransactions = transactionRepository.findByShipperIdOrderByTransactionDateDesc(shipperId);
         int totalTransactions = allTransactions.size();
@@ -552,7 +556,7 @@ public class DriverServiceImp implements DriverService {
         int completedTransactions = (int) allTransactions.stream()
                 .filter(t -> t.getStatus() == Transaction.TransactionStatus.COMPLETED)
                 .count();
-        
+
         return WalletResponse.builder()
                 .walletId(wallet.getId())
                 .shipperId(shipperId)
@@ -587,13 +591,13 @@ public class DriverServiceImp implements DriverService {
     @Override
     public List<TransactionResponse> getTransactionHistory(Long shipperId, Pageable pageable) {
         List<Transaction> transactions = transactionRepository.findByShipperIdOrderByTransactionDateDesc(shipperId);
-        
+
         // Áp dụng pagination thủ công
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), transactions.size());
-        
+
         List<Transaction> pagedTransactions = transactions.subList(start, end);
-        
+
         return pagedTransactions.stream()
                 .map(this::mapToTransactionResponse)
                 .collect(Collectors.toList());
@@ -603,8 +607,9 @@ public class DriverServiceImp implements DriverService {
     public List<TransactionResponse> getTransactionsByType(Long shipperId, String type) {
         try {
             Transaction.TransactionType transactionType = Transaction.TransactionType.valueOf(type.toUpperCase());
-            List<Transaction> transactions = transactionRepository.findByShipperIdAndTypeOrderByTransactionDateDesc(shipperId, transactionType);
-            
+            List<Transaction> transactions = transactionRepository
+                    .findByShipperIdAndTypeOrderByTransactionDateDesc(shipperId, transactionType);
+
             return transactions.stream()
                     .map(this::mapToTransactionResponse)
                     .collect(Collectors.toList());
@@ -616,21 +621,21 @@ public class DriverServiceImp implements DriverService {
     @Override
     public void withdrawMoney(Long shipperId, WithdrawRequest request) {
         Shipper shipper = getShipperById(shipperId);
-        
+
         // Kiểm tra ví
         Wallet wallet = walletRepository.findByShipperId(shipperId)
                 .orElseThrow(() -> new AppException(ErrorCode.WALLET_NOT_FOUND, "Không tìm thấy ví"));
-        
+
         // Kiểm tra số dư
         if (wallet.getCurrentBalance() < request.getAmount()) {
             throw new AppException(ErrorCode.INSUFFICIENT_BALANCE, "Số dư không đủ để rút tiền");
         }
-        
+
         // Kiểm tra giới hạn rút tiền
         if (request.getAmount() > 5000000L) { // 5 triệu VND
             throw new AppException(ErrorCode.WITHDRAW_LIMIT_EXCEEDED, "Vượt quá giới hạn rút tiền hàng ngày");
         }
-        
+
         // Tạo giao dịch rút tiền
         Transaction withdrawal = Transaction.builder()
                 .shipper(shipper)
@@ -640,13 +645,13 @@ public class DriverServiceImp implements DriverService {
                 .description("Rút tiền từ ví - " + request.getBankName() + " - " + request.getBankAccountNumber())
                 .transactionDate(LocalDateTime.now())
                 .build();
-        
+
         transactionRepository.save(withdrawal);
-        
+
         // Trừ tiền từ ví (có thể đặt về PENDING và chờ admin approve)
         wallet.deductBalance(request.getAmount());
         walletRepository.save(wallet);
-        
+
         log.info("Shipper {} đã tạo yêu cầu rút {} VND", shipperId, request.getAmount());
     }
 
@@ -659,7 +664,7 @@ public class DriverServiceImp implements DriverService {
     public Boolean canWithdraw(Long shipperId, Long amount) {
         Wallet wallet = walletRepository.findByShipperId(shipperId)
                 .orElseThrow(() -> new AppException(ErrorCode.WALLET_NOT_FOUND, "Không tìm thấy ví của shipper"));
-        
+
         // Kiểm tra số dư khả dụng (trừ tiền COD đang giữ)
         Long availableBalance = wallet.getCurrentBalance() - wallet.getCodHolding();
         return availableBalance >= amount;
@@ -668,55 +673,55 @@ public class DriverServiceImp implements DriverService {
     // ===============================
     // REWARDS SYSTEM (Phase 3)
     // ===============================
-    
+
     @Override
     public List<RewardResponse> getAvailableRewards(Long shipperId) {
         log.info("Lấy danh sách phần thưởng khả dụng cho shipper: {}", shipperId);
-        
+
         // Lấy tất cả rewards đang active
         List<Reward> activeRewards = rewardRepository.findValidRewards(LocalDate.now());
-        
+
         return activeRewards.stream()
                 .map(reward -> mapToRewardResponse(reward, shipperId))
                 .collect(Collectors.toList());
     }
-    
+
     @Override
     public List<RewardResponse> getClaimedRewards(Long shipperId, Pageable pageable) {
         log.info("Lấy lịch sử phần thưởng đã nhận của shipper: {}", shipperId);
-        
+
         List<ShipperReward> claimedRewards = shipperRewardRepository.findClaimedRewardsByShipper(shipperId);
-        
+
         return claimedRewards.stream()
                 .skip(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .map(this::mapShipperRewardToResponse)
                 .collect(Collectors.toList());
     }
-    
+
     @Override
     public void claimReward(Long shipperId, Long rewardId) {
         log.info("Shipper {} đang claim reward {}", shipperId, rewardId);
-        
+
         Shipper shipper = getShipperById(shipperId);
         Reward reward = rewardRepository.findById(rewardId)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy phần thưởng"));
-        
+
         // Kiểm tra reward có thể claim không
         if (!reward.getIsActive() || !reward.getStatus().equals(Reward.RewardStatus.ACTIVE)) {
             throw new AppException(ErrorCode.INVALID_KEY, "Phần thưởng không còn hiệu lực");
         }
-        
+
         // Kiểm tra shipper đã claim reward này chưa
         if (shipperRewardRepository.existsByShipperIdAndRewardId(shipperId, rewardId)) {
             throw new AppException(ErrorCode.INVALID_KEY, "Bạn đã nhận phần thưởng này rồi");
         }
-        
+
         // Kiểm tra điều kiện reward
         if (!checkRewardEligibility(shipper, reward)) {
             throw new AppException(ErrorCode.INVALID_KEY, "Bạn chưa đủ điều kiện nhận phần thưởng này");
         }
-        
+
         // Tạo ShipperReward
         ShipperReward shipperReward = ShipperReward.builder()
                 .shipper(shipper)
@@ -725,41 +730,41 @@ public class DriverServiceImp implements DriverService {
                 .claimedAt(LocalDateTime.now())
                 .completionPercentage(100.0f)
                 .build();
-        
+
         shipperRewardRepository.save(shipperReward);
-        
+
         // Cập nhật wallet và gems cho shipper
         updateShipperRewardWallet(shipper, reward);
-        
+
         log.info("Shipper {} đã nhận thành công reward {} - {}", shipperId, rewardId, reward.getName());
     }
-    
+
     @Override
     public List<RewardResponse> getRewardProgress(Long shipperId) {
         log.info("Lấy tiến độ phần thưởng của shipper: {}", shipperId);
-        
+
         List<ShipperReward> shipperRewards = shipperRewardRepository.findByShipperIdOrderByClaimedAtDesc(shipperId);
-        
+
         return shipperRewards.stream()
                 .map(this::mapShipperRewardToResponse)
                 .collect(Collectors.toList());
     }
-    
+
     // ===============================
     // ANALYTICS (Phase 3)
     // ===============================
-    
+
     @Override
     public AnalyticsResponse getPerformanceAnalytics(Long shipperId, String period) {
         log.info("Lấy thống kê hiệu suất shipper {} trong kỳ: {}", shipperId, period);
-        
+
         Shipper shipper = getShipperById(shipperId);
         LocalDateTime[] dateRange = getDateRangeByPeriod(period);
-        
+
         // Lấy dữ liệu đơn hàng trong kỳ
         List<Order> orders = getOrdersInPeriod(shipperId, dateRange[0], dateRange[1]);
         List<Transaction> transactions = getTransactionsInPeriod(shipperId, dateRange[0], dateRange[1]);
-        
+
         return AnalyticsResponse.builder()
                 .shipperId(shipperId)
                 .shipperName(shipper.getName())
@@ -784,23 +789,23 @@ public class DriverServiceImp implements DriverService {
                 .lastUpdated(LocalDateTime.now())
                 .build();
     }
-    
+
     @Override
     public AnalyticsResponse getEarningsAnalytics(Long shipperId, String period) {
         log.info("Lấy phân tích thu nhập shipper {} trong kỳ: {}", shipperId, period);
-        
+
         Shipper shipper = getShipperById(shipperId);
         LocalDateTime[] dateRange = getDateRangeByPeriod(period);
-        
+
         List<Transaction> transactions = getTransactionsInPeriod(shipperId, dateRange[0], dateRange[1]);
         List<Order> orders = getOrdersInPeriod(shipperId, dateRange[0], dateRange[1]);
-        
+
         // Tính toán thu nhập từ Orders thay vì Transactions để có dữ liệu chính xác hơn
         BigDecimal totalEarnings = calculateShipperEarningsFromOrders(orders);
         BigDecimal deliveryFees = calculateDeliveryFeesFromOrders(orders);
         BigDecimal tips = calculateTipsFromOrders(orders);
         BigDecimal bonuses = calculateBonuses(transactions); // Bonus vẫn lấy từ transactions
-        
+
         return AnalyticsResponse.builder()
                 .shipperId(shipperId)
                 .shipperName(shipper.getName())
@@ -809,8 +814,8 @@ public class DriverServiceImp implements DriverService {
                 .deliveryFees(deliveryFees)
                 .tips(tips)
                 .bonuses(bonuses)
-                .averageEarningPerOrder(orders.isEmpty() ? BigDecimal.ZERO : 
-                    totalEarnings.divide(BigDecimal.valueOf(orders.size()), 2, RoundingMode.HALF_UP))
+                .averageEarningPerOrder(orders.isEmpty() ? BigDecimal.ZERO
+                        : totalEarnings.divide(BigDecimal.valueOf(orders.size()), 2, RoundingMode.HALF_UP))
                 .averageEarningPerHour(calculateEarningPerHour(totalEarnings, shipperId, dateRange[0], dateRange[1]))
                 .dailyEarnings(calculateDailyEarnings(transactions))
                 .reportGeneratedAt(LocalDateTime.now())
@@ -818,16 +823,16 @@ public class DriverServiceImp implements DriverService {
                 .periodEnd(dateRange[1])
                 .build();
     }
-    
+
     @Override
     public AnalyticsResponse getOrderAnalytics(Long shipperId, String period) {
         log.info("Lấy thống kê đơn hàng shipper {} trong kỳ: {}", shipperId, period);
-        
+
         Shipper shipper = getShipperById(shipperId);
         LocalDateTime[] dateRange = getDateRangeByPeriod(period);
-        
+
         List<Order> orders = getOrdersInPeriod(shipperId, dateRange[0], dateRange[1]);
-        
+
         return AnalyticsResponse.builder()
                 .shipperId(shipperId)
                 .shipperName(shipper.getName())
@@ -848,23 +853,23 @@ public class DriverServiceImp implements DriverService {
                 .periodEnd(dateRange[1])
                 .build();
     }
-    
+
     // ===============================
     // SYSTEM UTILITIES (Phase 3)
     // ===============================
-    
+
     @Override
     public SystemResponse checkAppVersion(String currentVersion) {
         log.info("Kiểm tra phiên bản app: {}", currentVersion);
-        
+
         // Hardcode latest version - có thể lưu trong database
         String latestVersion = "2.1.0";
         Integer currentBuild = parseVersionToBuild(currentVersion);
         Integer latestBuild = parseVersionToBuild(latestVersion);
-        
+
         boolean needsUpdate = currentBuild < latestBuild;
         boolean forceUpdate = (latestBuild - currentBuild) > 5; // Force update nếu quá cũ
-        
+
         return SystemResponse.builder()
                 .currentVersion(currentVersion)
                 .latestVersion(latestVersion)
@@ -876,20 +881,20 @@ public class DriverServiceImp implements DriverService {
                 .systemStatus("ONLINE")
                 .build();
     }
-    
+
     @Override
     public SystemResponse submitFeedback(Long shipperId, FeedbackRequest request) {
         log.info("Shipper {} gửi feedback: {}", shipperId, request.getTitle());
-        
+
         Shipper shipper = getShipperById(shipperId);
-        
+
         // Tạo ticket number
         String ticketNumber = "FEEDBACK-" + System.currentTimeMillis() + "-" + shipperId;
-        
+
         // Trong thực tế sẽ lưu vào database feedback table
-        log.info("Feedback được gửi: Type={}, Title={}, Shipper={}", 
+        log.info("Feedback được gửi: Type={}, Title={}, Shipper={}",
                 request.getType(), request.getTitle(), shipper.getName());
-        
+
         return SystemResponse.builder()
                 .feedbackId(System.currentTimeMillis()) // Mock ID
                 .feedbackStatus("SUBMITTED")
@@ -898,11 +903,11 @@ public class DriverServiceImp implements DriverService {
                 .ticketNumber(ticketNumber)
                 .build();
     }
-    
+
     @Override
     public SystemResponse getSupportInfo() {
         log.info("Lấy thông tin hỗ trợ hệ thống");
-        
+
         List<SystemResponse.ContactInfo> contacts = Arrays.asList(
                 SystemResponse.ContactInfo.builder()
                         .type("PHONE")
@@ -919,9 +924,8 @@ public class DriverServiceImp implements DriverService {
                         .description("Gửi email cho đội ngũ hỗ trợ")
                         .isAvailable(true)
                         .availableHours("24/7")
-                        .build()
-        );
-        
+                        .build());
+
         List<SystemResponse.FAQItem> faqs = Arrays.asList(
                 SystemResponse.FAQItem.builder()
                         .question("Làm sao để cập nhật vị trí?")
@@ -934,9 +938,8 @@ public class DriverServiceImp implements DriverService {
                         .answer("Kiểm tra kết nối mạng và đảm bảo bạn đang online")
                         .category("ORDERS")
                         .priority(2)
-                        .build()
-        );
-        
+                        .build());
+
         return SystemResponse.builder()
                 .supportHotline("1900-1234")
                 .supportEmail("support@grabfood.vn")
@@ -947,20 +950,21 @@ public class DriverServiceImp implements DriverService {
                 .systemStatus("ONLINE")
                 .build();
     }
-    
+
     // ===============================
     // HELPER METHODS FOR PHASE 3
     // ===============================
-    
+
     private RewardResponse mapToRewardResponse(Reward reward, Long shipperId) {
         // Kiểm tra shipper đã có reward này chưa
-        Optional<ShipperReward> shipperReward = shipperRewardRepository.findByShipperIdAndRewardId(shipperId, reward.getId());
-        
+        Optional<ShipperReward> shipperReward = shipperRewardRepository.findByShipperIdAndRewardId(shipperId,
+                reward.getId());
+
         String shipperStatus = "ELIGIBLE";
         Float progressValue = 0.0f;
         Float completionPercentage = 0.0f;
         LocalDateTime claimedAt = null;
-        
+
         if (shipperReward.isPresent()) {
             ShipperReward sr = shipperReward.get();
             shipperStatus = sr.getStatus().name();
@@ -972,7 +976,7 @@ public class DriverServiceImp implements DriverService {
             Shipper shipper = getShipperById(shipperId);
             completionPercentage = calculateRewardProgress(shipper, reward);
         }
-        
+
         return RewardResponse.builder()
                 .rewardId(reward.getId())
                 .title(reward.getTitle())
@@ -999,10 +1003,10 @@ public class DriverServiceImp implements DriverService {
                 .canClaim(completionPercentage >= 100.0f && !shipperReward.isPresent())
                 .build();
     }
-    
+
     private RewardResponse mapShipperRewardToResponse(ShipperReward shipperReward) {
         Reward reward = shipperReward.getReward();
-        
+
         return RewardResponse.builder()
                 .rewardId(reward.getId())
                 .title(reward.getTitle())
@@ -1022,50 +1026,50 @@ public class DriverServiceImp implements DriverService {
                 .canClaim(false) // Đã claim rồi
                 .build();
     }
-    
+
     private boolean checkRewardEligibility(Shipper shipper, Reward reward) {
         // Kiểm tra điều kiện số đơn hàng
         if (reward.getRequiredOrders() != null && shipper.getTotalOrders() < reward.getRequiredOrders()) {
             return false;
         }
-        
+
         // Kiểm tra điều kiện rating
         if (reward.getRequiredRating() != null && shipper.getRating().floatValue() < reward.getRequiredRating()) {
             return false;
         }
-        
+
         // Có thể thêm các điều kiện khác
         return true;
     }
-    
+
     private Float calculateRewardProgress(Shipper shipper, Reward reward) {
         if (reward.getRequiredOrders() != null) {
             return Math.min(100.0f, (shipper.getTotalOrders() * 100.0f) / reward.getRequiredOrders());
         }
-        
+
         if (reward.getRequiredRating() != null) {
             return Math.min(100.0f, (shipper.getRating().floatValue() * 100.0f) / reward.getRequiredRating());
         }
-        
+
         return 0.0f;
     }
-    
+
     private void updateShipperRewardWallet(Shipper shipper, Reward reward) {
         // Cập nhật gems
         if (reward.getGemsValue() != null && reward.getGemsValue() > 0) {
             shipper.setGems(shipper.getGems() + reward.getGemsValue());
             shipperRepository.save(shipper);
         }
-        
+
         // Cập nhật wallet nếu có reward value
         if (reward.getRewardValue() != null && reward.getRewardValue().compareTo(BigDecimal.ZERO) > 0) {
             Wallet wallet = walletRepository.findByShipperId(shipper.getId())
                     .orElseThrow(() -> new AppException(ErrorCode.WALLET_NOT_FOUND, "Không tìm thấy ví"));
-            
+
             wallet.setCurrentBalance(wallet.getCurrentBalance() + reward.getRewardValue().longValue());
             wallet.setLastUpdated(LocalDateTime.now());
             walletRepository.save(wallet);
-            
+
             // Tạo transaction
             Transaction rewardTransaction = Transaction.builder()
                     .shipper(shipper)
@@ -1075,15 +1079,15 @@ public class DriverServiceImp implements DriverService {
                     .description("Nhận thưởng: " + reward.getName())
                     .transactionDate(LocalDateTime.now())
                     .build();
-            
+
             transactionRepository.save(rewardTransaction);
         }
     }
-    
+
     private LocalDateTime[] getDateRangeByPeriod(String period) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime start, end = now;
-        
+
         switch (period.toLowerCase()) {
             case "today":
                 start = now.toLocalDate().atStartOfDay();
@@ -1100,10 +1104,10 @@ public class DriverServiceImp implements DriverService {
             default:
                 start = now.minusDays(1); // Default to yesterday
         }
-        
-        return new LocalDateTime[]{start, end};
+
+        return new LocalDateTime[] { start, end };
     }
-    
+
     private List<Order> getOrdersInPeriod(Long shipperId, LocalDateTime start, LocalDateTime end) {
         // Lấy orders trực tiếp theo shipper_id trong khoảng thời gian
         return orderRepository.findAll().stream()
@@ -1111,78 +1115,82 @@ public class DriverServiceImp implements DriverService {
                 .filter(order -> order.getOrderDate().isAfter(start) && order.getOrderDate().isBefore(end))
                 .collect(Collectors.toList());
     }
-    
+
     private List<Transaction> getTransactionsInPeriod(Long shipperId, LocalDateTime start, LocalDateTime end) {
         return transactionRepository.findAll().stream()
                 .filter(transaction -> transaction.getShipper().getId().equals(shipperId))
-                .filter(transaction -> transaction.getTransactionDate().isAfter(start) && transaction.getTransactionDate().isBefore(end))
+                .filter(transaction -> transaction.getTransactionDate().isAfter(start)
+                        && transaction.getTransactionDate().isBefore(end))
                 .collect(Collectors.toList());
     }
-    
+
     private Integer getrejectedOrdersCount(Long shipperId, LocalDateTime start, LocalDateTime end) {
         // Đếm số đơn bị reject trong khoảng thời gian
         return (int) orderAssignmentRepository.findAll().stream()
                 .filter(assignment -> assignment.getShipper().getId().equals(shipperId))
-                .filter(assignment -> assignment.getAssignedAt().isAfter(start) && assignment.getAssignedAt().isBefore(end))
+                .filter(assignment -> assignment.getAssignedAt().isAfter(start)
+                        && assignment.getAssignedAt().isBefore(end))
                 .filter(assignment -> assignment.getStatus() == OrderAssignment.AssignmentStatus.REJECTED)
                 .count();
     }
-    
+
     private Double calculateCompletionRate(List<Order> orders) {
-        if (orders.isEmpty()) return 0.0;
-        
+        if (orders.isEmpty())
+            return 0.0;
+
         long completedCount = orders.stream()
                 .filter(order -> order.getStatus() == OrderStatus.COMPLETED)
                 .count();
-        
+
         return (completedCount * 100.0) / orders.size();
     }
-    
+
     private Integer calculateWorkingHours(Long shipperId, LocalDateTime start, LocalDateTime end) {
         // Tính toán giờ làm việc dựa trên khoảng thời gian có đơn hàng
         List<OrderAssignment> assignments = orderAssignmentRepository.findAssignmentsByShipperAndTimeBetween(
                 shipperId, start, end);
-        
-        if (assignments.isEmpty()) return 0;
-        
+
+        if (assignments.isEmpty())
+            return 0;
+
         // Tính từ assignment đầu tiên đến cuối cùng trong ngày
         LocalDateTime firstOrder = assignments.stream()
                 .map(OrderAssignment::getAssignedAt)
                 .min(LocalDateTime::compareTo)
                 .orElse(start);
-                
+
         LocalDateTime lastOrder = assignments.stream()
                 .map(assignment -> assignment.getOrder().getDeliveredAt())
                 .filter(deliveredAt -> deliveredAt != null)
                 .max(LocalDateTime::compareTo)
                 .orElse(end);
-        
+
         return (int) java.time.Duration.between(firstOrder, lastOrder).toHours();
     }
-    
+
     private Integer calculateOnlineHours(Long shipperId, LocalDateTime start, LocalDateTime end) {
         // Ước tính thời gian online = thời gian làm việc + 20%
         Integer workingHours = calculateWorkingHours(shipperId, start, end);
         return (int) (workingHours * 1.2);
     }
-    
+
     private Integer calculateAverageDeliveryTime(List<Order> orders) {
         // Tính thời gian giao hàng trung bình từ dữ liệu thực
         List<Integer> deliveryTimes = orders.stream()
                 .map(Order::getDeliveryTimeInMinutes)
                 .filter(time -> time != null && time > 0)
                 .collect(Collectors.toList());
-        
+
         if (deliveryTimes.isEmpty()) {
             return 0;
         }
-        
+
         return (int) deliveryTimes.stream()
                 .mapToInt(Integer::intValue)
                 .average()
                 .orElse(0);
     }
-    
+
     private Double calculateTotalDistance(List<Order> orders) {
         // Tính tổng quãng đường từ dữ liệu thực
         return orders.stream()
@@ -1190,41 +1198,44 @@ public class DriverServiceImp implements DriverService {
                 .mapToDouble(order -> order.getDistanceKm().doubleValue())
                 .sum();
     }
-    
+
     private BigDecimal calculateTotalEarnings(List<Transaction> transactions) {
         return transactions.stream()
                 .filter(transaction -> transaction.getType() == Transaction.TransactionType.EARNING)
                 .map(transaction -> BigDecimal.valueOf(transaction.getAmount()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-    
+
     private BigDecimal calculateDeliveryFees(List<Transaction> transactions) {
         return transactions.stream()
                 .filter(transaction -> transaction.getType() == Transaction.TransactionType.EARNING)
-                .map(transaction -> BigDecimal.valueOf(transaction.getDeliveryFee() != null ? transaction.getDeliveryFee() : 0))
+                .map(transaction -> BigDecimal
+                        .valueOf(transaction.getDeliveryFee() != null ? transaction.getDeliveryFee() : 0))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-    
+
     private BigDecimal calculateTips(List<Transaction> transactions) {
         return transactions.stream()
                 .filter(transaction -> transaction.getType() == Transaction.TransactionType.TIP)
                 .map(transaction -> BigDecimal.valueOf(transaction.getAmount()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-    
+
     private BigDecimal calculateBonuses(List<Transaction> transactions) {
         return transactions.stream()
                 .filter(transaction -> transaction.getType() == Transaction.TransactionType.BONUS)
                 .map(transaction -> BigDecimal.valueOf(transaction.getAmount()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-    
-    private BigDecimal calculateEarningPerHour(BigDecimal totalEarnings, Long shipperId, LocalDateTime start, LocalDateTime end) {
+
+    private BigDecimal calculateEarningPerHour(BigDecimal totalEarnings, Long shipperId, LocalDateTime start,
+            LocalDateTime end) {
         Integer workingHours = calculateWorkingHours(shipperId, start, end);
-        if (workingHours == 0) return BigDecimal.ZERO;
+        if (workingHours == 0)
+            return BigDecimal.ZERO;
         return totalEarnings.divide(BigDecimal.valueOf(workingHours), 2, RoundingMode.HALF_UP);
     }
-    
+
     private Map<String, BigDecimal> calculateDailyEarnings(List<Transaction> transactions) {
         return transactions.stream()
                 .filter(transaction -> transaction.getType() == Transaction.TransactionType.EARNING)
@@ -1232,36 +1243,34 @@ public class DriverServiceImp implements DriverService {
                         transaction -> transaction.getTransactionDate().toLocalDate().toString(),
                         Collectors.mapping(
                                 transaction -> BigDecimal.valueOf(transaction.getAmount()),
-                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
-                        )
-                ));
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))));
     }
-    
+
     private Map<String, Integer> calculateHourlyOrders(List<Order> orders) {
         return orders.stream()
                 .collect(Collectors.groupingBy(
                         order -> String.valueOf(order.getOrderDate().getHour()),
-                        Collectors.summingInt(order -> 1)
-                ));
+                        Collectors.summingInt(order -> 1)));
     }
-    
+
     private Map<String, Integer> calculateDailyOrders(List<Order> orders) {
         return orders.stream()
                 .collect(Collectors.groupingBy(
                         order -> order.getOrderDate().getDayOfWeek().toString(),
-                        Collectors.summingInt(order -> 1)
-                ));
+                        Collectors.summingInt(order -> 1)));
     }
-    
+
     private List<AnalyticsResponse.PeakHourData> calculatePeakHours(List<Order> orders) {
         Map<String, List<Order>> hourlyGroups = orders.stream()
                 .collect(Collectors.groupingBy(order -> {
                     int hour = order.getOrderDate().getHour();
-                    if (hour >= 11 && hour <= 13) return "11:00-13:00";
-                    if (hour >= 17 && hour <= 19) return "17:00-19:00";
+                    if (hour >= 11 && hour <= 13)
+                        return "11:00-13:00";
+                    if (hour >= 17 && hour <= 19)
+                        return "17:00-19:00";
                     return "Other";
                 }));
-        
+
         return hourlyGroups.entrySet().stream()
                 .filter(entry -> !"Other".equals(entry.getKey()))
                 .map(entry -> AnalyticsResponse.PeakHourData.builder()
@@ -1272,7 +1281,7 @@ public class DriverServiceImp implements DriverService {
                         .build())
                 .collect(Collectors.toList());
     }
-    
+
     private Integer calculateFastestDelivery(List<Order> orders) {
         // Tìm thời gian giao hàng nhanh nhất từ dữ liệu thực
         return orders.stream()
@@ -1281,7 +1290,7 @@ public class DriverServiceImp implements DriverService {
                 .min(Integer::compareTo)
                 .orElse(0);
     }
-    
+
     private Integer calculateSlowestDelivery(List<Order> orders) {
         // Tìm thời gian giao hàng chậm nhất từ dữ liệu thực
         return orders.stream()
@@ -1290,31 +1299,31 @@ public class DriverServiceImp implements DriverService {
                 .max(Integer::compareTo)
                 .orElse(0);
     }
-    
+
     private Double calculateAverageDistance(List<Order> orders) {
         // Tính khoảng cách trung bình từ dữ liệu thực
         List<BigDecimal> distances = orders.stream()
                 .filter(order -> order.getDistanceKm() != null)
                 .map(Order::getDistanceKm)
                 .collect(Collectors.toList());
-                
+
         if (distances.isEmpty()) {
             return 0.0;
         }
-        
+
         return distances.stream()
                 .mapToDouble(BigDecimal::doubleValue)
                 .average()
                 .orElse(0.0);
     }
-    
+
     private Integer parseVersionToBuild(String version) {
         // Parse version string "x.y.z" to build number
         try {
             String[] parts = version.split("\\.");
-            return Integer.parseInt(parts[0]) * 1000 + 
-                   Integer.parseInt(parts[1]) * 100 + 
-                   Integer.parseInt(parts[2]);
+            return Integer.parseInt(parts[0]) * 1000 +
+                    Integer.parseInt(parts[1]) * 100 +
+                    Integer.parseInt(parts[2]);
         } catch (Exception e) {
             return 0;
         }
@@ -1330,7 +1339,7 @@ public class DriverServiceImp implements DriverService {
     private DriverOrderResponse mapToDriverOrderResponse(Order order) {
         // Lấy thông tin restaurant từ cart details
         Restaurant restaurant = getRestaurantByOrder(order);
-        
+
         // Lấy thông tin user
         User customer = order.getUser();
 
@@ -1353,8 +1362,13 @@ public class DriverServiceImp implements DriverService {
                 .deliveryLongitude(order.getLongitude()) // Sử dụng dữ liệu thực từ database
                 .totalPrice(order.getTotalPrice())
                 .shippingFee(order.getShippingFee())
-                .deliveryDistance(order.getDistanceKm() != null ? order.getDistanceKm() : BigDecimal.ZERO) // Dữ liệu thực
-                .estimatedTime(order.getDeliveryTimeInMinutes() != null ? order.getDeliveryTimeInMinutes() : 30) // Dữ liệu thực hoặc default
+                .deliveryDistance(order.getDistanceKm() != null ? order.getDistanceKm() : BigDecimal.ZERO) // Dữ liệu
+                                                                                                           // thực
+                .estimatedTime(order.getDeliveryTimeInMinutes() != null ? order.getDeliveryTimeInMinutes() : 30) // Dữ
+                                                                                                                 // liệu
+                                                                                                                 // thực
+                                                                                                                 // hoặc
+                                                                                                                 // default
                 .note(order.getNote())
                 .paymentMethod(order.getPaymentMethod() != null ? order.getPaymentMethod() : "COD") // Dữ liệu thực
                 .assignedAt(LocalDateTime.now()) // Có thể lấy từ OrderAssignment
@@ -1363,7 +1377,9 @@ public class DriverServiceImp implements DriverService {
                 .deliveredAt(order.getDeliveredAt()) // Dữ liệu thực từ database
                 .tip(order.getTipAmount() != null ? order.getTipAmount().longValue() : 0L) // Dữ liệu thực
                 .gemsEarned(0)
-                .shipperEarning(order.getShipperEarning() != null ? order.getShipperEarning() : BigDecimal.ZERO) // Dữ liệu thực
+                .shipperEarning(order.getShipperEarning() != null ? order.getShipperEarning() : BigDecimal.ZERO) // Dữ
+                                                                                                                 // liệu
+                                                                                                                 // thực
                 .restaurantName(restaurant.getName())
                 .restaurantPhone(restaurant.getPhone())
                 .restaurantAddress(restaurant.getAddress().getDetail())
@@ -1379,9 +1395,9 @@ public class DriverServiceImp implements DriverService {
         FoodDetail foodDetail = cartDetail.getFood().getFoodDetails().stream()
                 .findFirst()
                 .orElse(null);
-        
+
         BigDecimal price = foodDetail != null ? foodDetail.getPrice() : BigDecimal.ZERO;
-        
+
         return DriverOrderResponse.OrderItemResponse.builder()
                 .foodName(cartDetail.getFood().getName())
                 .quantity(cartDetail.getQuantity())
@@ -1449,15 +1465,15 @@ public class DriverServiceImp implements DriverService {
                 .map(Order::getShippingFee)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-    
-    // Method mới để tính tips từ Orders  
+
+    // Method mới để tính tips từ Orders
     private BigDecimal calculateTipsFromOrders(List<Order> orders) {
         return orders.stream()
                 .filter(order -> order.getTipAmount() != null)
                 .map(Order::getTipAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-    
+
     // Method mới để tính shipper earnings từ Orders
     private BigDecimal calculateShipperEarningsFromOrders(List<Order> orders) {
         return orders.stream()
@@ -1474,8 +1490,6 @@ public class DriverServiceImp implements DriverService {
                         order -> order.getOrderDate().toLocalDate().toString(),
                         Collectors.mapping(
                                 Order::getShipperEarning,
-                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
-                        )
-                ));
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))));
     }
-} 
+}
