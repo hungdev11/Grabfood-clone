@@ -17,36 +17,39 @@ import static org.springframework.http.HttpStatus.*;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(AppException.class)
-    //@ResponseStatus(BAD_REQUEST)
     public ResponseEntity<?> handleAppException(AppException exception, WebRequest request) {
         return isDriverAPI(request)
-                ? ResponseEntity.status(NOT_FOUND).body(shipperExceptionError(exception.getMessage(), NOT_FOUND.value()))
+                ? ResponseEntity.status(NOT_FOUND)
+                .body(shipperExceptionError(exception.getMessage(), NOT_FOUND.value()))
                 : ResponseEntity.status(OK).body(buildErrorResponse(exception.getMessage(), BAD_REQUEST, request));
     }
 
     @ExceptionHandler(RuntimeException.class)
-    //@ResponseStatus(BAD_REQUEST)
     public ResponseEntity<?> handleRuntimeException(RuntimeException exception, WebRequest request) {
         return isDriverAPI(request)
-                ? ResponseEntity.status(NOT_FOUND).body(shipperExceptionError(exception.getMessage(), INTERNAL_SERVER_ERROR.value()))
-                : ResponseEntity.status(OK).body(buildErrorResponse(exception.getMessage(), INTERNAL_SERVER_ERROR, request));
+                ? ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
+                shipperExceptionError("Lỗi hệ thống: " + exception.getMessage(), INTERNAL_SERVER_ERROR.value()))
+                : ResponseEntity.status(OK)
+                .body(buildErrorResponse(exception.getMessage(), INTERNAL_SERVER_ERROR, request));
     }
 
-    @ExceptionHandler({MethodArgumentNotValidException.class, MissingServletRequestParameterException.class})
-    //@ResponseStatus(BAD_REQUEST)
+    @ExceptionHandler({ MethodArgumentNotValidException.class, MissingServletRequestParameterException.class })
     public ResponseEntity<?> handleValidationExceptions(Exception exception, WebRequest request) {
         String errorMessage;
 
         if (exception instanceof MethodArgumentNotValidException ex && ex.getFieldError() != null) {
             errorMessage = ex.getFieldError().getDefaultMessage();
         } else if (exception instanceof MissingServletRequestParameterException ex) {
-            errorMessage = "Required parameter '" + ex.getParameterName() + "' is missing";
+            errorMessage = isDriverAPI(request)
+                    ? "Thiếu tham số bắt buộc: '" + ex.getParameterName() + "'"
+                    : "Required parameter '" + ex.getParameterName() + "' is missing";
         } else {
-            errorMessage = "Invalid request";
+            errorMessage = isDriverAPI(request) ? "Dữ liệu không hợp lệ" : "Invalid request";
         }
+
         return isDriverAPI(request)
                 ? ResponseEntity.status(BAD_REQUEST).body(shipperExceptionError(errorMessage, BAD_REQUEST.value()))
-                : ResponseEntity.status(BAD_REQUEST).body(buildErrorResponse(exception.getMessage(), BAD_REQUEST, request));
+                : ResponseEntity.status(BAD_REQUEST).body(buildErrorResponse(errorMessage, BAD_REQUEST, request));
     }
 
     private ErrorResponse buildErrorResponse(String message, HttpStatus status, WebRequest request) {
@@ -64,6 +67,10 @@ public class GlobalExceptionHandler {
     }
 
     private ApiResponse<?> shipperExceptionError(String message, int code) {
-        return ApiResponse.builder().code(code).message(message).data(null).build();
+        return ApiResponse.builder()
+                .code(code)
+                .message(message)
+                .data(null)
+                .build();
     }
 }

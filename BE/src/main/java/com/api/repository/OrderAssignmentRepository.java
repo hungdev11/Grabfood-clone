@@ -12,6 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface OrderAssignmentRepository extends JpaRepository<OrderAssignment, Long> {
+       Optional<OrderAssignment> findByOrder_IdAndStatus(long orderId, OrderAssignment.AssignmentStatus status);
 
        // Tìm assignment theo order ID - sử dụng custom query
        @Query("SELECT oa FROM OrderAssignment oa WHERE oa.order.id = :orderId")
