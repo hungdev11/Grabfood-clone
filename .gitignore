@@ -7,3 +7,4 @@ BE/target/
 # IDE files
 .idea/
 FE/next-env.d.ts
+README.md

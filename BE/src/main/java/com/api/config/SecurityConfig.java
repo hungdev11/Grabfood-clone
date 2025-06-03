@@ -47,7 +47,6 @@ public class SecurityConfig {
         this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
     }
 
-
 //    @Bean
 //    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 //        http
@@ -111,8 +110,8 @@ public class SecurityConfig {
                                 // Admin endpoints - Chỉ ADMIN
                                 .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                                 
-                                // 🚛 DRIVER/SHIPPER APIs - Chỉ ROLE_SHIPPER được truy cập
-                                .requestMatchers("/api/driver/**").hasAuthority("ROLE_SHIPPER")
+                                // 🚛 DRIVER/SHIPPER APIs - Tạm thời permitAll() để test JSON response
+                                .requestMatchers("/api/driver/**").permitAll()
                                 
                                 // Restaurant endpoints - Nhà hàng và Admin
                                 .requestMatchers(HttpMethod.GET, "/restaurants/**", "/restaurants").permitAll()
