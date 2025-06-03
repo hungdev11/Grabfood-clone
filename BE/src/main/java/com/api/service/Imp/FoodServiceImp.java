@@ -409,6 +409,20 @@ public class FoodServiceImp implements FoodService {
     }
 
     @Override
+    public void deleteFood(long foodId) {
+        log.info("Delete food {}", foodId);
+        Food food = getFoodById(foodId);
+        var opt = food.getCartDetails().stream()
+                .filter(cd -> cd.getOrder() != null)
+                .findAny();
+        if (opt.isPresent()) {
+            log.error("Can not deleting food with id {}", foodId);
+            throw new AppException(ErrorCode.CAN_NOT_DELETE_ORDERED_FOOD);
+        }
+        foodRepository.delete(food);
+    }
+
+    @Override
     public GetFoodGroupResponse getFoodGroupOfRestaurant(long restaurantId, boolean isForCustomer) {
         log.info("Get food group of restaurant {}", restaurantId);
         Restaurant restaurant = restaurantService.getRestaurant(restaurantId);
