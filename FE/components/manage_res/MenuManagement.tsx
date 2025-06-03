@@ -212,12 +212,6 @@ export default function MenuManagement() {
   const handleDelete = async () => {
     if (!confirm("Bạn có chắc muốn xóa món này?")) return;
     try {
-<<<<<<< HEAD
-      await axiosInstance.delete(`http://localhost:6969/grab/foods/${selectedFood?.id}`);
-      alert("Đã xóa món ăn!");
-      setSelectedFood(null);
-      await fetchFoods();
-=======
       const response = await axios.delete(`http://localhost:6969/grab/foods/${selectedFood?.id}`);
       if (response.data.code === 200) {
         alert("Đã xóa món ăn!");
@@ -226,7 +220,6 @@ export default function MenuManagement() {
       } else {
         alert("Xóa món ăn thất bại.");
       }
->>>>>>> hung_branch
     } catch (error) {
       console.error("Lỗi khi xóa món ăn:", error);
       alert("Xóa thất bại.");
