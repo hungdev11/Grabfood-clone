@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PaymentInfoRepository extends JpaRepository<PaymentInfo, Long> {
     PaymentInfo findByPaymentCode(String paymentCode);
+    PaymentInfo findByOrder_Id(Long orderId);
 }

@@ -50,6 +50,7 @@ public class OrderServiceImp implements OrderService {
     private final ReviewService reviewService;
     private final CartService cartService;
     private final UserService userService;
+    private final PaymentInfoRepository paymentInfoRepository;
     private final LocationService locationService;
 
     @Override
@@ -357,7 +358,7 @@ public class OrderServiceImp implements OrderService {
                                     .phoneNumber(shipper.getPhone())
                                     .vehicleType(shipper.getVehicleType())
                                     .vehicleNumber(shipper.getVehicleNumber())
-                                    .paymentMethod(order.getPaymentMethod())
+                                    .paymentMethod(paymentInfoRepository.findByOrder_Id(order.getId()).getPaymentName())
                                     .build();
                             response.setShipperPickUpInfoResponse(pickupInfo);
                         }
