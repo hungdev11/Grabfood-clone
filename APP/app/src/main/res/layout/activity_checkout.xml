@@ -233,11 +233,13 @@
                 android:layout_marginTop="16dp" />
 
             <RadioGroup
+                android:id="@+id/paymentRadioGroup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp">
 
                 <RadioButton
+                    android:id="@+id/cashRadioButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Tiền mặt"
@@ -245,16 +247,10 @@
                     android:textColor="#000000" />
 
                 <RadioButton
+                    android:id="@+id/momoRadioButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Thẻ"
-                    android:textSize="14sp"
-                    android:textColor="#000000" />
-
-                <RadioButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Đề xuất"
+                    android:text="MOMO"
                     android:textSize="14sp"
                     android:textColor="#000000" />
             </RadioGroup>

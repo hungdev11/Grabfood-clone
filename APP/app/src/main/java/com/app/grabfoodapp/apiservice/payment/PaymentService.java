@@ -13,4 +13,6 @@ public interface PaymentService {
     @POST("payments/cod")
     Call<ApiResponse<OrderResponse>> createCodOrder(@Header("Authorization") String authHeader, @Body CreateOrderRequest request);
 
+    @POST("payments/momo")
+    Call<String> createMomoOrder(@Header("Authorization") String authHeader, @Body CreateOrderRequest request);
 }

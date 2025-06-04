@@ -3,12 +3,15 @@ package com.app.grabfoodapp.activities;
 import android.annotation.SuppressLint;
 import android.app.ComponentCaller;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -83,6 +86,11 @@ public class CheckoutActivity extends AppCompatActivity {
     private List<AddressResponse> userAddresses = new ArrayList<>();
     private AddressResponse selectedAddress = null;
     Button btnPayment;
+
+    RadioGroup paymentRadioGroup;
+    private String paymentMethod = "cod";
+
+
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +107,7 @@ public class CheckoutActivity extends AppCompatActivity {
         txtShippingAddress = findViewById(R.id.txtShippingAddress);
         txtDistance = findViewById(R.id.checkoutDistance);
         txtDuration = findViewById(R.id.checkoutDuration);
+        paymentRadioGroup = findViewById(R.id.paymentRadioGroup);
         cartItems = (ArrayList<CartDetailDTO>) getIntent().getSerializableExtra("cartItems");
         cartId = getIntent().getLongExtra("cartId", 0);
         updateTotalPrice();
@@ -139,6 +148,7 @@ public class CheckoutActivity extends AppCompatActivity {
         });
         getShippingAddress();
         handleBtnPaymentClick();
+        handlePaymentMethod();
     }
 
     @Override
@@ -223,44 +233,14 @@ public class CheckoutActivity extends AppCompatActivity {
 
     private void handleBtnPaymentClick() {
         btnPayment.setOnClickListener(new View.OnClickListener() {
-            TokenManager tokenManager = new TokenManager(CheckoutActivity.this);
 
             @Override
             public void onClick(View v) {
-                if (!tokenManager.hasToken()) {
-                    Toast.makeText(CheckoutActivity.this, "Not logged in", Toast.LENGTH_SHORT).show();
-                    finish();
-                    return;
+                if (paymentMethod.equals("momo")) {
+                    handleMomoPayment();
+                } else {
+                    handleCodPayment();
                 }
-                String token = tokenManager.getToken();
-                CreateOrderRequest request = CreateOrderRequest.builder()
-                        .cartId(cartId)
-                        .note("App Order")
-                        .address(location)
-                        .shippingFee(shippingFee)
-                        .voucherCode(voucherCodes)
-                        .build();
-
-
-                PaymentService paymentService = ApiClient.getClient().create(PaymentService.class);
-                Call<ApiResponse<OrderResponse>> call = paymentService.createCodOrder("Bearer " + token, request);
-                call.enqueue(new Callback<ApiResponse<OrderResponse>>() {
-                    @Override
-                    public void onResponse(Call<ApiResponse<OrderResponse>> call, Response<ApiResponse<OrderResponse>> response) {
-                        if(response.isSuccessful() && response.body() != null) {
-                            ApiResponse<OrderResponse> apiResponse = response.body();
-                            if (apiResponse.getData() != null) {
-                                Toast.makeText(CheckoutActivity.this, "Đặt đơn thành công!", Toast.LENGTH_SHORT).show();
-                                finish();
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<ApiResponse<OrderResponse>> call, Throwable t) {
-                        Log.e("API", "Lỗi mạng hoặc URL: " + t.getMessage());
-                    }
-                });
             }
         });
     }
@@ -464,5 +444,97 @@ public class CheckoutActivity extends AppCompatActivity {
     }
     private int formatDuration(double duration) {
         return (int) duration/60 + 10;
+    }
+
+    private void handleMomoPayment() {
+        TokenManager tokenManager = new TokenManager(CheckoutActivity.this);
+        if (!tokenManager.hasToken()) {
+            Toast.makeText(CheckoutActivity.this, "Not logged in", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        String token = tokenManager.getToken();
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .cartId(cartId)
+                .note("App Order")
+                .address(location)
+                .shippingFee(shippingFee)
+                .voucherCode(voucherCodes)
+                .build();
+        PaymentService paymentService = ApiClient.getClient().create(PaymentService.class);
+        Call<String> call = paymentService.createMomoOrder("Bearer " + token, request);
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    String paymentUrl = response.body();
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(paymentUrl));
+                    startActivity(browserIntent);
+                }
+                else {
+                    Toast.makeText(CheckoutActivity.this, "Không thể tạo url", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Log.e("APITEST", "Lỗi mạng hoặc URL: " + t.getMessage());
+                Toast.makeText(CheckoutActivity.this, "Đã xảy ra lỗi", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void handlePaymentMethod() {
+        paymentRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                switch (checkedId) {
+                    case R.id.cashRadioButton:
+                        paymentMethod = "cod";
+                        break;
+                    case R.id.momoRadioButton:
+                        paymentMethod = "momo";
+                        break;
+                }
+            }
+        });
+    }
+
+    private void handleCodPayment() {
+        TokenManager tokenManager = new TokenManager(CheckoutActivity.this);
+        if (!tokenManager.hasToken()) {
+            Toast.makeText(CheckoutActivity.this, "Not logged in", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        String token = tokenManager.getToken();
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .cartId(cartId)
+                .note("App Order")
+                .address(location)
+                .shippingFee(shippingFee)
+                .voucherCode(voucherCodes)
+                .build();
+
+
+        PaymentService paymentService = ApiClient.getClient().create(PaymentService.class);
+        Call<ApiResponse<OrderResponse>> call = paymentService.createCodOrder("Bearer " + token, request);
+        call.enqueue(new Callback<ApiResponse<OrderResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<OrderResponse>> call, Response<ApiResponse<OrderResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<OrderResponse> apiResponse = response.body();
+                    if (apiResponse.getData() != null) {
+                        Toast.makeText(CheckoutActivity.this, "Đặt đơn thành công!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<OrderResponse>> call, Throwable t) {
+                Log.e("API", "Lỗi mạng hoặc URL: " + t.getMessage());
+            }
+        });
     }
 }
