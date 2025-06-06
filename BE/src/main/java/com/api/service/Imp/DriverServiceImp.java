@@ -213,15 +213,13 @@ public class DriverServiceImp implements DriverService {
     public List<DriverOrderResponse> getAvailableOrders(Long shipperId) {
         Shipper shipper = getShipperById(shipperId);
 
-        // Chỉ lấy đơn hàng với status PROCESSING hoặc READY_FOR_PICKUP
-        List<Order> availableOrders = orderRepository.findAll().stream()
-                .filter(order -> order.getStatus() == OrderStatus.PROCESSING ||
-                        order.getStatus() == OrderStatus.READY_FOR_PICKUP)
-                .filter(order -> !orderAssignmentRepository.existsByOrderIdAndShipperId(order.getId(), shipperId))
-                .collect(Collectors.toList());
+        // Available orders = orders đã được hệ thống assign cho shipper này
+        // nhưng shipper chưa accept/reject (status = ASSIGNED)
+        List<OrderAssignment> pendingAssignments = orderAssignmentRepository
+                .findPendingAssignmentsByShipperId(shipperId);
 
-        return availableOrders.stream()
-                .map(this::mapToDriverOrderResponse)
+        return pendingAssignments.stream()
+                .map(assignment -> mapToDriverOrderResponse(assignment.getOrder()))
                 .collect(Collectors.toList());
     }
 
@@ -239,9 +237,14 @@ public class DriverServiceImp implements DriverService {
     public List<DriverOrderResponse> getOrderHistory(Long shipperId, Pageable pageable) {
         List<OrderAssignment> assignments = orderAssignmentRepository.findByShipperId(shipperId);
 
-        // Áp dụng pagination thủ công
+        // Áp dụng pagination thủ công với validation
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), assignments.size());
+
+        // Kiểm tra nếu start >= assignments.size() thì trả về list rỗng
+        if (start >= assignments.size()) {
+            return new ArrayList<>();
+        }
 
         List<OrderAssignment> pagedAssignments = assignments.subList(start, end);
 
@@ -603,9 +606,14 @@ public class DriverServiceImp implements DriverService {
     public List<TransactionResponse> getTransactionHistory(Long shipperId, Pageable pageable) {
         List<Transaction> transactions = transactionRepository.findByShipperIdOrderByTransactionDateDesc(shipperId);
 
-        // Áp dụng pagination thủ công
+        // Áp dụng pagination thủ công với validation
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), transactions.size());
+
+        // Kiểm tra nếu start >= transactions.size() thì trả về list rỗng
+        if (start >= transactions.size()) {
+            return new ArrayList<>();
+        }
 
         List<Transaction> pagedTransactions = transactions.subList(start, end);
 
@@ -1240,7 +1248,7 @@ public class DriverServiceImp implements DriverService {
     }
 
     private BigDecimal calculateEarningPerHour(BigDecimal totalEarnings, Long shipperId, LocalDateTime start,
-            LocalDateTime end) {
+                                               LocalDateTime end) {
         Integer workingHours = calculateWorkingHours(shipperId, start, end);
         if (workingHours == 0)
             return BigDecimal.ZERO;
@@ -1345,9 +1353,10 @@ public class DriverServiceImp implements DriverService {
     // ===============================
 
     /**
-     * Chuyển đổi Order entity thành DriverOrderResponse
+     * Chuyển đổi Order entity thành DriverOrderResponse cho available orders (chưa
+     * assign)
      */
-    private DriverOrderResponse mapToDriverOrderResponse(Order order) {
+    private DriverOrderResponse mapToAvailableOrderResponse(Order order) {
         // Lấy thông tin restaurant từ cart details
         Restaurant restaurant = getRestaurantByOrder(order);
 
@@ -1369,28 +1378,79 @@ public class DriverServiceImp implements DriverService {
                 .deliveryAddress(order.getAddress())
                 .pickupLatitude(restaurant.getAddress().getLat())
                 .pickupLongitude(restaurant.getAddress().getLon())
-                .deliveryLatitude(order.getLatitude()) // Sử dụng dữ liệu thực từ database
-                .deliveryLongitude(order.getLongitude()) // Sử dụng dữ liệu thực từ database
+                .deliveryLatitude(order.getLatitude())
+                .deliveryLongitude(order.getLongitude())
                 .totalPrice(order.getTotalPrice())
                 .shippingFee(order.getShippingFee())
-                .deliveryDistance(order.getDistanceKm() != null ? order.getDistanceKm() : BigDecimal.ZERO) // Dữ liệu
-                                                                                                           // thực
-                .estimatedTime(order.getDeliveryTimeInMinutes() != null ? order.getDeliveryTimeInMinutes() : 30) // Dữ
-                                                                                                                 // liệu
-                                                                                                                 // thực
-                                                                                                                 // hoặc
-                                                                                                                 // default
+                .deliveryDistance(order.getDistanceKm() != null ? order.getDistanceKm() : BigDecimal.ZERO)
+                .estimatedTime(order.getDeliveryTimeInMinutes() != null ? order.getDeliveryTimeInMinutes() : 30)
                 .note(order.getNote())
-                .paymentMethod(order.getPaymentMethod() != null ? order.getPaymentMethod() : "COD") // Dữ liệu thực
-                .assignedAt(LocalDateTime.now()) // Có thể lấy từ OrderAssignment
+                .paymentMethod(order.getPaymentMethod() != null ? order.getPaymentMethod() : "COD")
+                // Available orders chưa được assign, nên không có assignedAt
+                .assignedAt(null)
                 .acceptedAt(null)
-                .pickedUpAt(order.getPickedUpAt()) // Dữ liệu thực từ database
-                .deliveredAt(order.getDeliveredAt()) // Dữ liệu thực từ database
-                .tip(order.getTipAmount() != null ? order.getTipAmount().longValue() : 0L) // Dữ liệu thực
+                .pickedUpAt(order.getPickedUpAt())
+                .deliveredAt(order.getDeliveredAt())
+                .tip(order.getTipAmount() != null ? order.getTipAmount().longValue() : 0L)
                 .gemsEarned(0)
-                .shipperEarning(order.getShipperEarning() != null ? order.getShipperEarning() : BigDecimal.ZERO) // Dữ
-                                                                                                                 // liệu
-                                                                                                                 // thực
+                .shipperEarning(order.getShipperEarning() != null ? order.getShipperEarning() : BigDecimal.ZERO)
+                .restaurantName(restaurant.getName())
+                .restaurantPhone(restaurant.getPhone())
+                .restaurantAddress(restaurant.getAddress().getDetail())
+                .items(items)
+                .build();
+    }
+
+    /**
+     * Chuyển đổi Order entity thành DriverOrderResponse cho assigned orders
+     */
+    private DriverOrderResponse mapToDriverOrderResponse(Order order) {
+        // Lấy thông tin restaurant từ cart details
+        Restaurant restaurant = getRestaurantByOrder(order);
+
+        // Lấy thông tin user
+        User customer = order.getUser();
+
+        // Lấy cart details và convert thành order items
+        List<DriverOrderResponse.OrderItemResponse> items = order.getCartDetails().stream()
+                .map(this::mapToOrderItemResponse)
+                .collect(Collectors.toList());
+
+        // Lấy assignment để có assignedAt và acceptedAt thật sự
+        List<OrderAssignment> assignments = orderAssignmentRepository.findByOrderId(order.getId());
+        OrderAssignment latestAssignment = assignments.stream()
+                .max((a1, a2) -> a1.getAssignedAt().compareTo(a2.getAssignedAt()))
+                .orElse(null);
+
+        return DriverOrderResponse.builder()
+                .orderId(order.getId())
+                .orderStatus(order.getStatus().name())
+                .orderDate(order.getOrderDate())
+                .customerName(customer.getName())
+                .customerPhone(customer.getPhone())
+                .pickupAddress(restaurant.getAddress().getDetail())
+                .deliveryAddress(order.getAddress())
+                .pickupLatitude(restaurant.getAddress().getLat())
+                .pickupLongitude(restaurant.getAddress().getLon())
+                .deliveryLatitude(order.getLatitude())
+                .deliveryLongitude(order.getLongitude())
+                .totalPrice(order.getTotalPrice())
+                .shippingFee(order.getShippingFee())
+                .deliveryDistance(order.getDistanceKm() != null ? order.getDistanceKm() : BigDecimal.ZERO)
+                .estimatedTime(order.getDeliveryTimeInMinutes() != null ? order.getDeliveryTimeInMinutes() : 30)
+                .note(order.getNote())
+                .paymentMethod(order.getPaymentMethod() != null ? order.getPaymentMethod() : "COD")
+                // Lấy assignedAt và acceptedAt từ OrderAssignment thật sự
+                .assignedAt(latestAssignment != null ? latestAssignment.getAssignedAt() : null)
+                .acceptedAt(latestAssignment != null
+                        && latestAssignment.getStatus() == OrderAssignment.AssignmentStatus.ACCEPTED
+                        ? latestAssignment.getRespondedAt()
+                        : null)
+                .pickedUpAt(order.getPickedUpAt())
+                .deliveredAt(order.getDeliveredAt())
+                .tip(order.getTipAmount() != null ? order.getTipAmount().longValue() : 0L)
+                .gemsEarned(0)
+                .shipperEarning(order.getShipperEarning() != null ? order.getShipperEarning() : BigDecimal.ZERO)
                 .restaurantName(restaurant.getName())
                 .restaurantPhone(restaurant.getPhone())
                 .restaurantAddress(restaurant.getAddress().getDetail())

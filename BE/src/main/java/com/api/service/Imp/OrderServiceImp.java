@@ -55,13 +55,14 @@ public class OrderServiceImp implements OrderService {
     @Override
     @Transactional
     public Order createOrder(CreateOrderRequest request) {
-        Cart cart = cartRepository.findById(request.getCartId()).orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
+        Cart cart = cartRepository.findById(request.getCartId())
+                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
         List<CartDetail> cartDetails = cartDetailRepository.findByCartIdAndOrderIsNull(cart.getId());
         if (cartDetails.isEmpty()) {
             throw new AppException(ErrorCode.CART_EMPTY);
         }
-        User user = userRepository.findById(cart.getUser().getId()).orElseThrow(() ->
-                new AppException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(cart.getUser().getId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         Order order = Order.builder()
                 .note(request.getNote())
                 .address(request.getAddress())
@@ -76,30 +77,35 @@ public class OrderServiceImp implements OrderService {
                 .build();
         orderRepository.save(order);
 
-        //Apply VOucher
+        // Apply VOucher
         BigDecimal discountedOrderPrice = order.getTotalPrice();
         BigDecimal discountedShippingPrice = order.getShippingFee();
         BigDecimal discountShippingFee = BigDecimal.ZERO;
         BigDecimal discountOrderPrice = BigDecimal.ZERO;
-        for (String voucherCode: request.getVoucherCode()) {
-            if(voucherCode != null && !voucherCode.isEmpty()) {
+        for (String voucherCode : request.getVoucherCode()) {
+            if (voucherCode != null && !voucherCode.isEmpty()) {
                 Voucher voucher = voucherRepository.findByCodeAndStatus(voucherCode, VoucherStatus.ACTIVE)
                         .orElseThrow(() -> new AppException(ErrorCode.VOUCHER_NOT_FOUND));
-                log.info("voucher >>>"+ voucher.getId() + ">>> code >>>" + request.getVoucherCode());
+                log.info("voucher >>>" + voucher.getId() + ">>> code >>>" + request.getVoucherCode());
                 if (checkApplyVoucher(voucher, order.getTotalPrice())) {
-                    VoucherDetail detail = voucherDetailRepository.findByVoucherIdAndEndDateAfter(voucher.getId(), LocalDateTime.now());
+                    VoucherDetail detail = voucherDetailRepository.findByVoucherIdAndEndDateAfter(voucher.getId(),
+                            LocalDateTime.now());
                     OrderVoucher orderVoucher = OrderVoucher.builder()
                             .timeApplied(LocalDateTime.now())
                             .order(order)
                             .voucherDetail(detail)
                             .build();
-                    if(voucher.getType().equals(VoucherType.PERCENTAGE)) {
+                    if (voucher.getType().equals(VoucherType.PERCENTAGE)) {
                         if (voucher.getApplyType().equals(VoucherApplyType.ORDER)) {
-                            discountedOrderPrice = discountedOrderPrice.multiply((new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
-                            discountOrderPrice = discountOrderPrice.add(discountedOrderPrice.multiply(voucher.getValue()).divide(new BigDecimal(100)));
+                            discountedOrderPrice = discountedOrderPrice.multiply(
+                                    (new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
+                            discountOrderPrice = discountOrderPrice
+                                    .add(discountedOrderPrice.multiply(voucher.getValue()).divide(new BigDecimal(100)));
                         } else if (voucher.getApplyType().equals(VoucherApplyType.SHIPPING)) {
-                            discountedShippingPrice = discountedShippingPrice.multiply((new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
-                            discountShippingFee = discountShippingFee.add(discountedShippingPrice.multiply(voucher.getValue()).divide(new BigDecimal(100)));
+                            discountedShippingPrice = discountedShippingPrice.multiply(
+                                    (new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
+                            discountShippingFee = discountShippingFee.add(
+                                    discountedShippingPrice.multiply(voucher.getValue()).divide(new BigDecimal(100)));
 
                         }
                     } else {
@@ -133,13 +139,11 @@ public class OrderServiceImp implements OrderService {
         order.setDiscountShippingFee(discountShippingFee);
         orderRepository.save(order);
 
-        for (CartDetail cartDetail: cartDetails) {
+        for (CartDetail cartDetail : cartDetails) {
             cartDetail.setOrder(order);
             cartDetailRepository.save(cartDetail);
         }
-        return orderRepository.findById(order.getId()).orElseThrow(() ->
-                new AppException(ErrorCode.ORDER_NOT_FOUND)
-        );
+        return orderRepository.findById(order.getId()).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
     }
 
     @Override
@@ -156,7 +160,7 @@ public class OrderServiceImp implements OrderService {
 
     @Override
     public ApplyVoucherResponse applyVoucherToOrder(ApplyVoucherRequest request) {
-        if(request.getListCode().isEmpty()) {
+        if (request.getListCode().isEmpty()) {
             return ApplyVoucherResponse.builder()
                     .discountShippingPrice(BigDecimal.ZERO)
                     .discountOrderPrice(BigDecimal.ZERO)
@@ -168,17 +172,22 @@ public class OrderServiceImp implements OrderService {
         BigDecimal discountOrderPrice = BigDecimal.ZERO;
         BigDecimal orderPrice = request.getTotalPrice();
         BigDecimal shippingFee = request.getShippingFee();
-        for (String code: request.getListCode()) {
-            Voucher voucher = voucherRepository.findByCodeAndStatus(code, VoucherStatus.ACTIVE).orElseThrow(() -> new AppException(ErrorCode.VOUCHER_NOT_FOUND));
-            log.info("Voucher: "+ voucher.getId().toString());
+        for (String code : request.getListCode()) {
+            Voucher voucher = voucherRepository.findByCodeAndStatus(code, VoucherStatus.ACTIVE)
+                    .orElseThrow(() -> new AppException(ErrorCode.VOUCHER_NOT_FOUND));
+            log.info("Voucher: " + voucher.getId().toString());
             checkApplyVoucher(voucher, request.getTotalPrice());
-            if(voucher.getType().equals(VoucherType.PERCENTAGE)) {
+            if (voucher.getType().equals(VoucherType.PERCENTAGE)) {
                 if (voucher.getApplyType().equals(VoucherApplyType.ORDER)) {
-                    discountOrderPrice = discountOrderPrice.add(orderPrice.multiply(voucher.getValue()).divide(new BigDecimal(100)));
-                    orderPrice = orderPrice.multiply((new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
+                    discountOrderPrice = discountOrderPrice
+                            .add(orderPrice.multiply(voucher.getValue()).divide(new BigDecimal(100)));
+                    orderPrice = orderPrice
+                            .multiply((new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
                 } else if (voucher.getApplyType().equals(VoucherApplyType.SHIPPING)) {
-                    discountShippingFee = discountShippingFee.add(shippingFee.multiply(voucher.getValue()).divide(new BigDecimal(100)));
-                    shippingFee = shippingFee.multiply((new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
+                    discountShippingFee = discountShippingFee
+                            .add(shippingFee.multiply(voucher.getValue()).divide(new BigDecimal(100)));
+                    shippingFee = shippingFee
+                            .multiply((new BigDecimal(100).subtract(voucher.getValue())).divide(new BigDecimal(100)));
                 }
             } else {
                 if (voucher.getApplyType().equals(VoucherApplyType.ORDER)) {
@@ -209,18 +218,17 @@ public class OrderServiceImp implements OrderService {
 
     @Override
     public void DeleteOrderFailedPayment(Long orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() ->
-                new RuntimeException("Order not found"));
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
         List<CartDetail> cartDetailList = order.getCartDetails();
-        if(!cartDetailList.isEmpty()) {
-            for (CartDetail cartDetail: cartDetailList) {
+        if (!cartDetailList.isEmpty()) {
+            for (CartDetail cartDetail : cartDetailList) {
                 cartDetail.setOrder(null);
                 cartDetailRepository.save(cartDetail);
             }
         }
         List<OrderVoucher> orderVoucherList = order.getOrderVoucherList();
-        if(!orderVoucherList.isEmpty()) {
-            for (OrderVoucher orderVoucher: orderVoucherList) {
+        if (!orderVoucherList.isEmpty()) {
+            for (OrderVoucher orderVoucher : orderVoucherList) {
                 VoucherDetail detail = orderVoucher.getVoucherDetail();
                 detail.setQuantity(detail.getQuantity() + 1);
                 voucherDetailRepository.save(detail);
@@ -233,22 +241,21 @@ public class OrderServiceImp implements OrderService {
     @Override
     public Order getOrderById(Long orderId) {
         log.info("IN ORDER SERVICE");
-         var order = orderRepository.findById(orderId).orElseThrow(() -> {
+        var order = orderRepository.findById(orderId).orElseThrow(() -> {
             log.error("Order {} not found", orderId);
             throw new AppException(ErrorCode.ORDER_NOT_FOUND);
         });
         log.info("Order id {}", orderId);
         log.info("Order loaded: {}", order);
         log.info("CartDetails: {}", order.getCartDetails());
-         return order;
+        return order;
     }
 
     @Override
     public List<Order> listAllOrdersOfRestaurant(Long restaurantId) {
         log.info("get all orders of restaurant {}", restaurantId);
         return orderRepository.findAllById(
-                orderRepository.getAllOrdersOfRestaurant(restaurantId)
-        );
+                orderRepository.getAllOrdersOfRestaurant(restaurantId));
     }
 
     @Override
@@ -271,7 +278,8 @@ public class OrderServiceImp implements OrderService {
                 .restaurantName(getRestaurantByOrder(order).getName())
                 .discountOrderPrice(order.getDiscountOrderPrice())
                 .discountShippingFee(order.getDiscountShippingFee())
-                .isReview(reviewRepository.existsByOrder(order) || order.getOrderDate().plusDays(10).isBefore(LocalDateTime.now()))
+                .isReview(reviewRepository.existsByOrder(order)
+                        || order.getOrderDate().plusDays(10).isBefore(LocalDateTime.now()))
                 .cartDetails(order.getCartDetails().stream().map(this::toCartDetailResponse).toList())
                 .build()).toList();
     }
@@ -290,13 +298,15 @@ public class OrderServiceImp implements OrderService {
                 .restaurantName(getRestaurantByOrder(order).getName())
                 .discountOrderPrice(order.getDiscountOrderPrice())
                 .discountShippingFee(order.getDiscountShippingFee())
-                .isReview(reviewRepository.existsByOrder(order) || order.getOrderDate().plusDays(10).isBefore(LocalDateTime.now()))
+                .isReview(reviewRepository.existsByOrder(order)
+                        || order.getOrderDate().plusDays(10).isBefore(LocalDateTime.now()))
                 .cartDetails(order.getCartDetails().stream().map(this::toCartDetailResponse).toList())
                 .build()).toList();
     }
 
     @Override
-    public PageResponse<GetOrderGroupResponse> getRestaurantOrders(long restaurantId, int page, int size, String status) {
+    public PageResponse<GetOrderGroupResponse> getRestaurantOrders(long restaurantId, int page, int size,
+                                                                   String status) {
         List<String> statusList = Arrays.stream(OrderStatus.values())
                 .map(Enum::name)
                 .collect(Collectors.toList());
@@ -319,8 +329,7 @@ public class OrderServiceImp implements OrderService {
             reviewMap = reviews.stream()
                     .collect(Collectors.toMap(
                             review -> review.getOrder().getId(),
-                            review -> review
-                    ));
+                            review -> review));
         } else {
             reviewMap = Map.of();
         }
@@ -339,7 +348,8 @@ public class OrderServiceImp implements OrderService {
                             .discountOrderPrice(order.getDiscountOrderPrice())
                             .discountShippingFee(order.getDiscountShippingFee())
                             .createdAt(order.getOrderDate())
-                            //.isReview(reviewRepository.existsByOrder(order) || order.getOrderDate().plusDays(10).isBefore(LocalDateTime.now()))
+                            // .isReview(reviewRepository.existsByOrder(order) ||
+                            // order.getOrderDate().plusDays(10).isBefore(LocalDateTime.now()))
                             .cartDetails(order.getCartDetails()
                                     .stream()
                                     .map(this::toCartDetailResponse)
@@ -365,12 +375,12 @@ public class OrderServiceImp implements OrderService {
 
     private BigDecimal getTotalPrice(List<CartDetail> cartDetails) {
         BigDecimal totalPrice = BigDecimal.ZERO;
-        for (CartDetail cartDetail: cartDetails) {
+        for (CartDetail cartDetail : cartDetails) {
 
             BigDecimal price = foodService.getFoodPriceIn(cartDetail.getFood().getId(), LocalDateTime.now());
             List<Long> ids = cartDetail.getIds();
-            for (Long id: ids) {
-                BigDecimal priceAdd = foodService.getFoodPriceIn(id , LocalDateTime.now());
+            for (Long id : ids) {
+                BigDecimal priceAdd = foodService.getFoodPriceIn(id, LocalDateTime.now());
                 price = price.add(priceAdd);
             }
             int quantity = cartDetail.getQuantity();
@@ -380,15 +390,15 @@ public class OrderServiceImp implements OrderService {
     }
 
     private boolean checkApplyVoucher(Voucher voucher, BigDecimal totalPrice) {
-        VoucherDetail voucherDetail= voucher.getVoucherDetails().getFirst();
+        VoucherDetail voucherDetail = voucher.getVoucherDetails().getFirst();
         log.info("Voucher Detail: " + voucherDetail.getId().toString());
-        if(voucher.getRestaurant() != null) {
+        if (voucher.getRestaurant() != null) {
             return false;
         }
         if (voucherDetail.getEndDate().isBefore(LocalDateTime.now())) {
             throw new AppException(ErrorCode.VOUCHER_EXPIRED);
         }
-        if(voucher.getMinRequire().compareTo(totalPrice) > 0) {
+        if (voucher.getMinRequire().compareTo(totalPrice) > 0) {
             throw new AppException(ErrorCode.VOUCHER_MIN_REQUIRE);
         }
         // voucher hết số lượng ....
@@ -396,12 +406,13 @@ public class OrderServiceImp implements OrderService {
     }
 
     private CartDetailResponse toCartDetailResponse(CartDetail cartDetail) {
-        BigDecimal totalPrice = foodService.getFoodPriceIn(cartDetail.getFood().getId(), cartDetail.getOrder().getOrderDate());
+        BigDecimal totalPrice = foodService.getFoodPriceIn(cartDetail.getFood().getId(),
+                cartDetail.getOrder().getOrderDate());
         List<Long> ids = cartDetail.getIds();
         List<AdditionalFoodCartResponse> additionalFoodCartResponses = new ArrayList<>();
-        for (Long id: ids) {
+        for (Long id : ids) {
             GetFoodResponse food = foodService.getFood(id, true);
-            if(food !=null) {
+            if (food != null) {
                 totalPrice = totalPrice.add(foodService.getFoodPriceIn(id, cartDetail.getOrder().getOrderDate()));
                 AdditionalFoodCartResponse response = AdditionalFoodCartResponse.builder()
                         .id(id)
@@ -459,7 +470,7 @@ public class OrderServiceImp implements OrderService {
             cartService.clearCart(cartOpt.get());
         }
 
-        //add reorder cart item ?
+        // add reorder cart item ?
         Set<Long> additionalIdsStillAvailable = foodService
                 .getAdditionalFoodsOfRestaurant(
                         oldCartDetailsWithAvailableFood.getFirst().getFood().getRestaurant().getId(),
@@ -498,12 +509,12 @@ public class OrderServiceImp implements OrderService {
 
     @Override
     public CheckDistanceResponse checkDistanceOrder(long userId, double lat, double lon) {
-        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() ->
-                new AppException(ErrorCode.USER_NOT_FOUND));
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         List<CartDetail> cartDetails = cartDetailRepository.findByCartIdAndOrderIsNull(cart.getId());
         if (!cartDetails.isEmpty()) {
             Restaurant restaurant = cartDetails.getFirst().getFood().getRestaurant();
-            LocationDistanceResponse locationDistanceResponse = locationService.getDistance(lat, lon, restaurant.getAddress().getLat(), restaurant.getAddress().getLon());
+            LocationDistanceResponse locationDistanceResponse = locationService.getDistance(lat, lon,
+                    restaurant.getAddress().getLat(), restaurant.getAddress().getLon());
             return CheckDistanceResponse.builder()
                     .check(locationDistanceResponse.getDistance() < 10000.00)
                     .distance(locationDistanceResponse.getDistance())

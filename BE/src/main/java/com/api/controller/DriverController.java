@@ -36,30 +36,30 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class DriverController {
-    
+
     private final DriverService driverService;
     private final JwtService jwtService;
-    
+
     // ===============================
     // AUTHENTICATION APIs
     // ===============================
-    
+
     /**
      * API đăng nhập cho driver
      */
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<DriverLoginResponse>> login(@Valid @RequestBody DriverLoginRequest request) {
         log.info("Driver login attempt for phone: {}", request.getPhone());
-        
+
         try {
             DriverLoginResponse response = driverService.login(request);
-            
+
             return ResponseEntity.ok(ApiResponse.<DriverLoginResponse>builder()
                     .code(200)
                     .message("Đăng nhập thành công")
                     .data(response)
                     .build());
-                    
+
         } catch (AppException e) {
             log.warn("Driver login failed for phone: {} - {}", request.getPhone(), e.getMessage());
             return ResponseEntity.badRequest().body(ApiResponse.<DriverLoginResponse>builder()
@@ -68,42 +68,42 @@ public class DriverController {
                     .build());
         }
     }
-    
+
     /**
      * API đăng xuất cho driver
      */
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
         Long shipperId = getShipperIdFromToken(request);
-        
+
         log.info("Driver {} logged out", shipperId);
-        
+
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .code(200)
                 .message("Đăng xuất thành công")
                 .build());
     }
-    
+
     /**
      * API verify token
      */
     @GetMapping("/verify-token")
     public ResponseEntity<ApiResponse<DriverLoginResponse>> verifyToken(HttpServletRequest request) {
         Long shipperId = getShipperIdFromToken(request);
-        
+
         DriverLoginResponse response = driverService.getShipperFromToken(getTokenFromRequest(request));
-        
+
         return ResponseEntity.ok(ApiResponse.<DriverLoginResponse>builder()
                 .code(200)
                 .message("Token hợp lệ")
                 .data(response)
                 .build());
     }
-    
+
     // ===============================
-    // LOCATION & TRACKING APIs  
+    // LOCATION & TRACKING APIs
     // ===============================
-    
+
     /**
      * Cập nhật vị trí của shipper
      */
@@ -111,69 +111,69 @@ public class DriverController {
     public ResponseEntity<ApiResponse<Void>> updateLocation(
             HttpServletRequest request,
             @Valid @RequestBody UpdateLocationRequest locationRequest) {
-        
+
         Long shipperId = getShipperIdFromToken(request);
-        
+
         driverService.updateLocation(shipperId, locationRequest);
-        
+
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .code(200)
                 .message("Cập nhật vị trí thành công")
                 .build());
     }
-    
+
     /**
      * API lấy vị trí hiện tại của driver
      */
     @GetMapping("/location/current")
     public ResponseEntity<ApiResponse<UpdateLocationRequest>> getCurrentLocation(HttpServletRequest request) {
         Long shipperId = getShipperIdFromToken(request);
-        
+
         UpdateLocationRequest location = driverService.getCurrentLocation(shipperId);
-        
+
         return ResponseEntity.ok(ApiResponse.<UpdateLocationRequest>builder()
                 .code(200)
                 .message("Lấy vị trí thành công")
                 .data(location)
                 .build());
     }
-    
+
     // ===============================
     // ORDER MANAGEMENT APIs
     // ===============================
-    
+
     /**
      * API lấy danh sách đơn hàng có sẵn cho driver
      */
     @GetMapping("/orders/available")
     public ResponseEntity<ApiResponse<List<DriverOrderResponse>>> getAvailableOrders(HttpServletRequest request) {
         Long shipperId = getShipperIdFromToken(request);
-        
+
         List<DriverOrderResponse> orders = driverService.getAvailableOrders(shipperId);
-        
+
         return ResponseEntity.ok(ApiResponse.<List<DriverOrderResponse>>builder()
                 .code(200)
                 .message("Lấy danh sách đơn hàng thành công")
                 .data(orders)
                 .build());
     }
-    
+
     /**
      * API lấy danh sách đơn hàng được assign cho driver
      */
     @GetMapping("/orders/assigned")
     public ResponseEntity<ApiResponse<List<DriverOrderResponse>>> getAssignedOrders(HttpServletRequest request) {
         Long shipperId = getShipperIdFromToken(request);
-        
+
         List<DriverOrderResponse> orders = driverService.getAssignedOrders(shipperId);
-        
+
         return ResponseEntity.ok(ApiResponse.<List<DriverOrderResponse>>builder()
                 .code(200)
                 .message("Lấy đơn hàng được giao thành công")
                 .data(orders)
                 .build());
     }
-    
+
     /**
      * API lấy lịch sử đơn hàng của driver
      */
@@ -182,20 +182,19 @@ public class DriverController {
             HttpServletRequest request,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
+
         Long shipperId = getShipperIdFromToken(request);
-        
-        org.springframework.data.domain.Pageable pageable = 
-                org.springframework.data.domain.PageRequest.of(page, size);
+
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
         List<DriverOrderResponse> orders = driverService.getOrderHistory(shipperId, pageable);
-        
+
         return ResponseEntity.ok(ApiResponse.<List<DriverOrderResponse>>builder()
                 .code(200)
                 .message("Lấy lịch sử đơn hàng thành công")
                 .data(orders)
                 .build());
     }
-    
+
     /**
      * API lấy chi tiết đơn hàng
      */
@@ -203,18 +202,18 @@ public class DriverController {
     public ResponseEntity<ApiResponse<DriverOrderResponse>> getOrderDetails(
             HttpServletRequest request,
             @PathVariable Long orderId) {
-        
+
         Long shipperId = getShipperIdFromToken(request);
-        
+
         DriverOrderResponse order = driverService.getOrderDetails(shipperId, orderId);
-        
+
         return ResponseEntity.ok(ApiResponse.<DriverOrderResponse>builder()
                 .code(200)
                 .message("Lấy chi tiết đơn hàng thành công")
                 .data(order)
                 .build());
     }
-    
+
     /**
      * API chấp nhận đơn hàng
      */
@@ -223,17 +222,17 @@ public class DriverController {
             HttpServletRequest request,
             @PathVariable Long orderId,
             @RequestBody(required = false) OrderActionRequest actionRequest) {
-        
+
         Long shipperId = getShipperIdFromToken(request);
-        
+
         driverService.acceptOrder(shipperId, orderId, actionRequest);
-        
+
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .code(200)
                 .message("Chấp nhận đơn hàng thành công")
                 .build());
     }
-    
+
     /**
      * API từ chối đơn hàng
      */
@@ -242,17 +241,17 @@ public class DriverController {
             HttpServletRequest request,
             @PathVariable Long orderId,
             @Valid @RequestBody OrderActionRequest actionRequest) {
-        
+
         Long shipperId = getShipperIdFromToken(request);
-        
+
         driverService.rejectOrder(shipperId, orderId, actionRequest);
-        
+
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .code(200)
                 .message("Từ chối đơn hàng thành công")
                 .build());
     }
-    
+
     /**
      * API cập nhật trạng thái đơn hàng
      */
@@ -262,17 +261,17 @@ public class DriverController {
             @PathVariable Long orderId,
             @RequestParam String status,
             @RequestBody(required = false) OrderActionRequest actionRequest) {
-        
+
         Long shipperId = getShipperIdFromToken(request);
-        
+
         driverService.updateOrderStatus(shipperId, orderId, status, actionRequest);
-        
+
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .code(200)
                 .message("Cập nhật trạng thái đơn hàng thành công")
                 .build());
     }
-    
+
     /**
      * API xác nhận đã lấy hàng
      */
@@ -280,17 +279,17 @@ public class DriverController {
     public ResponseEntity<ApiResponse<Void>> confirmPickup(
             HttpServletRequest request,
             @PathVariable Long orderId) {
-        
+
         Long shipperId = getShipperIdFromToken(request);
-        
+
         driverService.confirmPickup(shipperId, orderId);
-        
+
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .code(200)
                 .message("Xác nhận lấy hàng thành công")
                 .build());
     }
-    
+
     /**
      * API xác nhận đã giao hàng
      */
@@ -298,53 +297,53 @@ public class DriverController {
     public ResponseEntity<ApiResponse<Void>> confirmDelivery(
             HttpServletRequest request,
             @PathVariable Long orderId) {
-        
+
         Long shipperId = getShipperIdFromToken(request);
-        
+
         driverService.confirmDelivery(shipperId, orderId);
-        
+
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .code(200)
                 .message("Xác nhận giao hàng thành công")
                 .build());
     }
-    
+
     /**
      * API lấy số đơn hàng đang chờ
      */
     @GetMapping("/orders/pending-count")
     public ResponseEntity<ApiResponse<Integer>> getPendingOrdersCount(HttpServletRequest request) {
         Long shipperId = getShipperIdFromToken(request);
-        
+
         Integer count = driverService.getPendingOrdersCount(shipperId);
-        
+
         return ResponseEntity.ok(ApiResponse.<Integer>builder()
                 .code(200)
                 .message("Lấy số đơn hàng chờ thành công")
                 .data(count)
                 .build());
     }
-    
+
     // ===============================
     // PROFILE MANAGEMENT APIs (Phase 2)
     // ===============================
-    
+
     /**
      * API lấy thông tin profile đầy đủ
      */
     @GetMapping("/profile")
     public ResponseEntity<ApiResponse<DriverLoginResponse>> getProfile(HttpServletRequest request) {
         Long shipperId = getShipperIdFromToken(request);
-        
+
         DriverLoginResponse profile = driverService.getProfile(shipperId);
-        
+
         return ResponseEntity.ok(ApiResponse.<DriverLoginResponse>builder()
                 .code(200)
                 .message("Lấy thông tin profile thành công")
                 .data(profile)
                 .build());
     }
-    
+
     /**
      * API cập nhật thông tin profile
      */
@@ -352,33 +351,33 @@ public class DriverController {
     public ResponseEntity<ApiResponse<Void>> updateProfile(
             HttpServletRequest request,
             @Valid @RequestBody UpdateProfileRequest updateRequest) {
-        
+
         Long shipperId = getShipperIdFromToken(request);
-        
+
         driverService.updateProfile(shipperId, updateRequest);
-        
+
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .code(200)
                 .message("Cập nhật profile thành công")
                 .build());
     }
-    
+
     /**
      * API lấy thống kê profile
      */
     @GetMapping("/profile/stats")
     public ResponseEntity<ApiResponse<ProfileStatsResponse>> getProfileStats(HttpServletRequest request) {
         Long shipperId = getShipperIdFromToken(request);
-        
+
         ProfileStatsResponse stats = driverService.getProfileStats(shipperId);
-        
+
         return ResponseEntity.ok(ApiResponse.<ProfileStatsResponse>builder()
                 .code(200)
                 .message("Lấy thống kê profile thành công")
                 .data(stats)
                 .build());
     }
-    
+
     /**
      * API upload avatar
      */
@@ -386,11 +385,11 @@ public class DriverController {
     public ResponseEntity<ApiResponse<Void>> uploadAvatar(
             HttpServletRequest request,
             @RequestParam String imageUrl) {
-        
+
         Long shipperId = getShipperIdFromToken(request);
-        
+
         driverService.uploadAvatar(shipperId, imageUrl);
-        
+
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .code(200)
                 .message("Cập nhật avatar thành công")
@@ -400,23 +399,23 @@ public class DriverController {
     // ===============================
     // WALLET & FINANCIAL APIs (Phase 2)
     // ===============================
-    
+
     /**
      * API lấy thông tin ví
      */
     @GetMapping("/wallet")
     public ResponseEntity<ApiResponse<WalletResponse>> getWallet(HttpServletRequest request) {
         Long shipperId = getShipperIdFromToken(request);
-        
+
         WalletResponse wallet = driverService.getWallet(shipperId);
-        
+
         return ResponseEntity.ok(ApiResponse.<WalletResponse>builder()
                 .code(200)
                 .message("Lấy thông tin ví thành công")
                 .data(wallet)
                 .build());
     }
-    
+
     /**
      * API lấy lịch sử giao dịch
      */
@@ -425,20 +424,19 @@ public class DriverController {
             HttpServletRequest request,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
+
         Long shipperId = getShipperIdFromToken(request);
-        
-        org.springframework.data.domain.Pageable pageable = 
-                org.springframework.data.domain.PageRequest.of(page, size);
+
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
         List<TransactionResponse> transactions = driverService.getTransactionHistory(shipperId, pageable);
-        
+
         return ResponseEntity.ok(ApiResponse.<List<TransactionResponse>>builder()
                 .code(200)
                 .message("Lấy lịch sử giao dịch thành công")
                 .data(transactions)
                 .build());
     }
-    
+
     /**
      * API lấy giao dịch theo loại
      */
@@ -446,18 +444,18 @@ public class DriverController {
     public ResponseEntity<ApiResponse<List<TransactionResponse>>> getTransactionsByType(
             HttpServletRequest request,
             @RequestParam String type) {
-        
+
         Long shipperId = getShipperIdFromToken(request);
-        
+
         List<TransactionResponse> transactions = driverService.getTransactionsByType(shipperId, type);
-        
+
         return ResponseEntity.ok(ApiResponse.<List<TransactionResponse>>builder()
                 .code(200)
                 .message("Lấy giao dịch theo loại thành công")
                 .data(transactions)
                 .build());
     }
-    
+
     /**
      * API rút tiền
      */
@@ -465,17 +463,17 @@ public class DriverController {
     public ResponseEntity<ApiResponse<Void>> withdrawMoney(
             HttpServletRequest request,
             @Valid @RequestBody WithdrawRequest withdrawRequest) {
-        
+
         Long shipperId = getShipperIdFromToken(request);
-        
+
         try {
             driverService.withdrawMoney(shipperId, withdrawRequest);
-            
+
             return ResponseEntity.ok(ApiResponse.<Void>builder()
                     .code(200)
                     .message("Yêu cầu rút tiền đã được tạo thành công")
                     .build());
-                    
+
         } catch (AppException e) {
             log.warn("Withdrawal failed for shipper {}: {}", shipperId, e.getMessage());
             return ResponseEntity.badRequest().body(ApiResponse.<Void>builder()
@@ -484,23 +482,23 @@ public class DriverController {
                     .build());
         }
     }
-    
+
     /**
      * API lấy thống kê thu nhập
      */
     @GetMapping("/wallet/earnings")
     public ResponseEntity<ApiResponse<WalletResponse>> getEarningsStats(HttpServletRequest request) {
         Long shipperId = getShipperIdFromToken(request);
-        
+
         WalletResponse earnings = driverService.getEarningsStats(shipperId);
-        
+
         return ResponseEntity.ok(ApiResponse.<WalletResponse>builder()
                 .code(200)
                 .message("Lấy thống kê thu nhập thành công")
                 .data(earnings)
                 .build());
     }
-    
+
     /**
      * API kiểm tra khả năng rút tiền
      */
@@ -524,11 +522,11 @@ public class DriverController {
                     .build());
         }
     }
-    
+
     // ===============================
     // REWARDS SYSTEM APIs (Phase 3)
     // ===============================
-    
+
     /**
      * Lấy danh sách phần thưởng khả dụng
      */
@@ -550,7 +548,7 @@ public class DriverController {
                     .build());
         }
     }
-    
+
     /**
      * Lấy lịch sử phần thưởng đã nhận
      */
@@ -576,7 +574,7 @@ public class DriverController {
                     .build());
         }
     }
-    
+
     /**
      * Nhận phần thưởng
      */
@@ -599,7 +597,7 @@ public class DriverController {
                     .build());
         }
     }
-    
+
     /**
      * Xem tiến độ các phần thưởng
      */
@@ -621,11 +619,11 @@ public class DriverController {
                     .build());
         }
     }
-    
+
     // ===============================
     // ANALYTICS APIs (Phase 3)
     // ===============================
-    
+
     /**
      * Thống kê hiệu suất shipper
      */
@@ -649,7 +647,7 @@ public class DriverController {
                     .build());
         }
     }
-    
+
     /**
      * Phân tích thu nhập
      */
@@ -673,7 +671,7 @@ public class DriverController {
                     .build());
         }
     }
-    
+
     /**
      * Thống kê đơn hàng
      */
@@ -697,11 +695,11 @@ public class DriverController {
                     .build());
         }
     }
-    
+
     // ===============================
     // SYSTEM UTILITIES APIs (Phase 3)
     // ===============================
-    
+
     /**
      * Kiểm tra phiên bản ứng dụng
      */
@@ -723,7 +721,7 @@ public class DriverController {
                     .build());
         }
     }
-    
+
     /**
      * Gửi phản hồi từ shipper
      */
@@ -747,7 +745,7 @@ public class DriverController {
                     .build());
         }
     }
-    
+
     /**
      * Lấy thông tin hỗ trợ
      */
@@ -772,7 +770,7 @@ public class DriverController {
     // ===============================
     // HELPER METHODS
     // ===============================
-    
+
     /**
      * Lấy shipper ID từ JWT token
      */
@@ -781,13 +779,13 @@ public class DriverController {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new AppException(ErrorCode.UNAUTHORIZED, "Token không hợp lệ");
         }
-        
+
         String token = authHeader.substring(7);
         String username = jwtService.extractUsername(token);
-        
+
         return driverService.getShipperIdByPhone(username);
     }
-    
+
     /**
      * Lấy token từ request
      */
@@ -798,4 +796,4 @@ public class DriverController {
         }
         return authHeader.substring(7);
     }
-} 
+}
