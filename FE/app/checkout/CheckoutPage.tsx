@@ -422,6 +422,8 @@ export default function Checkout() {
       )?.value || "";
     const voucherCodes = voucherCodeApply;
     const cartId = cartIdRequest;
+    const lat = selectedAddress.lat;
+    const lon = selectedAddress.lon;
 
     const orderData = {
       cartId,
@@ -429,6 +431,8 @@ export default function Checkout() {
       note,
       shippingFee: deliveryFee,
       voucherCode: voucherCodes || [],
+      lat,
+      lon
     };
     try {
       console.log(orderData);

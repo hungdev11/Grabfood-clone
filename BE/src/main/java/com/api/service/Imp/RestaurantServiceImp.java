@@ -136,7 +136,7 @@ public class RestaurantServiceImp implements RestaurantService {
     }
 
     @Override
-    @Transactional
+//    @Transactional
     public void handleOrder(long restaurantId, long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));

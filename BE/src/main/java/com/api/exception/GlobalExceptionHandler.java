@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleAppException(AppException exception, WebRequest request) {
         return isDriverAPI(request)
                 ? ResponseEntity.status(NOT_FOUND)
-                .body(shipperExceptionError(exception.getMessage(), NOT_FOUND.value()))
+                        .body(shipperExceptionError(exception.getMessage(), NOT_FOUND.value()))
                 : ResponseEntity.status(OK).body(buildErrorResponse(exception.getMessage(), BAD_REQUEST, request));
     }
 
@@ -28,9 +28,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleRuntimeException(RuntimeException exception, WebRequest request) {
         return isDriverAPI(request)
                 ? ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
-                shipperExceptionError("Lỗi hệ thống: " + exception.getMessage(), INTERNAL_SERVER_ERROR.value()))
+                        shipperExceptionError("Lỗi hệ thống: " + exception.getMessage(), INTERNAL_SERVER_ERROR.value()))
                 : ResponseEntity.status(OK)
-                .body(buildErrorResponse(exception.getMessage(), INTERNAL_SERVER_ERROR, request));
+                        .body(buildErrorResponse(exception.getMessage(), INTERNAL_SERVER_ERROR, request));
     }
 
     @ExceptionHandler({ MethodArgumentNotValidException.class, MissingServletRequestParameterException.class })
