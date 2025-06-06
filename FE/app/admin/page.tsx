@@ -3,6 +3,7 @@
 import AdminVoucher from "@/components/admin/AdminVoucher";
 import { useState } from "react";
 import RestaurantManagement from "@/components/admin/RestaurantManagement";
+import DriverManagement from "@/components/admin/DriverManagement";
 import OrderList from "@/components/admin/OrderAdmin";
 import RevenueTracking from "@/components/admin/RevenueTracking";
 import { LogOut } from "lucide-react";
@@ -43,7 +44,7 @@ const Dashboard = () => {
               onClick={() => handleButtonClick("Voucher")}
             >
               Voucher
-            </button>
+            </button>{" "}
             <button
               className={`w-full p-4 text-left text-gray-600 ${
                 activeButton === "Restaurant"
@@ -53,6 +54,16 @@ const Dashboard = () => {
               onClick={() => handleButtonClick("Restaurant")}
             >
               Nhà hàng
+            </button>
+            <button
+              className={`w-full p-4 text-left text-gray-600 ${
+                activeButton === "Driver"
+                  ? "bg-green-500 text-white rounded-lg"
+                  : ""
+              }`}
+              onClick={() => handleButtonClick("Driver")}
+            >
+              Tài xế
             </button>
             <button
               className={`w-full p-4 text-left text-gray-600 ${
@@ -73,12 +84,12 @@ const Dashboard = () => {
             </button>
           </div>
         </nav>
-      </div>
-
+      </div>{" "}
       {/* Main Content */}
       <div className="flex-1 p-6">
         {activeButton === "Voucher" && <AdminVoucher />}
         {activeButton === "Restaurant" && <RestaurantManagement />}
+        {activeButton === "Driver" && <DriverManagement />}
         {activeButton === "Order" && <OrderList />}
         {activeButton === "Revenue" && <RevenueTracking />}
       </div>
