@@ -74,6 +74,8 @@ public class OrderServiceImp implements OrderService {
                 .discountShippingFee(BigDecimal.ZERO)
                 .discountOrderPrice(BigDecimal.ZERO)
                 .orderDate(LocalDateTime.now())
+                .latitude(request.getLat())
+                .longitude(request.getLon())
                 .build();
         orderRepository.save(order);
 
