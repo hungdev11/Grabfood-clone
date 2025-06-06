@@ -18,4 +18,6 @@ public class CreateOrderRequest {
     private String note;
     private BigDecimal shippingFee;
     private List<String> voucherCode;
+    private double lat;
+    private double lon;
 }

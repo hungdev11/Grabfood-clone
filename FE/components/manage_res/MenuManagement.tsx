@@ -101,6 +101,22 @@ export default function MenuManagement() {
     }
   }, [restaurantId]);
 
+  useEffect(() => {
+    if (
+      kinds.length > 0 &&
+      typeList.length > 0 &&
+      newFoodData.kind === "" &&
+      newFoodData.type === ""
+    ) {
+      setNewFoodData((prev) => ({
+        ...prev,
+        kind: kinds[0],
+        type: typeList[0],
+      }));
+    }
+  }, [kinds, typeList]);
+
+
   const handleFoodClick = async (food: Food) => {
     try {
       const selectedAdditionalResponse = await axios.get(
@@ -196,10 +212,14 @@ export default function MenuManagement() {
   const handleDelete = async () => {
     if (!confirm("Bạn có chắc muốn xóa món này?")) return;
     try {
-      await axiosInstance.delete(`http://localhost:6969/grab/foods/${selectedFood?.id}`);
-      alert("Đã xóa món ăn!");
-      setSelectedFood(null);
-      await fetchFoods();
+      const response = await axios.delete(`http://localhost:6969/grab/foods/${selectedFood?.id}`);
+      if (response.data.code === 200) {
+        alert("Đã xóa món ăn!");
+        setSelectedFood(null);
+        await fetchFoods();
+      } else {
+        alert("Xóa món ăn thất bại.");
+      }
     } catch (error) {
       console.error("Lỗi khi xóa món ăn:", error);
       alert("Xóa thất bại.");
@@ -306,8 +326,8 @@ export default function MenuManagement() {
                 value={newFoodData.kind} 
                 className="w-full border px-3 py-2 rounded"
                 onChange={(e) => setNewFoodData({ ...newFoodData, kind: e.target.value })}>
-                {kinds.map((kind) => (
-                  <option key={kind} value={kind}>{kind}</option>
+                {Object.entries(kindsMap).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
                 ))}
               </select>
             </div>

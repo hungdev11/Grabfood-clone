@@ -1,5 +1,6 @@
 package com.api.service;
 
+import com.api.dto.model.DriverDto;
 import com.api.dto.request.*;
 import com.api.dto.response.*;
 import com.api.entity.Shipper;
@@ -105,7 +106,7 @@ public interface DriverService {
      * @return danh sách đơn hàng có thể nhận
      */
     List<DriverOrderResponse> getAvailableOrders(Long shipperId);
-    
+    void updateDriverStatus(Long driverId, String newStatus);
     /**
      * Lấy danh sách đơn hàng đã được assign cho shipper
      * @param shipperId ID shipper
@@ -309,4 +310,5 @@ public interface DriverService {
      * @return thông tin liên hệ hỗ trợ, FAQ, v.v.
      */
     SystemResponse getSupportInfo();
+    List<DriverDto> getAllDrivers();
 } 

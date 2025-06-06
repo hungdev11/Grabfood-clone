@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -32,7 +33,9 @@ public class ReminderController {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new AppException(ErrorCode.UNAUTHORIZED, "Authorization header is missing or invalid");
         }
-
+        if(request.getReminderTime() == null || request.getReminderTime().isBefore(LocalDateTime.now())){
+            throw new AppException(ErrorCode.INVALID_INPUT, "Reminder time must be in the future");
+        }
         String token = authHeader.substring(7);
         String username = jwtService.extractUsername(token);
         Long userId = userService.getUserIdByPhoneOrEmail(username);

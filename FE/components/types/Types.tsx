@@ -131,6 +131,15 @@ export interface Order {
   cartDetails: CartDetail[];
   discountShippingFee: number | null;
   discountOrderPrice: number | null;
+  shipperPickUpInfoResponse: ShipperPickUpInfoResponse | null;
+}
+
+export interface ShipperPickUpInfoResponse {
+  name: string;
+  phoneNumber: string;
+  vehicleType: string;
+  vehicleNumber: string;
+  paymentMethod: string;
 }
 
 export interface Notification {

@@ -45,11 +45,12 @@ public class OrderServiceImp implements OrderService {
     private final VoucherRepository voucherRepository;
 
     private final ReviewRepository reviewRepository;
-
+    private final OrderAssignmentRepository orderAssignmentRepository;
     private final FoodService foodService;
     private final ReviewService reviewService;
     private final CartService cartService;
     private final UserService userService;
+    private final PaymentInfoRepository paymentInfoRepository;
     private final LocationService locationService;
 
     @Override
@@ -74,6 +75,8 @@ public class OrderServiceImp implements OrderService {
                 .discountShippingFee(BigDecimal.ZERO)
                 .discountOrderPrice(BigDecimal.ZERO)
                 .orderDate(LocalDateTime.now())
+                .latitude(request.getLat())
+                .longitude(request.getLon())
                 .build();
         orderRepository.save(order);
 
@@ -337,7 +340,7 @@ public class OrderServiceImp implements OrderService {
         List<OrderResponse> responses = orderPage.getContent()
                 .stream()
                 .map(order -> {
-                    OrderResponse reponse = OrderResponse.builder()
+                    OrderResponse response = OrderResponse.builder()
                             .id(order.getId())
                             .userName(order.getUser().getName())
                             .address(order.getAddress())
@@ -356,9 +359,23 @@ public class OrderServiceImp implements OrderService {
                                     .toList())
                             .build();
                     if (!reviewMap.isEmpty() && reviewMap.containsKey(order.getId())) {
-                        reponse.setReviewResponse(reviewService.buildReviewResponse(reviewMap.get(order.getId())));
+                        response.setReviewResponse(reviewService.buildReviewResponse(reviewMap.get(order.getId())));
                     }
-                    return reponse;
+                    if (order.getStatus().equals(OrderStatus.READY_FOR_PICKUP)) {
+                        var optPickup = orderAssignmentRepository.findByOrder_IdAndStatus(order.getId(), OrderAssignment.AssignmentStatus.ACCEPTED);
+                        if (optPickup.isPresent()) {
+                            Shipper shipper = optPickup.get().getShipper();
+                            var pickupInfo = ShipperPickUpInfoResponse.builder()
+                                    .name(shipper.getName())
+                                    .phoneNumber(shipper.getPhone())
+                                    .vehicleType(shipper.getVehicleType())
+                                    .vehicleNumber(shipper.getVehicleNumber())
+                                    .paymentMethod(paymentInfoRepository.findByOrder_Id(order.getId()).getPaymentName())
+                                    .build();
+                            response.setShipperPickUpInfoResponse(pickupInfo);
+                        }
+                    }
+                    return response;
                 })
                 .toList();
 

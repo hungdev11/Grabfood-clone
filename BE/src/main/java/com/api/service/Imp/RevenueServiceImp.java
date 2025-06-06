@@ -22,7 +22,7 @@ public class RevenueServiceImp implements RevenueService {
     private static final DateTimeFormatter MONTH_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MM/yyyy");
 
     @Override
-    public RevenueResponse calculateRevenue(YearMonth startMonthYear, YearMonth endMonthYear) {
+    public RevenueResponse  calculateRevenue(YearMonth startMonthYear, YearMonth endMonthYear) {
         if (startMonthYear.isAfter(endMonthYear)) {
             throw new IllegalArgumentException("Start month/year must be before or equal to end month/year");
         }
