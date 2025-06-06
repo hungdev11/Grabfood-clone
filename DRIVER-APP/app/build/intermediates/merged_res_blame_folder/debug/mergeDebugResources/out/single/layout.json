@@ -1,0 +1,54 @@
+[
+    {
+        "merged": "com.grabdriver.fe.app-mergeDebugResources-46:/layout/fragment_home.xml",
+        "source": "com.grabdriver.fe.app-main-49:/layout/fragment_home.xml"
+    },
+    {
+        "merged": "com.grabdriver.fe.app-mergeDebugResources-46:/layout/activity_login.xml",
+        "source": "com.grabdriver.fe.app-main-49:/layout/activity_login.xml"
+    },
+    {
+        "merged": "com.grabdriver.fe.app-mergeDebugResources-46:/layout/fragment_profile.xml",
+        "source": "com.grabdriver.fe.app-main-49:/layout/fragment_profile.xml"
+    },
+    {
+        "merged": "com.grabdriver.fe.app-mergeDebugResources-46:/layout/fragment_wallet.xml",
+        "source": "com.grabdriver.fe.app-main-49:/layout/fragment_wallet.xml"
+    },
+    {
+        "merged": "com.grabdriver.fe.app-mergeDebugResources-46:/layout/item_transaction.xml",
+        "source": "com.grabdriver.fe.app-main-49:/layout/item_transaction.xml"
+    },
+    {
+        "merged": "com.grabdriver.fe.app-mergeDebugResources-46:/layout/activity_main.xml",
+        "source": "com.grabdriver.fe.app-main-49:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.grabdriver.fe.app-mergeDebugResources-46:/layout/dialog_loading.xml",
+        "source": "com.grabdriver.fe.app-main-49:/layout/dialog_loading.xml"
+    },
+    {
+        "merged": "com.grabdriver.fe.app-mergeDebugResources-46:/layout/fragment_orders.xml",
+        "source": "com.grabdriver.fe.app-main-49:/layout/fragment_orders.xml"
+    },
+    {
+        "merged": "com.grabdriver.fe.app-mergeDebugResources-46:/layout/activity_map.xml",
+        "source": "com.grabdriver.fe.app-main-49:/layout/activity_map.xml"
+    },
+    {
+        "merged": "com.grabdriver.fe.app-mergeDebugResources-46:/layout/dialog_withdraw.xml",
+        "source": "com.grabdriver.fe.app-main-49:/layout/dialog_withdraw.xml"
+    },
+    {
+        "merged": "com.grabdriver.fe.app-mergeDebugResources-46:/layout/item_order.xml",
+        "source": "com.grabdriver.fe.app-main-49:/layout/item_order.xml"
+    },
+    {
+        "merged": "com.grabdriver.fe.app-mergeDebugResources-46:/layout/fragment_rewards.xml",
+        "source": "com.grabdriver.fe.app-main-49:/layout/fragment_rewards.xml"
+    },
+    {
+        "merged": "com.grabdriver.fe.app-mergeDebugResources-46:/layout/item_reward.xml",
+        "source": "com.grabdriver.fe.app-main-49:/layout/item_reward.xml"
+    }
+]
