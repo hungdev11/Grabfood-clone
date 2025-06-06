@@ -8,6 +8,7 @@ public enum ErrorCode {
     // Add to ErrorCode.java
     // Add this to your ErrorCode enum
     // Add this line to your ErrorCode enum
+    INVALID_INPUT(0000, "Invalid input", HttpStatus.BAD_REQUEST),
     INVALID_STATUS(0101, "Invalid restaurant status", HttpStatus.BAD_REQUEST),
     ACCOUNT_NOT_FOUND(0003, "Account not found", HttpStatus.BAD_REQUEST),
     RESTAURANT_ALREADY_ACTIVE(0150, "Restaurant is already active and cannot be rejected", HttpStatus.BAD_REQUEST),

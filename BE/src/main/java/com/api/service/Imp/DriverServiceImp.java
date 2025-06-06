@@ -1,5 +1,6 @@
 package com.api.service.Imp;
 
+import com.api.dto.model.DriverDto;
 import com.api.dto.request.*;
 import com.api.dto.response.*;
 import com.api.entity.*;
@@ -223,6 +224,31 @@ public class DriverServiceImp implements DriverService {
         return availableOrders.stream()
                 .map(this::mapToDriverOrderResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void updateDriverStatus(Long driverId, String newStatus) {
+        log.info("Updating driver status: driverId={}, newStatus={}", driverId, newStatus);
+
+        // Find the shipper by ID
+        Shipper shipper = shipperRepository.findById(driverId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, "Không tìm thấy tài xế"));
+
+        try {
+            // Convert string status to enum
+            Shipper.ShipperStatus status = Shipper.ShipperStatus.valueOf(newStatus.toUpperCase());
+
+            // Update shipper status
+            shipper.setStatus(status);
+
+            // Save updated shipper
+            shipperRepository.save(shipper);
+
+            log.info("Successfully updated driver status: driverId={}, newStatus={}", driverId, newStatus);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid driver status: {}", newStatus);
+            throw new AppException(ErrorCode.INVALID_INPUT, "Trạng thái tài xế không hợp lệ");
+        }
     }
 
     @Override
@@ -961,6 +987,16 @@ public class DriverServiceImp implements DriverService {
                 .systemStatus("ONLINE")
                 .build();
     }
+
+    @Override
+    public List<DriverDto> getAllDrivers() {
+        log.info("Fetching all drivers");
+        List<Shipper> shippers = shipperRepository.findAll();
+        return shippers.stream()
+                .map(DriverDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
 
     // ===============================
     // HELPER METHODS FOR PHASE 3
