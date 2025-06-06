@@ -1,5 +1,6 @@
 package com.api.service.Imp;
 
+import com.api.entity.Address;
 import com.api.entity.Order;
 import com.api.entity.OrderAssignment;
 import com.api.entity.Shipper;
@@ -102,15 +103,16 @@ public class OrderAssignmentServiceImp implements OrderAssignmentService {
     @Override
     public List<Shipper> findEligibleShippers(Order order, List<Long> excludedShipperIds) {
         // Tìm trong bán kính mặc định trước
+        Address receiveAddress = order.getCartDetails().getFirst().getFood().getRestaurant().getAddress();
         List<Shipper> shippers = shipperRepository.findAvailableShippersInRadius(
-                order.getLatitude(), order.getLongitude(), DEFAULT_RADIUS_KM);
+                receiveAddress.getLat(), receiveAddress.getLon(), DEFAULT_RADIUS_KM);
 
         // Nếu không đủ shipper, mở rộng bán kính
         if (shippers.size() < 3) {
             log.info("📍 Mở rộng bán kính tìm kiếm từ {}km lên {}km cho order {}",
                     DEFAULT_RADIUS_KM, EXTENDED_RADIUS_KM, order.getId());
             shippers = shipperRepository.findAvailableShippersInRadius(
-                    order.getLatitude(), order.getLongitude(), EXTENDED_RADIUS_KM);
+                    receiveAddress.getLat(), receiveAddress.getLon(), EXTENDED_RADIUS_KM);
         }
 
         // Filter out excluded shippers và shippers trong cooldown

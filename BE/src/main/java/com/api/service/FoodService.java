@@ -25,6 +25,7 @@ public interface FoodService {
     void addAdditionalFoodToFoodOfRestaurant(AddAdditionalFoodsRequest request);
     PageResponse<List<GetFoodResponse>> getAdditionalFoodsOfFood (long restaurantId, long foodId, boolean isForCustomer, int page, int pageSize);
     void updateFoodInfo(long restaurantId, long foodId, UpdateFoodInfoRequest request);
+    void deleteFood(long foodId);
     GetFoodGroupResponse getFoodGroupOfRestaurant(long restaurantId, boolean isForCustomer);
     List<Voucher> getValidRestaurantVouchers(Restaurant restaurant, LocalDateTime time);
     List<GetFoodResponse> searchFoods(String query, Long restaurantId, boolean isForCustomer);

@@ -50,7 +50,7 @@ public class RestaurantServiceImp implements RestaurantService {
     private final NotificationService notificationService;
     private final EmailService emailService;
     private final RoleRepository roleRepository;
-
+    private final OrderAssignmentService orderAssignmentService;
     private static final double MOVING_SPEED_PER_HOUR = 50;
     private final AddressRepository addressRepository;
     private final PasswordEncoder passwordEncoder;
@@ -136,6 +136,7 @@ public class RestaurantServiceImp implements RestaurantService {
     }
 
     @Override
+    @Transactional
     public void handleOrder(long restaurantId, long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
@@ -150,18 +151,10 @@ public class RestaurantServiceImp implements RestaurantService {
         if (status.equals(OrderStatus.PROCESSING) || status.equals(OrderStatus.REJECTED)) {
             log.info("Change order {} status from PENDING to {}", orderId, status);
             order.setStatus(status);
-        } else if (status.equals(OrderStatus.SHIPPING)) {
-//            flow can be changed when app has function that delivery guy can approve order or not
-//            algorithm for find delivery guy
-//            Shipper shipper = shipperRepository.findById(1L);
-//            assign order to shipper
-//            shipper.getOrders().add(order);
-//            order.shipper(shipper);
-//            shipperRepository.save(shipper);
-//            send notification to delivery guy
-//            sendNotifyToDeliveryWhenResChangeOrderToShipping(shipper, order);
-            log.info("Change order {} status from PROCESSING to {}", orderId, status);
+        } else if (status.equals(OrderStatus.READY_FOR_PICKUP)) {
             order.setStatus(status);
+            orderAssignmentService.assignOrderToOptimalShipper(orderId);
+            log.info("Change order {} status from PROCESSING to {}", orderId, status);
         }
         orderRepository.save(order);
         // tạo thông báo push tại đây đến /topic/client/{userId}

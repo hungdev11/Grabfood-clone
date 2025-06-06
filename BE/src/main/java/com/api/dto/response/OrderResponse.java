@@ -32,4 +32,7 @@ public class OrderResponse {
     private boolean isReview;
     private ReviewDTO.ReviewResponse reviewResponse;
     private LocalDateTime createdAt;
+
+    @Builder.Default
+    private ShipperPickUpInfoResponse shipperPickUpInfoResponse = null;
 }

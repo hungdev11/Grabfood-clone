@@ -93,6 +93,15 @@ public class FoodController {
                 .build();
     }
 
+    @DeleteMapping("/{foodId}")
+    public ApiResponse<?> deleteFood(@PathVariable long foodId) {
+        foodService.deleteFood(foodId);
+        return ApiResponse.builder()
+                .code(200)
+                .message("Success")
+                .build();
+    }
+
     @PutMapping("/info/{foodId}")
     public ApiResponse<?> updateFoodInfo(@PathVariable long foodId, @RequestParam long restaurantId, @RequestBody UpdateFoodInfoRequest request) {
         foodService.updateFoodInfo(restaurantId, foodId, request);

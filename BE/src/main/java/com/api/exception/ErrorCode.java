@@ -8,6 +8,7 @@ public enum ErrorCode {
     // Add to ErrorCode.java
     // Add this to your ErrorCode enum
     // Add this line to your ErrorCode enum
+    INVALID_INPUT(0000, "Invalid input", HttpStatus.BAD_REQUEST),
     INVALID_STATUS(0101, "Invalid restaurant status", HttpStatus.BAD_REQUEST),
     ACCOUNT_NOT_FOUND(0003, "Account not found", HttpStatus.BAD_REQUEST),
     RESTAURANT_ALREADY_ACTIVE(0150, "Restaurant is already active and cannot be rejected", HttpStatus.BAD_REQUEST),
@@ -37,6 +38,7 @@ public enum ErrorCode {
     FOOD_NOT_PUBLIC_FOR_CUSTOMER(0055, "Food not found", HttpStatus.BAD_REQUEST),
     FOOD_ADDITIONAL(0056, "Food is additional", HttpStatus.BAD_REQUEST),
     ADDITIONAL_FOOD_NOT_FOUND(0057, "Additional food not found or belong to food", HttpStatus.BAD_REQUEST),
+    CAN_NOT_DELETE_ORDERED_FOOD(0057, "Can not delete food already ordered", HttpStatus.BAD_REQUEST),
     //RESTAURANT
     RESTAURANT_NOT_FOUND(0100, "Restaurant not found", HttpStatus.BAD_REQUEST),
     //VOUCHER

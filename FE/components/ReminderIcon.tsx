@@ -23,7 +23,7 @@ import {
   ReminderRequest,
   ReminderResponse,
 } from "@/utils/apiReminder";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 interface ReminderIconProps {
   userId: string | null;
@@ -55,11 +55,7 @@ export function ReminderIcon({ userId, onTrigger }: ReminderIconProps) {
       );
     } catch (error) {
       console.error("Failed to fetch reminders:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load reminders",
-        variant: "destructive",
-      });
+      toast.error("Failed to load reminders");
     } finally {
       setLoading(false);
     }
@@ -83,46 +79,27 @@ export function ReminderIcon({ userId, onTrigger }: ReminderIconProps) {
     try {
       await deleteReminder(id);
       fetchReminders();
-      toast({
-        title: "Success",
-        description: "Reminder deleted successfully",
-      });
+      toast.success("Reminder deleted successfully");
     } catch (error) {
       console.error("Failed to delete reminder:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete reminder",
-        variant: "destructive",
-      });
+      toast.error("Failed to delete reminder");
     }
   };
-
   const handleDeleteAllReminders = async () => {
     if (!userId) return;
 
     try {
       await deleteAllReminders();
       fetchReminders();
-      toast({
-        title: "Success",
-        description: "All reminders deleted successfully",
-      });
+      toast.success("All reminders deleted successfully");
     } catch (error) {
       console.error("Failed to delete all reminders:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete all reminders",
-        variant: "destructive",
-      });
+      toast.error("Failed to delete all reminders");
     }
   };
   const handleCreateReminder = async () => {
     if (!title || !reminderDate || !reminderTime) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -138,11 +115,8 @@ export function ReminderIcon({ userId, onTrigger }: ReminderIconProps) {
 
     // Check if date is in the past
     if (reminderDateTime < now) {
-      toast({
-        title: "Invalid date",
-        description: "Reminder time cannot be in the past",
-        variant: "destructive",
-      });
+      console.log("Selected date is in the past:", reminderDateTime);
+      toast.error("Reminder time cannot be in the past");
       return;
     }
 
@@ -167,17 +141,10 @@ export function ReminderIcon({ userId, onTrigger }: ReminderIconProps) {
       fetchReminders();
       setDialogOpen(false);
       resetForm();
-      toast({
-        title: "Success",
-        description: "Reminder created successfully",
-      });
+      toast.success("Reminder created successfully");
     } catch (error) {
       console.error("Failed to create reminder:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create reminder",
-        variant: "destructive",
-      });
+      toast.error("Failed to create reminder");
     }
   };
 

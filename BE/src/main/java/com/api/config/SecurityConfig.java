@@ -129,7 +129,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/restaurants/**", "/restaurants").permitAll()
                         .requestMatchers(HttpMethod.POST, "/restaurants").permitAll() // Đăng ký nhà hàng
                         .requestMatchers(HttpMethod.POST, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
+                        //.requestMatchers(HttpMethod.PUT, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/restaurants/**").permitAll()
 
                         // Food và Food Type endpoints
                         .requestMatchers("/foods/**").permitAll()
