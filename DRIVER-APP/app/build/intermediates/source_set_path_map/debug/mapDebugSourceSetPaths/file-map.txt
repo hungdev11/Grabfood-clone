@@ -1,0 +1,50 @@
+com.grabdriver.fe.app-annotation-experimental-1.4.0-0 C:\Users\batho\.gradle\caches\8.11.1\transforms\009424d433961496c629c8f8906a6940\transformed\annotation-experimental-1.4.0\res
+com.grabdriver.fe.app-drawerlayout-1.1.1-1 C:\Users\batho\.gradle\caches\8.11.1\transforms\0440b1a7817229b205bf3d4a0359f535\transformed\drawerlayout-1.1.1\res
+com.grabdriver.fe.app-room-ktx-2.6.1-2 C:\Users\batho\.gradle\caches\8.11.1\transforms\06a2d1647a9947877c5f13eda2f78ece\transformed\room-ktx-2.6.1\res
+com.grabdriver.fe.app-fragment-1.6.2-3 C:\Users\batho\.gradle\caches\8.11.1\transforms\0876b1ca0eb64afa2be8be607bd99222\transformed\fragment-1.6.2\res
+com.grabdriver.fe.app-android-maps-utils-3.8.2-4 C:\Users\batho\.gradle\caches\8.11.1\transforms\08af3c559831723bb50c11cb50e23b02\transformed\android-maps-utils-3.8.2\res
+com.grabdriver.fe.app-startup-runtime-1.1.1-5 C:\Users\batho\.gradle\caches\8.11.1\transforms\09509495862ff45aaca98b7c8ab0d02e\transformed\startup-runtime-1.1.1\res
+com.grabdriver.fe.app-lifecycle-livedata-2.7.0-6 C:\Users\batho\.gradle\caches\8.11.1\transforms\12c8cf1973f866b8f8c7ddf57687df85\transformed\lifecycle-livedata-2.7.0\res
+com.grabdriver.fe.app-core-1.13.0-7 C:\Users\batho\.gradle\caches\8.11.1\transforms\15fe3a7902fcb39d2005a48a9ca61bf6\transformed\core-1.13.0\res
+com.grabdriver.fe.app-play-services-maps-18.2.0-8 C:\Users\batho\.gradle\caches\8.11.1\transforms\18cb1ab97aed0ae7ae62fe30019bb5b9\transformed\play-services-maps-18.2.0\res
+com.grabdriver.fe.app-recyclerview-1.3.2-9 C:\Users\batho\.gradle\caches\8.11.1\transforms\191b9ac722822a68bbfd340719cb4315\transformed\recyclerview-1.3.2\res
+com.grabdriver.fe.app-swiperefreshlayout-1.1.0-10 C:\Users\batho\.gradle\caches\8.11.1\transforms\1c18bba6d18fa5e5086ded8e879d1908\transformed\swiperefreshlayout-1.1.0\res
+com.grabdriver.fe.app-profileinstaller-1.4.0-11 C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\res
+com.grabdriver.fe.app-core-runtime-2.2.0-12 C:\Users\batho\.gradle\caches\8.11.1\transforms\3596e8e4e8a3576fb1ce6e7f22f65256\transformed\core-runtime-2.2.0\res
+com.grabdriver.fe.app-emoji2-views-helper-1.3.0-13 C:\Users\batho\.gradle\caches\8.11.1\transforms\3a1a1c657b4b72769f6e2600f62de698\transformed\emoji2-views-helper-1.3.0\res
+com.grabdriver.fe.app-glide-4.16.0-14 C:\Users\batho\.gradle\caches\8.11.1\transforms\3f8e997f369b9b8ee0c971e37dfe5d96\transformed\glide-4.16.0\res
+com.grabdriver.fe.app-lifecycle-livedata-core-2.7.0-15 C:\Users\batho\.gradle\caches\8.11.1\transforms\49dd358ffad6c2bd9434c5801e52acce\transformed\lifecycle-livedata-core-2.7.0\res
+com.grabdriver.fe.app-appcompat-1.7.0-16 C:\Users\batho\.gradle\caches\8.11.1\transforms\4a3520c070df1587e2ca2ff187566104\transformed\appcompat-1.7.0\res
+com.grabdriver.fe.app-cardview-1.0.0-17 C:\Users\batho\.gradle\caches\8.11.1\transforms\4cb53a82da5a137f1bb3aaeac24bad87\transformed\cardview-1.0.0\res
+com.grabdriver.fe.app-lifecycle-service-2.7.0-18 C:\Users\batho\.gradle\caches\8.11.1\transforms\517d08a63565b0496f82778f642aa682\transformed\lifecycle-service-2.7.0\res
+com.grabdriver.fe.app-savedstate-1.2.1-19 C:\Users\batho\.gradle\caches\8.11.1\transforms\5b4f5b94edfdfd9b35df394b44952226\transformed\savedstate-1.2.1\res
+com.grabdriver.fe.app-lifecycle-process-2.7.0-20 C:\Users\batho\.gradle\caches\8.11.1\transforms\6cee0df10c7281da460b39634742c108\transformed\lifecycle-process-2.7.0\res
+com.grabdriver.fe.app-core-viewtree-1.0.0-21 C:\Users\batho\.gradle\caches\8.11.1\transforms\6e5182d85948b90611969e4aaadcb8c4\transformed\core-viewtree-1.0.0\res
+com.grabdriver.fe.app-sqlite-framework-2.4.0-22 C:\Users\batho\.gradle\caches\8.11.1\transforms\6ecbec5166f1ef7657408b721dcf5dfe\transformed\sqlite-framework-2.4.0\res
+com.grabdriver.fe.app-easypermissions-3.0.0-23 C:\Users\batho\.gradle\caches\8.11.1\transforms\7ec8f31b73b0e944185c28a8942e9f82\transformed\easypermissions-3.0.0\res
+com.grabdriver.fe.app-material-1.12.0-24 C:\Users\batho\.gradle\caches\8.11.1\transforms\8286b150e62b93ca6875688668ea7f00\transformed\material-1.12.0\res
+com.grabdriver.fe.app-coordinatorlayout-1.1.0-25 C:\Users\batho\.gradle\caches\8.11.1\transforms\89c0cbc2db929ea419c2f7e984c0e43f\transformed\coordinatorlayout-1.1.0\res
+com.grabdriver.fe.app-appcompat-resources-1.7.0-26 C:\Users\batho\.gradle\caches\8.11.1\transforms\8d05f9511c3a49a51a79957ffd9e4ceb\transformed\appcompat-resources-1.7.0\res
+com.grabdriver.fe.app-lifecycle-livedata-core-ktx-2.7.0-27 C:\Users\batho\.gradle\caches\8.11.1\transforms\8f35e43f6c9c53b85d948e7a6b759cef\transformed\lifecycle-livedata-core-ktx-2.7.0\res
+com.grabdriver.fe.app-constraintlayout-2.2.1-28 C:\Users\batho\.gradle\caches\8.11.1\transforms\9403f8e15a07931bfddc370c0e353941\transformed\constraintlayout-2.2.1\res
+com.grabdriver.fe.app-work-runtime-2.9.0-29 C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\res
+com.grabdriver.fe.app-customview-poolingcontainer-1.0.0-30 C:\Users\batho\.gradle\caches\8.11.1\transforms\a1037732f267e242434ea2f42ddd4f28\transformed\customview-poolingcontainer-1.0.0\res
+com.grabdriver.fe.app-emoji2-1.3.0-31 C:\Users\batho\.gradle\caches\8.11.1\transforms\a6fd686d17e3f5cf851d9dc8dc2573d7\transformed\emoji2-1.3.0\res
+com.grabdriver.fe.app-lifecycle-viewmodel-savedstate-2.7.0-32 C:\Users\batho\.gradle\caches\8.11.1\transforms\aad108e0ae7afa0b2da775b6886ef693\transformed\lifecycle-viewmodel-savedstate-2.7.0\res
+com.grabdriver.fe.app-activity-1.10.1-33 C:\Users\batho\.gradle\caches\8.11.1\transforms\aeba2f8340104a81848b4419fbf6d9a1\transformed\activity-1.10.1\res
+com.grabdriver.fe.app-lifecycle-runtime-2.7.0-34 C:\Users\batho\.gradle\caches\8.11.1\transforms\b1820e9e4176822dfbd9a7bdcd802f32\transformed\lifecycle-runtime-2.7.0\res
+com.grabdriver.fe.app-core-ktx-1.13.0-35 C:\Users\batho\.gradle\caches\8.11.1\transforms\be5f26926b912191700f918ca91ab3b3\transformed\core-ktx-1.13.0\res
+com.grabdriver.fe.app-lifecycle-viewmodel-2.7.0-36 C:\Users\batho\.gradle\caches\8.11.1\transforms\dc79ccc64331ff0eaee41aa13f16831c\transformed\lifecycle-viewmodel-2.7.0\res
+com.grabdriver.fe.app-room-runtime-2.6.1-37 C:\Users\batho\.gradle\caches\8.11.1\transforms\de0a16902125d756c11fb1b5ea54fc7e\transformed\room-runtime-2.6.1\res
+com.grabdriver.fe.app-play-services-base-18.1.0-38 C:\Users\batho\.gradle\caches\8.11.1\transforms\eb7fded5c4c3b821d3c838b30bf5d92e\transformed\play-services-base-18.1.0\res
+com.grabdriver.fe.app-sqlite-2.4.0-39 C:\Users\batho\.gradle\caches\8.11.1\transforms\f09c4d895a7851e4a66bd077a410c5c9\transformed\sqlite-2.4.0\res
+com.grabdriver.fe.app-play-services-basement-18.1.0-40 C:\Users\batho\.gradle\caches\8.11.1\transforms\f0a8581eeeba7c33496ba04ea6d3e363\transformed\play-services-basement-18.1.0\res
+com.grabdriver.fe.app-viewpager2-1.1.0-beta02-41 C:\Users\batho\.gradle\caches\8.11.1\transforms\f3530377b3f7a1a9e4a2f52b094693b1\transformed\viewpager2-1.1.0-beta02\res
+com.grabdriver.fe.app-transition-1.5.0-42 C:\Users\batho\.gradle\caches\8.11.1\transforms\fb68f07fc2316916b51dd049a72b08ba\transformed\transition-1.5.0\res
+com.grabdriver.fe.app-pngs-43 D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\build\generated\res\pngs\debug
+com.grabdriver.fe.app-resValues-44 D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\build\generated\res\resValues\debug
+com.grabdriver.fe.app-packageDebugResources-45 D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.grabdriver.fe.app-packageDebugResources-46 D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.grabdriver.fe.app-debug-47 D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.grabdriver.fe.app-debug-48 D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\debug\res
+com.grabdriver.fe.app-main-49 D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\res

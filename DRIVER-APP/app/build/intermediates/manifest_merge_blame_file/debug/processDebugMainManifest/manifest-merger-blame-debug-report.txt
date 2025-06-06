@@ -1,0 +1,515 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.grabdriver.fe"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="35" />
+10
+11    <!-- Internet and Network permissions -->
+12    <uses-permission android:name="android.permission.INTERNET" />
+12-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:6:5-67
+12-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:6:22-64
+13    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+13-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:7:5-79
+13-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:7:22-76
+14
+15    <!-- Location permissions -->
+16    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+16-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:10:5-79
+16-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:10:22-76
+17    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+17-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:11:5-81
+17-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:11:22-78
+18    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+18-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:12:5-85
+18-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:12:22-82
+19
+20    <!-- Camera permission for proof of delivery -->
+21    <uses-permission android:name="android.permission.CAMERA" />
+21-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:15:5-65
+21-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:15:22-62
+22
+23    <!-- Phone permission for calling customers -->
+24    <uses-permission android:name="android.permission.CALL_PHONE" />
+24-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:18:5-69
+24-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:18:22-66
+25
+26    <!-- Notification permissions -->
+27    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+27-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:21:5-77
+27-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:21:22-74
+28    <uses-permission android:name="android.permission.VIBRATE" />
+28-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:22:5-66
+28-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:22:22-63
+29
+30    <!-- Wake lock for background location -->
+31    <uses-permission android:name="android.permission.WAKE_LOCK" />
+31-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:25:5-68
+31-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:25:22-65
+32
+33    <!-- Foreground service permission -->
+34    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+34-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:28:5-77
+34-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:28:22-74
+35    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+35-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:29:5-86
+35-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:29:22-83
+36
+37    <uses-feature
+37-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\18cb1ab97aed0ae7ae62fe30019bb5b9\transformed\play-services-maps-18.2.0\AndroidManifest.xml:26:5-28:35
+38        android:glEsVersion="0x00020000"
+38-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\18cb1ab97aed0ae7ae62fe30019bb5b9\transformed\play-services-maps-18.2.0\AndroidManifest.xml:27:9-41
+39        android:required="true" />
+39-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\18cb1ab97aed0ae7ae62fe30019bb5b9\transformed\play-services-maps-18.2.0\AndroidManifest.xml:28:9-32
+40
+41    <queries>
+41-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\18cb1ab97aed0ae7ae62fe30019bb5b9\transformed\play-services-maps-18.2.0\AndroidManifest.xml:30:5-34:15
+42
+43        <!-- Needs to be explicitly declared on Android R+ -->
+44        <package android:name="com.google.android.apps.maps" />
+44-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\18cb1ab97aed0ae7ae62fe30019bb5b9\transformed\play-services-maps-18.2.0\AndroidManifest.xml:33:9-64
+44-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\18cb1ab97aed0ae7ae62fe30019bb5b9\transformed\play-services-maps-18.2.0\AndroidManifest.xml:33:18-61
+45    </queries>
+46
+47    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+47-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:25:5-81
+47-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:25:22-78
+48
+49    <permission
+49-->[androidx.core:core:1.13.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\15fe3a7902fcb39d2005a48a9ca61bf6\transformed\core-1.13.0\AndroidManifest.xml:22:5-24:47
+50        android:name="com.grabdriver.fe.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+50-->[androidx.core:core:1.13.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\15fe3a7902fcb39d2005a48a9ca61bf6\transformed\core-1.13.0\AndroidManifest.xml:23:9-81
+51        android:protectionLevel="signature" />
+51-->[androidx.core:core:1.13.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\15fe3a7902fcb39d2005a48a9ca61bf6\transformed\core-1.13.0\AndroidManifest.xml:24:9-44
+52
+53    <uses-permission android:name="com.grabdriver.fe.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+53-->[androidx.core:core:1.13.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\15fe3a7902fcb39d2005a48a9ca61bf6\transformed\core-1.13.0\AndroidManifest.xml:26:5-97
+53-->[androidx.core:core:1.13.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\15fe3a7902fcb39d2005a48a9ca61bf6\transformed\core-1.13.0\AndroidManifest.xml:26:22-94
+54
+55    <application
+55-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:31:5-110:19
+56        android:allowBackup="true"
+56-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:32:9-35
+57        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+57-->[androidx.core:core:1.13.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\15fe3a7902fcb39d2005a48a9ca61bf6\transformed\core-1.13.0\AndroidManifest.xml:28:18-86
+58        android:dataExtractionRules="@xml/data_extraction_rules"
+58-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:33:9-65
+59        android:debuggable="true"
+60        android:extractNativeLibs="false"
+61        android:fullBackupContent="@xml/backup_rules"
+61-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:34:9-54
+62        android:icon="@mipmap/ic_launcher"
+62-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:35:9-43
+63        android:label="@string/app_name"
+63-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:36:9-41
+64        android:networkSecurityConfig="@xml/network_security_config"
+64-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:40:9-69
+65        android:roundIcon="@mipmap/ic_launcher_round"
+65-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:37:9-54
+66        android:supportsRtl="true"
+66-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:38:9-35
+67        android:theme="@style/Theme.MyApplication"
+67-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:39:9-51
+68        android:usesCleartextTraffic="true" >
+68-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:41:9-44
+69
+70        <!-- Google Maps API Key -->
+71        <meta-data
+71-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:45:9-47:71
+72            android:name="com.google.android.geo.API_KEY"
+72-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:46:13-58
+73            android:value="AIzaSyDk1D-rjo3bjI66KOEiDpLBFX4C2TH_eyw" />
+73-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:47:13-68
+74
+75        <!-- Temporarily comment Firebase -->
+76        <!--
+77        Firebase Messaging
+78        <meta-data
+79            android:name="com.google.firebase.messaging.default_notification_icon"
+80            android:resource="@drawable/ic_delivery_truck" />
+81        <meta-data
+82            android:name="com.google.firebase.messaging.default_notification_color"
+83            android:resource="@color/grab_green" />
+84        <meta-data
+85            android:name="com.google.firebase.messaging.default_notification_channel_id"
+86            android:value="grab_driver_notifications" />
+87        -->
+88
+89
+90        <!-- Login Activity - Now the launcher -->
+91        <activity
+91-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:63:9-72:20
+92            android:name="com.grabdriver.fe.LoginActivity"
+92-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:64:13-42
+93            android:exported="true"
+93-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:65:13-36
+94            android:screenOrientation="portrait"
+94-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:66:13-49
+95            android:windowSoftInputMode="adjustResize" >
+95-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:67:13-55
+96            <intent-filter>
+96-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:68:13-71:29
+97                <action android:name="android.intent.action.MAIN" />
+97-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:69:17-69
+97-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:69:25-66
+98
+99                <category android:name="android.intent.category.LAUNCHER" />
+99-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:70:17-77
+99-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:70:27-74
+100            </intent-filter>
+101        </activity>
+102
+103        <!-- Main Activity -->
+104        <activity
+104-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:75:9-78:52
+105            android:name="com.grabdriver.fe.MainActivity"
+105-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:76:13-41
+106            android:exported="false"
+106-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:77:13-37
+107            android:screenOrientation="portrait" />
+107-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:78:13-49
+108
+109        <!-- Map Activity -->
+110        <activity
+110-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:81:9-84:52
+111            android:name="com.grabdriver.fe.MapActivity"
+111-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:82:13-40
+112            android:exported="false"
+112-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:83:13-37
+113            android:screenOrientation="portrait" />
+113-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:84:13-49
+114
+115        <!-- Location Service -->
+116        <service
+116-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:87:9-91:56
+117            android:name="com.grabdriver.fe.services.LocationService"
+117-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:88:13-53
+118            android:enabled="true"
+118-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:89:13-35
+119            android:exported="false"
+119-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:90:13-37
+120            android:foregroundServiceType="location" />
+120-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:91:13-53
+121
+122        <!-- Firebase Messaging Service -->
+123        <!--
+124        Temporarily comment Firebase service
+125        <service
+126            android:name=".services.GrabFirebaseMessagingService"
+127            android:exported="false">
+128            <intent-filter>
+129                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+130            </intent-filter>
+131        </service>
+132        -->
+133
+134
+135        <!-- Order Update Service -->
+136        <service
+136-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:105:9-108:40
+137            android:name="com.grabdriver.fe.services.OrderUpdateService"
+137-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:106:13-56
+138            android:enabled="true"
+138-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:107:13-35
+139            android:exported="false" />
+139-->D:\BiiDenn\PTITHCM\Mon hoc\HK8(2025-2026)\service_oriented_architecture\SOA\Grabfood-clone\DRIVER-APP\app\src\main\AndroidManifest.xml:108:13-37
+140
+141        <activity
+141-->[pub.devrel:easypermissions:3.0.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\7ec8f31b73b0e944185c28a8942e9f82\transformed\easypermissions-3.0.0\AndroidManifest.xml:12:9-16:66
+142            android:name="pub.devrel.easypermissions.AppSettingsDialogHolderActivity"
+142-->[pub.devrel:easypermissions:3.0.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\7ec8f31b73b0e944185c28a8942e9f82\transformed\easypermissions-3.0.0\AndroidManifest.xml:13:13-86
+143            android:exported="false"
+143-->[pub.devrel:easypermissions:3.0.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\7ec8f31b73b0e944185c28a8942e9f82\transformed\easypermissions-3.0.0\AndroidManifest.xml:14:13-37
+144            android:label=""
+144-->[pub.devrel:easypermissions:3.0.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\7ec8f31b73b0e944185c28a8942e9f82\transformed\easypermissions-3.0.0\AndroidManifest.xml:15:13-29
+145            android:theme="@style/EasyPermissions.Transparent" />
+145-->[pub.devrel:easypermissions:3.0.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\7ec8f31b73b0e944185c28a8942e9f82\transformed\easypermissions-3.0.0\AndroidManifest.xml:16:13-63
+146
+147        <meta-data
+147-->[com.google.maps.android:android-maps-utils:3.8.2] C:\Users\batho\.gradle\caches\8.11.1\transforms\08af3c559831723bb50c11cb50e23b02\transformed\android-maps-utils-3.8.2\AndroidManifest.xml:8:9-10:69
+148            android:name="com.google.android.gms.version"
+148-->[com.google.maps.android:android-maps-utils:3.8.2] C:\Users\batho\.gradle\caches\8.11.1\transforms\08af3c559831723bb50c11cb50e23b02\transformed\android-maps-utils-3.8.2\AndroidManifest.xml:9:13-58
+149            android:value="@integer/google_play_services_version" /> <!-- Needs to be explicitly declared on P+ -->
+149-->[com.google.maps.android:android-maps-utils:3.8.2] C:\Users\batho\.gradle\caches\8.11.1\transforms\08af3c559831723bb50c11cb50e23b02\transformed\android-maps-utils-3.8.2\AndroidManifest.xml:10:13-66
+150        <uses-library
+150-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\18cb1ab97aed0ae7ae62fe30019bb5b9\transformed\play-services-maps-18.2.0\AndroidManifest.xml:39:9-41:40
+151            android:name="org.apache.http.legacy"
+151-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\18cb1ab97aed0ae7ae62fe30019bb5b9\transformed\play-services-maps-18.2.0\AndroidManifest.xml:40:13-50
+152            android:required="false" />
+152-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\18cb1ab97aed0ae7ae62fe30019bb5b9\transformed\play-services-maps-18.2.0\AndroidManifest.xml:41:13-37
+153
+154        <activity
+154-->[com.google.android.gms:play-services-base:18.1.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\eb7fded5c4c3b821d3c838b30bf5d92e\transformed\play-services-base-18.1.0\AndroidManifest.xml:20:9-22:45
+155            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+155-->[com.google.android.gms:play-services-base:18.1.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\eb7fded5c4c3b821d3c838b30bf5d92e\transformed\play-services-base-18.1.0\AndroidManifest.xml:20:19-85
+156            android:exported="false"
+156-->[com.google.android.gms:play-services-base:18.1.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\eb7fded5c4c3b821d3c838b30bf5d92e\transformed\play-services-base-18.1.0\AndroidManifest.xml:22:19-43
+157            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+157-->[com.google.android.gms:play-services-base:18.1.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\eb7fded5c4c3b821d3c838b30bf5d92e\transformed\play-services-base-18.1.0\AndroidManifest.xml:21:19-78
+158
+159        <provider
+159-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:29:9-37:20
+160            android:name="androidx.startup.InitializationProvider"
+160-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:30:13-67
+161            android:authorities="com.grabdriver.fe.androidx-startup"
+161-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:31:13-68
+162            android:exported="false" >
+162-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:32:13-37
+163            <meta-data
+163-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:34:13-36:52
+164                android:name="androidx.work.WorkManagerInitializer"
+164-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:35:17-68
+165                android:value="androidx.startup" />
+165-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:36:17-49
+166            <meta-data
+166-->[androidx.emoji2:emoji2:1.3.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\a6fd686d17e3f5cf851d9dc8dc2573d7\transformed\emoji2-1.3.0\AndroidManifest.xml:29:13-31:52
+167                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+167-->[androidx.emoji2:emoji2:1.3.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\a6fd686d17e3f5cf851d9dc8dc2573d7\transformed\emoji2-1.3.0\AndroidManifest.xml:30:17-75
+168                android:value="androidx.startup" />
+168-->[androidx.emoji2:emoji2:1.3.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\a6fd686d17e3f5cf851d9dc8dc2573d7\transformed\emoji2-1.3.0\AndroidManifest.xml:31:17-49
+169            <meta-data
+169-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\6cee0df10c7281da460b39634742c108\transformed\lifecycle-process-2.7.0\AndroidManifest.xml:29:13-31:52
+170                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+170-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\6cee0df10c7281da460b39634742c108\transformed\lifecycle-process-2.7.0\AndroidManifest.xml:30:17-78
+171                android:value="androidx.startup" />
+171-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\6cee0df10c7281da460b39634742c108\transformed\lifecycle-process-2.7.0\AndroidManifest.xml:31:17-49
+172            <meta-data
+172-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:29:13-31:52
+173                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+173-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:30:17-85
+174                android:value="androidx.startup" />
+174-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:31:17-49
+175        </provider>
+176
+177        <service
+177-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:39:9-45:35
+178            android:name="androidx.work.impl.background.systemalarm.SystemAlarmService"
+178-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:40:13-88
+179            android:directBootAware="false"
+179-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:41:13-44
+180            android:enabled="@bool/enable_system_alarm_service_default"
+180-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:42:13-72
+181            android:exported="false" />
+181-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:43:13-37
+182        <service
+182-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:46:9-52:35
+183            android:name="androidx.work.impl.background.systemjob.SystemJobService"
+183-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:47:13-84
+184            android:directBootAware="false"
+184-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:48:13-44
+185            android:enabled="@bool/enable_system_job_service_default"
+185-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:49:13-70
+186            android:exported="true"
+186-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:50:13-36
+187            android:permission="android.permission.BIND_JOB_SERVICE" />
+187-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:51:13-69
+188        <service
+188-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:53:9-59:35
+189            android:name="androidx.work.impl.foreground.SystemForegroundService"
+189-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:54:13-81
+190            android:directBootAware="false"
+190-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:55:13-44
+191            android:enabled="@bool/enable_system_foreground_service_default"
+191-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:56:13-77
+192            android:exported="false" />
+192-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:57:13-37
+193
+194        <receiver
+194-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:61:9-66:35
+195            android:name="androidx.work.impl.utils.ForceStopRunnable$BroadcastReceiver"
+195-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:62:13-88
+196            android:directBootAware="false"
+196-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:63:13-44
+197            android:enabled="true"
+197-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:64:13-35
+198            android:exported="false" />
+198-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:65:13-37
+199        <receiver
+199-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:67:9-77:20
+200            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryChargingProxy"
+200-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:68:13-106
+201            android:directBootAware="false"
+201-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:69:13-44
+202            android:enabled="false"
+202-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:70:13-36
+203            android:exported="false" >
+203-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:71:13-37
+204            <intent-filter>
+204-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:73:13-76:29
+205                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
+205-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:74:17-87
+205-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:74:25-84
+206                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
+206-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:75:17-90
+206-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:75:25-87
+207            </intent-filter>
+208        </receiver>
+209        <receiver
+209-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:78:9-88:20
+210            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryNotLowProxy"
+210-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:79:13-104
+211            android:directBootAware="false"
+211-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:80:13-44
+212            android:enabled="false"
+212-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:81:13-36
+213            android:exported="false" >
+213-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:82:13-37
+214            <intent-filter>
+214-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:84:13-87:29
+215                <action android:name="android.intent.action.BATTERY_OKAY" />
+215-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:85:17-77
+215-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:85:25-74
+216                <action android:name="android.intent.action.BATTERY_LOW" />
+216-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:86:17-76
+216-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:86:25-73
+217            </intent-filter>
+218        </receiver>
+219        <receiver
+219-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:89:9-99:20
+220            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$StorageNotLowProxy"
+220-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:90:13-104
+221            android:directBootAware="false"
+221-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:91:13-44
+222            android:enabled="false"
+222-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:92:13-36
+223            android:exported="false" >
+223-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:93:13-37
+224            <intent-filter>
+224-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:95:13-98:29
+225                <action android:name="android.intent.action.DEVICE_STORAGE_LOW" />
+225-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:96:17-83
+225-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:96:25-80
+226                <action android:name="android.intent.action.DEVICE_STORAGE_OK" />
+226-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:97:17-82
+226-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:97:25-79
+227            </intent-filter>
+228        </receiver>
+229        <receiver
+229-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:100:9-109:20
+230            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$NetworkStateProxy"
+230-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:101:13-103
+231            android:directBootAware="false"
+231-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:102:13-44
+232            android:enabled="false"
+232-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:103:13-36
+233            android:exported="false" >
+233-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:104:13-37
+234            <intent-filter>
+234-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:106:13-108:29
+235                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+235-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:107:17-79
+235-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:107:25-76
+236            </intent-filter>
+237        </receiver>
+238        <receiver
+238-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:110:9-121:20
+239            android:name="androidx.work.impl.background.systemalarm.RescheduleReceiver"
+239-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:111:13-88
+240            android:directBootAware="false"
+240-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:112:13-44
+241            android:enabled="false"
+241-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:113:13-36
+242            android:exported="false" >
+242-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:114:13-37
+243            <intent-filter>
+243-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:116:13-120:29
+244                <action android:name="android.intent.action.BOOT_COMPLETED" />
+244-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:117:17-79
+244-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:117:25-76
+245                <action android:name="android.intent.action.TIME_SET" />
+245-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:118:17-73
+245-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:118:25-70
+246                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+246-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:119:17-81
+246-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:119:25-78
+247            </intent-filter>
+248        </receiver>
+249        <receiver
+249-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:122:9-131:20
+250            android:name="androidx.work.impl.background.systemalarm.ConstraintProxyUpdateReceiver"
+250-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:123:13-99
+251            android:directBootAware="false"
+251-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:124:13-44
+252            android:enabled="@bool/enable_system_alarm_service_default"
+252-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:125:13-72
+253            android:exported="false" >
+253-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:126:13-37
+254            <intent-filter>
+254-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:128:13-130:29
+255                <action android:name="androidx.work.impl.background.systemalarm.UpdateProxies" />
+255-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:129:17-98
+255-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:129:25-95
+256            </intent-filter>
+257        </receiver>
+258        <receiver
+258-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:132:9-142:20
+259            android:name="androidx.work.impl.diagnostics.DiagnosticsReceiver"
+259-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:133:13-78
+260            android:directBootAware="false"
+260-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:134:13-44
+261            android:enabled="true"
+261-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:135:13-35
+262            android:exported="true"
+262-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:136:13-36
+263            android:permission="android.permission.DUMP" >
+263-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:137:13-57
+264            <intent-filter>
+264-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:139:13-141:29
+265                <action android:name="androidx.work.diagnostics.REQUEST_DIAGNOSTICS" />
+265-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:140:17-88
+265-->[androidx.work:work-runtime:2.9.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\9b90b29d1e679d903f887325db0bccce\transformed\work-runtime-2.9.0\AndroidManifest.xml:140:25-85
+266            </intent-filter>
+267        </receiver>
+268
+269        <service
+269-->[androidx.room:room-runtime:2.6.1] C:\Users\batho\.gradle\caches\8.11.1\transforms\de0a16902125d756c11fb1b5ea54fc7e\transformed\room-runtime-2.6.1\AndroidManifest.xml:24:9-28:63
+270            android:name="androidx.room.MultiInstanceInvalidationService"
+270-->[androidx.room:room-runtime:2.6.1] C:\Users\batho\.gradle\caches\8.11.1\transforms\de0a16902125d756c11fb1b5ea54fc7e\transformed\room-runtime-2.6.1\AndroidManifest.xml:25:13-74
+271            android:directBootAware="true"
+271-->[androidx.room:room-runtime:2.6.1] C:\Users\batho\.gradle\caches\8.11.1\transforms\de0a16902125d756c11fb1b5ea54fc7e\transformed\room-runtime-2.6.1\AndroidManifest.xml:26:13-43
+272            android:exported="false" />
+272-->[androidx.room:room-runtime:2.6.1] C:\Users\batho\.gradle\caches\8.11.1\transforms\de0a16902125d756c11fb1b5ea54fc7e\transformed\room-runtime-2.6.1\AndroidManifest.xml:27:13-37
+273
+274        <receiver
+274-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:34:9-52:20
+275            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+275-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:35:13-76
+276            android:directBootAware="false"
+276-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:36:13-44
+277            android:enabled="true"
+277-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:37:13-35
+278            android:exported="true"
+278-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:38:13-36
+279            android:permission="android.permission.DUMP" >
+279-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:39:13-57
+280            <intent-filter>
+280-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:40:13-42:29
+281                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+281-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:41:17-91
+281-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:41:25-88
+282            </intent-filter>
+283            <intent-filter>
+283-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:43:13-45:29
+284                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+284-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:44:17-85
+284-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:44:25-82
+285            </intent-filter>
+286            <intent-filter>
+286-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:46:13-48:29
+287                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+287-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:47:17-88
+287-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:47:25-85
+288            </intent-filter>
+289            <intent-filter>
+289-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:49:13-51:29
+290                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+290-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:50:17-95
+290-->[androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\batho\.gradle\caches\8.11.1\transforms\3426c1533025007f9d3bd9563fb83bd9\transformed\profileinstaller-1.4.0\AndroidManifest.xml:50:25-92
+291            </intent-filter>
+292        </receiver>
+293    </application>
+294
+295</manifest>
