@@ -4,35 +4,57 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.grabdriver.myapplication.MainActivity;
 import com.grabdriver.myapplication.R;
 import com.grabdriver.myapplication.adapters.RewardAdapter;
 import com.grabdriver.myapplication.models.Reward;
+import com.grabdriver.myapplication.models.Shipper;
+import com.grabdriver.myapplication.services.ApiManager;
+import com.grabdriver.myapplication.services.ApiRepository;
+import com.grabdriver.myapplication.utils.SessionManager;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class RewardsFragment extends Fragment {
-
+public class RewardsFragment extends Fragment implements RewardAdapter.OnRewardClickListener {
     private TextView totalGemsText;
     private RecyclerView rewardsRecyclerView;
     private RewardAdapter rewardAdapter;
     private List<Reward> rewardList;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private ProgressBar progressLoading;
+    private TextView emptyRewardsText;
+
+    private ApiManager apiManager;
+    private SessionManager sessionManager;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-            @Nullable Bundle savedInstanceState) {
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_rewards, container, false);
+
+        if (getActivity() instanceof MainActivity) {
+            apiManager = ((MainActivity) getActivity()).getApiManager();
+            sessionManager = ((MainActivity) getActivity()).getSessionManager();
+        }
 
         initViews(view);
         setupRecyclerView();
+        setupSwipeRefresh();
         loadRewards();
 
         return view;
@@ -41,48 +63,155 @@ public class RewardsFragment extends Fragment {
     private void initViews(View view) {
         totalGemsText = view.findViewById(R.id.text_total_gems);
         rewardsRecyclerView = view.findViewById(R.id.recycler_rewards);
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
+        progressLoading = view.findViewById(R.id.progress_loading);
+        emptyRewardsText = view.findViewById(R.id.text_empty_rewards);
     }
 
     private void setupRecyclerView() {
         rewardList = new ArrayList<>();
-        rewardAdapter = new RewardAdapter(rewardList);
+        rewardAdapter = new RewardAdapter(rewardList, this);
         rewardsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         rewardsRecyclerView.setAdapter(rewardAdapter);
     }
 
+    private void setupSwipeRefresh() {
+        swipeRefreshLayout.setOnRefreshListener(this::refreshData);
+        swipeRefreshLayout.setColorSchemeResources(
+                R.color.colorPrimary,
+                R.color.colorAccent,
+                R.color.colorPrimaryDark
+        );
+    }
+
     private void loadRewards() {
-        // Load rewards from database/API
-        // For demo purposes, using static data
-        totalGemsText.setText("1,250 💎");
+        showLoading(true);
 
-        rewardList.clear();
+        // Hiển thị gems từ SessionManager
+        if (sessionManager != null) {
+            Shipper shipper = sessionManager.getShipperInfo();
+            if (shipper != null) {
+                totalGemsText.setText(String.format("%,d 💎", shipper.getGems()));
+            }
+        }
 
-        Reward reward1 = new Reward(1, "Hoàn thành 10 đơn hàng", "Giao thành công 10 đơn hàng trong ngày",
-                "DAILY", new BigDecimal("50000"), "ACTIVE", "", new Date());
-        reward1.setRequiredOrders(10);
-        reward1.setGemsValue(100);
+        if (apiManager != null) {
+            apiManager.getRewardRepository().getAvailableRewards(
+                    new ApiRepository.NetworkCallback<List<Reward>>() {
+                        @Override
+                        public void onSuccess(List<Reward> result) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    showLoading(false);
 
-        Reward reward2 = new Reward(2, "Giờ cao điểm", "Thưởng thêm cho các đơn hàng trong giờ cao điểm",
-                "PEAK_HOUR", new BigDecimal("15000"), "ACTIVE", "", new Date());
-        reward2.setPeakStartTime("11:00");
-        reward2.setPeakEndTime("13:00");
-        reward2.setGemsValue(50);
+                                    if (result != null && !result.isEmpty()) {
+                                        rewardList.clear();
+                                        rewardList.addAll(result);
+                                        rewardAdapter.notifyDataSetChanged();
+                                        showEmptyRewards(false);
+                                    } else {
+                                        rewardList.clear();
+                                        rewardAdapter.notifyDataSetChanged();
+                                        showEmptyRewards(true);
+                                    }
+                                });
+                            }
+                        }
 
-        Reward reward3 = new Reward(3, "Đánh giá 5 sao", "Nhận được đánh giá 5 sao từ khách hàng",
-                "ACHIEVEMENT", new BigDecimal("10000"), "ACTIVE", "", new Date());
-        reward3.setRequiredRating(5.0f);
-        reward3.setGemsValue(25);
+                        @Override
+                        public void onError(String errorMessage) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    showLoading(false);
+                                    showEmptyRewards(true);
+                                    Toast.makeText(getContext(), "Lỗi: " + errorMessage, Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                        }
+                    });
 
-        Reward reward4 = new Reward(4, "Thưởng cuối tuần", "Hoàn thành ít nhất 50 đơn trong tuần",
-                "BONUS", new BigDecimal("100000"), "EXPIRED", "", new Date());
-        reward4.setRequiredOrders(50);
-        reward4.setGemsValue(200);
+            // Lấy tiến độ phần thưởng
+            apiManager.getRewardRepository().getRewardProgress(
+                    new ApiRepository.NetworkCallback<List<Reward>>() {
+                        @Override
+                        public void onSuccess(List<Reward> result) {
+                            if (getActivity() != null && result != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    // Cập nhật tiến độ cho existing rewards trong adapter
+                                    // Có thể implement logic merge reward progress với existing list nếu cần
+                                });
+                            }
+                        }
 
-        rewardList.add(reward1);
-        rewardList.add(reward2);
-        rewardList.add(reward3);
-        rewardList.add(reward4);
+                        @Override
+                        public void onError(String errorMessage) {
+                            // Error handled silently
+                        }
+                    });
+        } else {
+            showLoading(false);
+            showEmptyRewards(true);
+        }
+    }
 
-        rewardAdapter.notifyDataSetChanged();
+    private void refreshData() {
+        loadRewards();
+    }
+
+    private void showLoading(boolean isLoading) {
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(isLoading);
+        }
+        if (progressLoading != null) {
+            progressLoading.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private void showEmptyRewards(boolean isEmpty) {
+        if (emptyRewardsText != null) {
+            emptyRewardsText.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+        }
+        if (rewardsRecyclerView != null) {
+            rewardsRecyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onRewardClick(Reward reward) {
+        if (apiManager != null && reward != null) {
+            showLoading(true);
+
+            apiManager.getRewardRepository().claimReward(reward.getId(),
+                    new ApiRepository.NetworkCallback<Reward>() {
+                        @Override
+                        public void onSuccess(Reward result) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    showLoading(false);
+                                    Toast.makeText(getContext(), "Đã nhận phần thưởng thành công", Toast.LENGTH_SHORT).show();
+
+                                    // Cập nhật lại danh sách phần thưởng
+                                    refreshData();
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    showLoading(false);
+                                    Toast.makeText(getContext(), "Lỗi: " + errorMessage, Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                        }
+                    });
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshData();
     }
 }

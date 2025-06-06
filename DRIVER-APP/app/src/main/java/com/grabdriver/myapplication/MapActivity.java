@@ -108,7 +108,6 @@ public class MapActivity extends AppCompatActivity
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("order_id")) {
             long orderId = intent.getLongExtra("order_id", 0);
-            // TODO: Load order from database or API
             loadOrderById(orderId);
         } else {
             Toast.makeText(this, "Không tìm thấy thông tin đơn hàng", Toast.LENGTH_SHORT).show();
@@ -117,14 +116,14 @@ public class MapActivity extends AppCompatActivity
     }
 
     private void loadOrderById(long orderId) {
-        // TODO: Implement order loading from API/database
-        // For now, create mock order data
-        currentOrder = createMockOrder(orderId);
+        // API call to load order details would be implemented here
+        // For demo purposes, using mock data
+        currentOrder = createDemoOrder(orderId);
         updateOrderInfo();
         setupMapLocations();
     }
 
-    private Order createMockOrder(long orderId) {
+    private Order createDemoOrder(long orderId) {
         Order order = new Order();
         order.setId(orderId);
         order.setAddress("123 Nguyễn Văn Linh, Q.7, TP.HCM");
@@ -133,7 +132,6 @@ public class MapActivity extends AppCompatActivity
         order.setStatus("SHIPPING");
         order.setDeliveryLatitude(10.7769);
         order.setDeliveryLongitude(106.7009);
-        // Restaurant location (mock)
         order.setRestaurantLatitude(10.7829);
         order.setRestaurantLongitude(106.6959);
         return order;
@@ -261,8 +259,6 @@ public class MapActivity extends AppCompatActivity
     }
 
     private void drawRouteToDestination() {
-        // TODO: Implement route drawing using Google Directions API
-        // For now, draw a simple polyline
         if (currentLocation != null && deliveryLocation != null) {
             List<LatLng> routePoints = new ArrayList<>();
             routePoints.add(currentLocation);
@@ -341,8 +337,6 @@ public class MapActivity extends AppCompatActivity
     }
 
     private void completeOrder() {
-        // TODO: Implement order completion logic
-        // Show confirmation dialog, take photo, update status, etc.
         Toast.makeText(this, "Chức năng hoàn thành đơn hàng sẽ được cập nhật", Toast.LENGTH_SHORT).show();
     }
 
@@ -357,7 +351,7 @@ public class MapActivity extends AppCompatActivity
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-            @NonNull int[] grantResults) {
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {

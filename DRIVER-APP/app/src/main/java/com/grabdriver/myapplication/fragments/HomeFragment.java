@@ -21,7 +21,13 @@ import com.grabdriver.myapplication.MapActivity;
 import com.grabdriver.myapplication.R;
 import com.grabdriver.myapplication.adapters.OrderAdapter;
 import com.grabdriver.myapplication.models.Order;
+import com.grabdriver.myapplication.models.ProfileStatistics;
 import com.grabdriver.myapplication.models.Shipper;
+import com.grabdriver.myapplication.models.response.EarningsResponse;
+import com.grabdriver.myapplication.models.response.OrderResponse;
+import com.grabdriver.myapplication.services.ApiManager;
+import com.grabdriver.myapplication.services.ApiRepository;
+import com.grabdriver.myapplication.utils.Constants;
 import com.grabdriver.myapplication.utils.SessionManager;
 
 import java.math.BigDecimal;
@@ -30,8 +36,6 @@ import java.util.Date;
 import java.util.List;
 
 public class HomeFragment extends Fragment {
-    private static final String TAG = "HomeFragment";
-
     private Switch onlineSwitch;
     private TextView statusText;
     private TextView todayEarningsText;
@@ -40,14 +44,20 @@ public class HomeFragment extends Fragment {
     private Button findOrdersButton;
 
     private SessionManager sessionManager;
+    private ApiManager apiManager;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-            @Nullable Bundle savedInstanceState) {
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         sessionManager = new SessionManager(requireContext());
+
+        if (getActivity() instanceof MainActivity) {
+            apiManager = ((MainActivity) getActivity()).getApiManager();
+        }
+
         initViews(view);
         setupListeners();
         loadShipperData();
@@ -75,35 +85,132 @@ public class HomeFragment extends Fragment {
         });
 
         findOrdersButton.setOnClickListener(v -> {
-            // Navigate to orders fragment or refresh orders
-            Toast.makeText(getContext(), "Tìm kiếm đơn hàng...", Toast.LENGTH_SHORT).show();
+            // Tìm kiếm đơn hàng
+            Toast.makeText(getContext(), "Đang tìm kiếm đơn hàng...", Toast.LENGTH_SHORT).show();
+            loadAvailableOrders();
         });
     }
 
     private void loadShipperData() {
+        // Lấy thông tin cơ bản từ SessionManager
         Shipper shipper = sessionManager.getShipperInfo();
         if (shipper != null) {
             ratingText.setText(String.format("%.1f", shipper.getRating()));
             onlineSwitch.setChecked(sessionManager.isOnline());
             updateOnlineStatus(sessionManager.isOnline());
+        }
 
-            // Load today's earnings
+        // Gọi API lấy thông tin chi tiết tài xế
+        if (apiManager != null) {
+            apiManager.getProfileRepository().getProfile(new ApiRepository.NetworkCallback<Shipper>() {
+                @Override
+                public void onSuccess(Shipper result) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            if (result != null) {
+                                ratingText.setText(String.format("%.1f", result.getRating()));
+                                // Cập nhật các thông tin khác nếu cần
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+                    // Error handled silently
+                }
+            });
+
+            // Lấy thống kê tài khoản
+            apiManager.getProfileRepository().getProfileStats(new ApiRepository.NetworkCallback<ProfileStatistics>() {
+                @Override
+                public void onSuccess(ProfileStatistics result) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            if (result != null) {
+                                totalOrdersText.setText(result.getTotalOrders() + " đơn");
+                                // Cập nhật các thống kê khác nếu cần
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+                    // Error handled silently
+                }
+            });
+
+            // Lấy thông tin thu nhập hôm nay
             loadTodayEarnings();
-
-            // Load total orders count - use default value since Shipper model doesn't have
-            // this field
-            totalOrdersText.setText("0 đơn");
         }
     }
 
     private void loadTodayEarnings() {
-        // TODO: Implement API call to get today's earnings
-        // For demo purposes, using mock data
-        todayEarningsText.setText("₫125,000");
+        if (apiManager != null) {
+            apiManager.getWalletRepository().getEarnings(Constants.Period.TODAY,
+                    new ApiRepository.NetworkCallback<EarningsResponse>() {
+                        @Override
+                        public void onSuccess(EarningsResponse result) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    if (result != null) {
+                                        long todayEarnings = result.getTodayEarnings();
+                                        todayEarningsText.setText(String.format("₫%,d", todayEarnings));
+                                    } else {
+                                        todayEarningsText.setText("₫0");
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    todayEarningsText.setText("₫0");
+                                });
+                            }
+                        }
+                    });
+        }
+    }
+
+    private void loadAvailableOrders() {
+        if (apiManager != null) {
+            apiManager.getOrderRepository().getAvailableOrders(1, 10,
+                    new ApiRepository.NetworkCallback<OrderResponse>() {
+                        @Override
+                        public void onSuccess(OrderResponse result) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    if (result != null && result.getOrders() != null && !result.getOrders().isEmpty()) {
+                                        Toast.makeText(getContext(), "Tìm thấy " + result.getOrders().size() + " đơn hàng", Toast.LENGTH_SHORT).show();
+
+                                        // Chuyển đến tab Orders để hiển thị đơn hàng
+                                        if (getActivity() instanceof MainActivity) {
+                                            ((MainActivity) getActivity()).navigateToOrdersTab();
+                                        }
+                                    } else {
+                                        Toast.makeText(getContext(), "Không tìm thấy đơn hàng nào", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    Toast.makeText(getContext(), "Lỗi khi tìm đơn hàng: " + errorMessage, Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                        }
+                    });
+        }
     }
 
     public void refreshOrders() {
-        Log.d(TAG, "Refreshing orders");
         loadTodayEarnings();
     }
 
@@ -119,9 +226,6 @@ public class HomeFragment extends Fragment {
             findOrdersButton.setEnabled(false);
             findOrdersButton.setText("Offline");
         }
-
-        // Save online status
-        sessionManager.setOnlineStatus(isOnline);
     }
 
     @Override

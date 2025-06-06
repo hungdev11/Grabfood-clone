@@ -23,6 +23,7 @@ public class Shipper {
     private Date createdDate;
     private Date modifiedDate;
     private long accountId;
+    private String avatarUrl;
 
     // Default constructor
     public Shipper() {
@@ -195,6 +196,14 @@ public class Shipper {
 
     public void setAccountId(long accountId) {
         this.accountId = accountId;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 
     @Override

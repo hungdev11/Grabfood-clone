@@ -19,7 +19,7 @@ public class Wallet {
     }
 
     public Wallet(long id, long currentBalance, long todayEarnings, long weekEarnings,
-            long monthEarnings, long totalEarnings, long codHolding, boolean isEligibleForCod) {
+                  long monthEarnings, long totalEarnings, long codHolding, boolean isEligibleForCod) {
         this.id = id;
         this.currentBalance = currentBalance;
         this.todayEarnings = todayEarnings;
@@ -109,5 +109,10 @@ public class Wallet {
 
     public void setShipperId(long shipperId) {
         this.shipperId = shipperId;
+    }
+
+    // Additional method for compatibility
+    public long getBalance() {
+        return currentBalance;
     }
 }

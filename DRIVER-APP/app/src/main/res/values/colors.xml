@@ -5,6 +5,9 @@
     
     <!-- Primary Colors -->
     <color name="primary_color">#00B14F</color>
+    <color name="colorPrimary">#00B14F</color>
+    <color name="colorAccent">#FF9800</color>
+    <color name="colorPrimaryDark">#009639</color>
     
     <!-- Grab Brand Colors -->
     <color name="grab_green">#00B14F</color>

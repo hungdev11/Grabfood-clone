@@ -74,6 +74,17 @@
                         android:textStyle="bold"
                         android:textColor="@color/white" />
 
+                    <!-- Withdraw Button -->
+                    <Button
+                        android:id="@+id/btn_withdraw"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="Rút tiền"
+                        android:textColor="@color/grab_green"
+                        android:backgroundTint="@color/white"
+                        style="@style/Widget.Material3.Button" />
+
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
@@ -283,13 +294,48 @@
 
                     </LinearLayout>
 
-                    <!-- Transactions List -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recycler_transactions"
+                    <!-- Transactions Content -->
+                    <FrameLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false"
-                        android:paddingBottom="16dp" />
+                        android:layout_height="wrap_content">
+
+                        <!-- SwipeRefreshLayout -->
+                        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                            android:id="@+id/swipe_refresh_layout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <!-- Transactions List -->
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/recycler_transactions"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:nestedScrollingEnabled="false"
+                                android:paddingBottom="16dp" />
+
+                        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+                        <!-- Empty View -->
+                        <TextView
+                            android:id="@+id/text_empty_transactions"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="Chưa có giao dịch nào"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_secondary"
+                            android:visibility="gone" />
+
+                        <!-- Progress Loading -->
+                        <ProgressBar
+                            android:id="@+id/progress_loading"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:indeterminateTint="@color/colorPrimary"
+                            android:visibility="gone" />
+
+                    </FrameLayout>
 
                 </LinearLayout>
 

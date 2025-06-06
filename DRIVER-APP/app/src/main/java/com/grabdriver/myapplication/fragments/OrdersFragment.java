@@ -6,15 +6,26 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.grabdriver.myapplication.MainActivity;
 import com.grabdriver.myapplication.MapActivity;
 import com.grabdriver.myapplication.R;
 import com.grabdriver.myapplication.adapters.OrderAdapter;
 import com.grabdriver.myapplication.models.Order;
+import com.grabdriver.myapplication.models.response.OrderResponse;
+import com.grabdriver.myapplication.services.ApiManager;
+import com.grabdriver.myapplication.services.ApiRepository;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,15 +37,27 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
     private RecyclerView recyclerView;
     private OrderAdapter orderAdapter;
     private List<Order> orderList;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private ProgressBar progressLoading;
+    private TextView emptyView;
+
+    private ApiManager apiManager;
+    private int currentPage = 1;
+    private final int PAGE_SIZE = 10;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-            @Nullable Bundle savedInstanceState) {
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_orders, container, false);
+
+        if (getActivity() instanceof MainActivity) {
+            apiManager = ((MainActivity) getActivity()).getApiManager();
+        }
 
         initViews(view);
         setupRecyclerView();
+        setupSwipeRefresh();
         loadOrders();
 
         return view;
@@ -42,6 +65,9 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
 
     private void initViews(View view) {
         recyclerView = view.findViewById(R.id.recycler_orders);
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
+        progressLoading = view.findViewById(R.id.progress_loading);
+        emptyView = view.findViewById(R.id.text_empty_orders);
     }
 
     private void setupRecyclerView() {
@@ -51,52 +77,84 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         recyclerView.setAdapter(orderAdapter);
     }
 
+    private void setupSwipeRefresh() {
+        swipeRefreshLayout.setOnRefreshListener(this::refreshOrders);
+        swipeRefreshLayout.setColorSchemeResources(
+                R.color.colorPrimary,
+                R.color.colorAccent,
+                R.color.colorPrimaryDark
+        );
+    }
+
     private void loadOrders() {
-        // Load orders from database/API
-        // For demo purposes, using static data
-        orderList.clear();
+        showLoading(true);
 
-        // Sample orders
-        Order order1 = new Order(1, "123 Nguyễn Văn Linh, Q.7, TP.HCM", new Date(), "SHIPPING",
-                new BigDecimal("150000"), new BigDecimal("25000"), "COD");
-        order1.setNote("Gọi điện trước khi giao");
-        order1.setEstimatedTime(15);
-        order1.setDistance(2.5f);
-        order1.setCustomerName("Nguyễn Văn A");
-        order1.setCustomerPhone("0123456789");
-        order1.setDeliveryLatitude(10.7769);
-        order1.setDeliveryLongitude(106.7009);
+        if (apiManager != null) {
+            apiManager.getOrderRepository().getAssignedOrders(currentPage, PAGE_SIZE,
+                    new ApiRepository.NetworkCallback<OrderResponse>() {
+                        @Override
+                        public void onSuccess(OrderResponse result) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    showLoading(false);
 
-        Order order2 = new Order(2, "456 Lê Văn Việt, Q.9, TP.HCM", new Date(), "READY_FOR_PICKUP",
-                new BigDecimal("89000"), new BigDecimal("20000"), "VNPAY");
-        order2.setNote("Để ở bảo vệ");
-        order2.setEstimatedTime(20);
-        order2.setDistance(3.2f);
-        order2.setCustomerName("Trần Thị B");
-        order2.setCustomerPhone("0987654321");
-        order2.setDeliveryLatitude(10.7589);
-        order2.setDeliveryLongitude(106.6819);
+                                    if (result != null && result.getOrders() != null && !result.getOrders().isEmpty()) {
+                                        orderList.clear();
+                                        // Filter out any null orders from the list
+                                        for (Order order : result.getOrders()) {
+                                            if (order != null) {
+                                                orderList.add(order);
+                                            }
+                                        }
+                                        orderAdapter.notifyDataSetChanged();
+                                        showEmptyView(orderList.isEmpty());
+                                    } else {
+                                        orderList.clear();
+                                        orderAdapter.notifyDataSetChanged();
+                                        showEmptyView(true);
+                                    }
+                                });
+                            }
+                        }
 
-        Order order3 = new Order(3, "789 Võ Văn Tần, Q.3, TP.HCM", new Date(), "COMPLETED",
-                new BigDecimal("200000"), new BigDecimal("30000"), "COD");
-        order3.setNote("");
-        order3.setEstimatedTime(0);
-        order3.setDistance(1.8f);
-        order3.setCustomerName("Lê Văn C");
-        order3.setCustomerPhone("0369852147");
-        order3.setDeliveryLatitude(10.7829);
-        order3.setDeliveryLongitude(106.6959);
-
-        orderList.add(order1);
-        orderList.add(order2);
-        orderList.add(order3);
-
-        orderAdapter.notifyDataSetChanged();
+                        @Override
+                        public void onError(String errorMessage) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    showLoading(false);
+                                    showEmptyView(true);
+                                    Toast.makeText(getContext(), "Lỗi: " + errorMessage, Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                        }
+                    });
+        } else {
+            showLoading(false);
+            showEmptyView(true);
+        }
     }
 
     public void refreshOrders() {
-        Log.d(TAG, "Refreshing orders");
+        currentPage = 1;
         loadOrders();
+    }
+
+    private void showLoading(boolean isLoading) {
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(isLoading);
+        }
+        if (progressLoading != null) {
+            progressLoading.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private void showEmptyView(boolean isEmpty) {
+        if (emptyView != null) {
+            emptyView.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+        }
+        if (recyclerView != null) {
+            recyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        }
     }
 
     @Override
@@ -110,24 +168,99 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
 
     @Override
     public void onAcceptOrder(Order order) {
-        // TODO: Implement accept order logic
-        Log.d(TAG, "Accepting order: " + order.getId());
+        if (apiManager != null) {
+            showLoading(true);
 
-        // Update order status
-        order.setStatus("SHIPPING");
-        orderAdapter.notifyDataSetChanged();
+            // Lấy thời gian ước tính
+            String pickupTime = null; // Thời gian lấy hàng
+            String deliveryTime = null; // Thời gian giao hàng
+            String note = ""; // Ghi chú
 
-        // Open map for navigation
-        onOrderClick(order);
+            apiManager.getOrderRepository().acceptOrder(
+                    order.getId(),
+                    pickupTime,
+                    deliveryTime,
+                    note,
+                    new ApiRepository.NetworkCallback<Order>() {
+                        @Override
+                        public void onSuccess(Order result) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    showLoading(false);
+                                    Toast.makeText(getContext(), "Đã nhận đơn hàng thành công", Toast.LENGTH_SHORT).show();
+
+                                    // Cập nhật order trong danh sách
+                                    int position = orderList.indexOf(order);
+                                    if (position != -1 && result != null) {
+                                        orderList.set(position, result);
+                                        orderAdapter.notifyItemChanged(position);
+                                    }
+
+                                    // Mở bản đồ để điều hướng
+                                    onOrderClick(result != null ? result : order);
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    showLoading(false);
+                                    Toast.makeText(getContext(), "Lỗi: " + errorMessage, Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                        }
+                    });
+        }
     }
 
     @Override
     public void onRejectOrder(Order order) {
-        // TODO: Implement reject order logic
-        Log.d(TAG, "Rejecting order: " + order.getId());
+        if (apiManager != null) {
+            showLoading(true);
 
-        // Remove order from list
-        orderList.remove(order);
-        orderAdapter.notifyDataSetChanged();
+            String reason = "Tài xế bận"; // Lý do từ chối
+            String note = ""; // Ghi chú
+
+            apiManager.getOrderRepository().rejectOrder(
+                    order.getId(),
+                    reason,
+                    note,
+                    new ApiRepository.NetworkCallback<Void>() {
+                        @Override
+                        public void onSuccess(Void result) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    showLoading(false);
+                                    Toast.makeText(getContext(), "Đã từ chối đơn hàng", Toast.LENGTH_SHORT).show();
+
+                                    // Xóa order khỏi danh sách
+                                    orderList.remove(order);
+                                    orderAdapter.notifyDataSetChanged();
+
+                                    // Hiển thị empty view nếu danh sách trống
+                                    showEmptyView(orderList.isEmpty());
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    showLoading(false);
+                                    Toast.makeText(getContext(), "Lỗi: " + errorMessage, Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                        }
+                    });
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshOrders();
     }
 }

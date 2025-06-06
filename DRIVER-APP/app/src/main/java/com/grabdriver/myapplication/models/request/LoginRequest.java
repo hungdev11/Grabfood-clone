@@ -1,4 +1,4 @@
-package com.grabdriver.myapplication.models;
+package com.grabdriver.myapplication.models.request;
 
 public class LoginRequest {
     private String phone;

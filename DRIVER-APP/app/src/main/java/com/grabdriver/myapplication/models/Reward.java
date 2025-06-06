@@ -3,6 +3,9 @@ package com.grabdriver.myapplication.models;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import java.math.BigDecimal;
+import java.util.Date;
+
 public class Reward {
     private long id;
     private BigDecimal amount;
@@ -32,7 +35,7 @@ public class Reward {
     }
 
     public Reward(long id, String title, String description, String type, BigDecimal rewardValue,
-            String status, String iconUrl, Date endDate) {
+                  String status, String iconUrl, Date endDate) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -218,5 +221,10 @@ public class Reward {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    // Additional method for compatibility
+    public BigDecimal getValue() {
+        return rewardValue;
     }
 }

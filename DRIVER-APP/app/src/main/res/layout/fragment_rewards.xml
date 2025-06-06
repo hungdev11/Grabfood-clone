@@ -89,39 +89,47 @@
 
         </androidx.cardview.widget.CardView>
 
-        <!-- Rewards List -->
-        <androidx.cardview.widget.CardView
+        <!-- Content Frame -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp">
+            android:layout_height="match_parent">
 
-            <LinearLayout
+            <!-- SwipeRefreshLayout -->
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/swipe_refresh_layout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:layout_height="match_parent">
 
-                <!-- Rewards Header -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Thử thách có sẵn"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_primary"
-                    android:padding="16dp" />
-
-                <!-- Rewards RecyclerView -->
+                <!-- Rewards List -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recycler_rewards"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:paddingBottom="16dp"
-                    android:clipToPadding="false" />
+                    android:padding="8dp" />
 
-            </LinearLayout>
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-        </androidx.cardview.widget.CardView>
+            <!-- Empty View -->
+            <TextView
+                android:id="@+id/text_empty_rewards"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Chưa có thử thách nào"
+                android:textSize="16sp"
+                android:textColor="@color/text_secondary"
+                android:visibility="gone" />
+
+            <!-- Progress Loading -->
+            <ProgressBar
+                android:id="@+id/progress_loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminateTint="@color/colorPrimary"
+                android:visibility="gone" />
+
+        </FrameLayout>
 
     </LinearLayout>
 
