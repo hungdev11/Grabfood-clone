@@ -65,12 +65,12 @@
                         android:layout_marginBottom="16dp">
 
                         <!-- Avatar -->
-                        <TextView
+                        <ImageView
+                            android:id="@+id/image_avatar"
                             android:layout_width="64dp"
                             android:layout_height="64dp"
-                            android:text="👤"
-                            android:textSize="32sp"
-                            android:gravity="center"
+                            android:src="@drawable/ic_person"
+                            android:scaleType="centerCrop"
                             android:background="@drawable/avatar_background"
                             android:layout_marginEnd="16dp" />
 
@@ -84,25 +84,29 @@
                                 android:id="@+id/text_name"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Nguyễn Văn An"
-                                android:textSize="20sp"
+                                android:text="Nguyễn Văn A"
+                                android:textSize="18sp"
                                 android:textStyle="bold"
-                                android:textColor="@color/text_primary"
-                                android:layout_marginBottom="4dp" />
+                                android:textColor="@color/text_primary" />
 
                             <TextView
                                 android:id="@+id/text_status"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="HOẠT ĐỘNG"
-                                android:textSize="12sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/status_online"
-                                android:background="@drawable/status_background"
-                                android:paddingHorizontal="8dp"
-                                android:paddingVertical="4dp" />
+                                android:text="ACTIVE"
+                                android:textSize="14sp"
+                                android:textColor="@color/status_online" />
 
                         </LinearLayout>
+
+                        <!-- Edit Profile Button -->
+                        <Button
+                            android:id="@+id/btn_edit_profile"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sửa"
+                            android:textSize="12sp"
+                            style="@style/Widget.Material3.Button.OutlinedButton" />
 
                     </LinearLayout>
 
