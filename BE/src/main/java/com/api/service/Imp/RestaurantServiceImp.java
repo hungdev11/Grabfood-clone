@@ -153,9 +153,6 @@ public class RestaurantServiceImp implements RestaurantService {
             order.setStatus(status);
         } else if (status.equals(OrderStatus.READY_FOR_PICKUP)) {
             order.setStatus(status);
-            Address receiveAddress = order.getCartDetails().getFirst().getFood().getRestaurant().getAddress();
-            order.setLatitude(receiveAddress.getLat());
-            order.setLongitude(receiveAddress.getLon());
             orderAssignmentService.assignOrderToOptimalShipper(orderId);
             log.info("Change order {} status from PROCESSING to {}", orderId, status);
         }
