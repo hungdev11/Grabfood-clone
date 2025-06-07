@@ -1,4 +1,4 @@
-package com.grabdriver.myapplication.services;
+package com.grabdriver.myapplication.repository;
 
 import android.content.Context;
 
@@ -8,7 +8,6 @@ import com.grabdriver.myapplication.models.RewardResponse;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import retrofit2.Call;
 

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MapActivity">
+    tools:context=".activities.MapActivity">
 
     <!-- Google Map Fragment -->
     <fragment
@@ -16,7 +16,21 @@
         app:layout_constraintBottom_toTopOf="@+id/layout_controls"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:context=".MapActivity" />
+        tools:context=".activities.MapActivity" />
+
+    <!-- My Location Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_my_location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_my_location"
+        android:contentDescription="Vị trí của tôi"
+        app:tint="@color/white"
+        app:backgroundTint="@color/grab_green"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="80dp" />
 
     <!-- Order Information Card -->
     <androidx.cardview.widget.CardView
@@ -28,7 +42,7 @@
         app:cardElevation="8dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toStartOf="@id/fab_my_location">
 
         <LinearLayout
             android:layout_width="match_parent"

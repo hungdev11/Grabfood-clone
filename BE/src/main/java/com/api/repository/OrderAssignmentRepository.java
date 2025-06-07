@@ -39,6 +39,10 @@ public interface OrderAssignmentRepository extends JpaRepository<OrderAssignment
        @Query("SELECT oa FROM OrderAssignment oa WHERE oa.shipper.id = :shipperId AND oa.status = 'ACCEPTED'")
        List<OrderAssignment> findAcceptedAssignmentsByShipperId(@Param("shipperId") Long shipperId);
 
+       // Tìm assignment active (ASSIGNED và ACCEPTED) cho shipper
+       @Query("SELECT oa FROM OrderAssignment oa WHERE oa.shipper.id = :shipperId AND oa.status IN ('ASSIGNED', 'ACCEPTED')")
+       List<OrderAssignment> findActiveAssignmentsByShipperId(@Param("shipperId") Long shipperId);
+
        // Tìm assignment theo status
        List<OrderAssignment> findByStatus(OrderAssignment.AssignmentStatus status);
 

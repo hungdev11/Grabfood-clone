@@ -244,6 +244,7 @@
 
             <!-- View Orders -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/card_view_orders"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -281,6 +282,7 @@
 
             <!-- View Wallet -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/card_view_wallet"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"

@@ -1,4 +1,4 @@
-package com.grabdriver.myapplication;
+package com.grabdriver.myapplication.activities;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
@@ -26,14 +26,15 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 // Temporarily comment Firebase
 // import com.google.firebase.messaging.FirebaseMessaging;
+import com.grabdriver.myapplication.R;
 import com.grabdriver.myapplication.fragments.HomeFragment;
 import com.grabdriver.myapplication.fragments.OrdersFragment;
 import com.grabdriver.myapplication.fragments.WalletFragment;
 import com.grabdriver.myapplication.fragments.RewardsFragment;
 import com.grabdriver.myapplication.fragments.ProfileFragment;
 import com.grabdriver.myapplication.models.Order;
-import com.grabdriver.myapplication.services.ApiManager;
-import com.grabdriver.myapplication.services.ApiRepository;
+import com.grabdriver.myapplication.repository.ApiManager;
+import com.grabdriver.myapplication.repository.ApiRepository;
 import com.grabdriver.myapplication.services.LocationService;
 import com.grabdriver.myapplication.services.OrderUpdateService;
 import com.grabdriver.myapplication.utils.SessionManager;
@@ -452,6 +453,12 @@ public class MainActivity extends AppCompatActivity implements OrderUpdateServic
     public void navigateToOrdersTab() {
         if (bottomNavigationView != null) {
             bottomNavigationView.setSelectedItemId(R.id.nav_orders);
+        }
+    }
+
+    public void navigateToWalletTab() {
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.nav_wallet);
         }
     }
 }

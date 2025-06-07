@@ -123,6 +123,11 @@ public class DriverOrderResponse {
         order.setPickedUpAt(pickedUpAt);
         order.setDeliveredAt(deliveredAt);
         order.setGemsEarned(gemsEarned);
+        
+        // Set the current shipper ID from session since this is an assigned order
+        // Note: DriverOrderResponse doesn't contain shipperId because it's implicit
+        // from the API context (the current logged-in shipper)
+        
         return order;
     }
 

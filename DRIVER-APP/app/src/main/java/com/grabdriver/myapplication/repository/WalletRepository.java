@@ -1,4 +1,4 @@
-package com.grabdriver.myapplication.services;
+package com.grabdriver.myapplication.repository;
 
 import android.content.Context;
 
@@ -9,7 +9,6 @@ import com.grabdriver.myapplication.models.Wallet;
 import com.grabdriver.myapplication.models.WithdrawRequest;
 
 import java.util.List;
-import java.util.Map;
 
 import retrofit2.Call;
 

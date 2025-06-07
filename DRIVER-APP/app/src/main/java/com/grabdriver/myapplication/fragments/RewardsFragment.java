@@ -1,7 +1,6 @@
 package com.grabdriver.myapplication.fragments;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,20 +15,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.grabdriver.myapplication.MainActivity;
+import com.grabdriver.myapplication.activities.MainActivity;
 import com.grabdriver.myapplication.R;
 import com.grabdriver.myapplication.adapters.RewardAdapter;
 import com.grabdriver.myapplication.models.Reward;
 import com.grabdriver.myapplication.models.Shipper;
-import com.grabdriver.myapplication.services.ApiManager;
-import com.grabdriver.myapplication.services.ApiRepository;
+import com.grabdriver.myapplication.repository.ApiManager;
+import com.grabdriver.myapplication.repository.ApiRepository;
 import com.grabdriver.myapplication.utils.SessionManager;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 public class RewardsFragment extends Fragment implements RewardAdapter.OnRewardClickListener {
     private TextView totalGemsText;
@@ -181,6 +177,29 @@ public class RewardsFragment extends Fragment implements RewardAdapter.OnRewardC
     @Override
     public void onRewardClick(Reward reward) {
         if (apiManager != null && reward != null) {
+            // Kiểm tra trạng thái reward trước khi thực hiện claim
+            if (reward.isClaimed()) {
+                Toast.makeText(getContext(), "Phần thưởng này đã được nhận", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            if (reward.isExpired()) {
+                Toast.makeText(getContext(), "Phần thưởng này đã hết hạn", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            if (!reward.isEligible()) {
+                Toast.makeText(getContext(), "Bạn chưa đủ điều kiện nhận phần thưởng này", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            if (!reward.canClaim()) {
+                // Tạo thông báo chi tiết về điều kiện chưa đủ
+                String message = createInsufficientConditionMessage(reward);
+                Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+                return;
+            }
+            
             showLoading(true);
             
             apiManager.getRewardRepository().claimReward(reward.getId(), 
@@ -190,7 +209,18 @@ public class RewardsFragment extends Fragment implements RewardAdapter.OnRewardC
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(() -> {
                             showLoading(false);
-                            Toast.makeText(getContext(), "Đã nhận phần thưởng thành công", Toast.LENGTH_SHORT).show();
+                            
+                            String successMessage = "Đã nhận phần thưởng thành công!";
+                            if (result.getRewardValue() != null) {
+                                successMessage += " Bạn nhận được " + 
+                                    java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("vi", "VN"))
+                                        .format(result.getRewardValue());
+                            }
+                            if (result.getGemsValue() != null && result.getGemsValue() > 0) {
+                                successMessage += " và " + result.getGemsValue() + " 💎";
+                            }
+                            
+                            Toast.makeText(getContext(), successMessage, Toast.LENGTH_LONG).show();
                             
                             // Cập nhật lại danh sách phần thưởng
                             refreshData();
@@ -203,12 +233,58 @@ public class RewardsFragment extends Fragment implements RewardAdapter.OnRewardC
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(() -> {
                             showLoading(false);
-                            Toast.makeText(getContext(), "Lỗi: " + errorMessage, Toast.LENGTH_SHORT).show();
+                            
+                            String displayMessage = "Lỗi: " + errorMessage;
+                            
+                            // Xử lý các lỗi phổ biến
+                            if (errorMessage.toLowerCase().contains("already claimed")) {
+                                displayMessage = "Phần thưởng này đã được nhận rồi";
+                            } else if (errorMessage.toLowerCase().contains("not eligible")) {
+                                displayMessage = "Bạn chưa đủ điều kiện nhận phần thưởng này";
+                            } else if (errorMessage.toLowerCase().contains("expired")) {
+                                displayMessage = "Phần thưởng này đã hết hạn";
+                            }
+                            
+                            Toast.makeText(getContext(), displayMessage, Toast.LENGTH_LONG).show();
                         });
                     }
                 }
             });
         }
+    }
+    
+    private String createInsufficientConditionMessage(Reward reward) {
+        StringBuilder message = new StringBuilder("Chưa đủ điều kiện: ");
+        
+        Float completionPercentage = reward.getCompletionPercentage();
+        if (completionPercentage != null) {
+            message.append("Tiến độ hiện tại ").append(Math.round(completionPercentage)).append("%");
+        }
+        
+        // Thêm thông tin chi tiết về điều kiện cần thiết
+        if (reward.getRequiredDeliveries() != null && reward.getRequiredDeliveries() > 0) {
+            Float currentProgress = reward.getProgressValue();
+            int current = currentProgress != null ? Math.round(currentProgress) : 0;
+            message.append(". Cần hoàn thành ").append(reward.getRequiredDeliveries())
+                   .append(" đơn hàng (hiện tại: ").append(current).append(")");
+        } else if (reward.getRequiredOrders() != null && reward.getRequiredOrders() > 0) {
+            Float currentProgress = reward.getProgressValue();
+            int current = currentProgress != null ? Math.round(currentProgress) : 0;
+            message.append(". Cần hoàn thành ").append(reward.getRequiredOrders())
+                   .append(" đơn hàng (hiện tại: ").append(current).append(")");
+        } else if (reward.getRequiredDistance() != null && reward.getRequiredDistance() > 0) {
+            Float currentProgress = reward.getProgressValue();
+            float current = currentProgress != null ? currentProgress : 0f;
+            message.append(". Cần hoàn thành ").append(reward.getRequiredDistance())
+                   .append(" km (hiện tại: ").append(String.format("%.1f", current)).append(" km)");
+        } else if (reward.getRequiredRating() != null && reward.getRequiredRating() > 0) {
+            Float currentProgress = reward.getProgressValue();
+            float current = currentProgress != null ? currentProgress : 0f;
+            message.append(". Cần đánh giá tối thiểu ").append(reward.getRequiredRating())
+                   .append(" sao (hiện tại: ").append(String.format("%.1f", current)).append(" sao)");
+        }
+        
+        return message.toString();
     }
     
     @Override

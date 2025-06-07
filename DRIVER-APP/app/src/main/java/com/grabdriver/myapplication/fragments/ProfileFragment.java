@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,16 +18,18 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
-import com.grabdriver.myapplication.MainActivity;
+import com.grabdriver.myapplication.activities.EditProfileActivity;
+import com.grabdriver.myapplication.activities.MainActivity;
 import com.grabdriver.myapplication.R;
 import com.grabdriver.myapplication.models.ProfileStatistics;
 import com.grabdriver.myapplication.models.Shipper;
-import com.grabdriver.myapplication.services.ApiManager;
-import com.grabdriver.myapplication.services.ApiRepository;
+import com.grabdriver.myapplication.repository.ApiManager;
+import com.grabdriver.myapplication.repository.ApiRepository;
 import com.grabdriver.myapplication.utils.SessionManager;
 
 public class ProfileFragment extends Fragment {
     private static final int REQUEST_IMAGE_PICK = 100;
+    private static final int REQUEST_EDIT_PROFILE = 101;
 
     private ImageView avatarImage;
     private TextView nameText;
@@ -90,7 +91,8 @@ public class ProfileFragment extends Fragment {
         logoutButton.setOnClickListener(v -> showLogoutConfirmation());
 
         editProfileButton.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Chức năng chỉnh sửa sẽ được cập nhật sớm", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getContext(), EditProfileActivity.class);
+            startActivityForResult(intent, REQUEST_EDIT_PROFILE);
         });
 
         if (avatarImage != null) {
@@ -136,15 +138,20 @@ public class ProfileFragment extends Fragment {
                 }
             });
 
-            // Lấy thống kê tài khoản
+            // Chỉ lấy thống kê từ API nếu dữ liệu từ Shipper chưa có hoặc = 0
+            // Ưu tiên dữ liệu từ Shipper object vì nó chính xác hơn
+            /* Tạm thời comment để ưu tiên dữ liệu từ Shipper
             apiManager.getProfileRepository().getProfileStats(new ApiRepository.NetworkCallback<ProfileStatistics>() {
                 @Override
                 public void onSuccess(ProfileStatistics result) {
                     if (getActivity() != null && result != null) {
                         getActivity().runOnUiThread(() -> {
-                            totalOrdersText.setText(String.valueOf(result.getTotalOrders()));
-                            completedOrdersText.setText(String.valueOf(result.getCompletedOrders()));
-                            // Cập nhật các thống kê khác
+                            // Chỉ cập nhật nếu dữ liệu từ Shipper = 0
+                            if (shipperInfo == null || 
+                                (shipperInfo.getTotalOrders() == 0 && shipperInfo.getCompletedOrders() == 0)) {
+                                totalOrdersText.setText(String.valueOf(result.getTotalOrders()));
+                                completedOrdersText.setText(String.valueOf(result.getCompletedOrders()));
+                            }
                         });
                     }
                 }
@@ -154,6 +161,7 @@ public class ProfileFragment extends Fragment {
                     // Error handled silently
                 }
             });
+            */
         } else {
             showLoading(false);
         }
@@ -167,13 +175,15 @@ public class ProfileFragment extends Fragment {
         licensePlateText.setText(shipper.getLicensePlate() != null ? shipper.getLicensePlate() : "N/A");
         ratingText.setText(String.format("%.1f ⭐", shipper.getRating()));
         
-        if (shipper.getTotalOrders() > 0) {
-            totalOrdersText.setText(String.valueOf(shipper.getTotalOrders()));
-        }
+        // Debug: Log dữ liệu thống kê để kiểm tra
+        android.util.Log.d("ProfileFragment", "Total Orders: " + shipper.getTotalOrders());
+        android.util.Log.d("ProfileFragment", "Completed Orders: " + shipper.getCompletedOrders());
+        android.util.Log.d("ProfileFragment", "Acceptance Rate: " + shipper.getAcceptanceRate());
+        android.util.Log.d("ProfileFragment", "Cancellation Rate: " + shipper.getCancellationRate());
         
-        if (shipper.getCompletedOrders() > 0) {
-            completedOrdersText.setText(String.valueOf(shipper.getCompletedOrders()));
-        }
+        // Hiển thị số liệu thực từ database - đây là dữ liệu từ shipper table
+        totalOrdersText.setText(String.valueOf(shipper.getTotalOrders()));
+        completedOrdersText.setText(String.valueOf(shipper.getCompletedOrders()));
         
         acceptanceRateText.setText(String.format("%.1f%%", shipper.getAcceptanceRate()));
         cancellationRateText.setText(String.format("%.1f%%", shipper.getCancellationRate()));
@@ -213,6 +223,9 @@ public class ProfileFragment extends Fragment {
             if (selectedImageUri != null) {
                 uploadAvatar(selectedImageUri);
             }
+        } else if (requestCode == REQUEST_EDIT_PROFILE && resultCode == getActivity().RESULT_OK) {
+            // Refresh profile data after successful edit
+            loadProfileData();
         }
     }
 

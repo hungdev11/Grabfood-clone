@@ -2,11 +2,14 @@ package com.grabdriver.myapplication.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,19 +20,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.grabdriver.myapplication.MainActivity;
-import com.grabdriver.myapplication.MapActivity;
+import com.grabdriver.myapplication.activities.MainActivity;
+import com.grabdriver.myapplication.activities.MapActivity;
 import com.grabdriver.myapplication.R;
 import com.grabdriver.myapplication.adapters.OrderAdapter;
 import com.grabdriver.myapplication.models.Order;
 import com.grabdriver.myapplication.models.OrderResponse;
-import com.grabdriver.myapplication.services.ApiManager;
-import com.grabdriver.myapplication.services.ApiRepository;
-import com.grabdriver.myapplication.utils.Constants;
+import com.grabdriver.myapplication.repository.ApiManager;
+import com.grabdriver.myapplication.repository.ApiRepository;
+import com.grabdriver.myapplication.utils.SessionManager;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClickListener {
@@ -41,10 +42,15 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
     private SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar progressLoading;
     private TextView emptyView;
+    private LinearLayout offlineView;
+    private LinearLayout filterContainer;
+    private Spinner statusFilterSpinner;
 
     private ApiManager apiManager;
+    private SessionManager sessionManager;
     private int currentPage = 1;
     private final int PAGE_SIZE = 10;
+    private String currentStatusFilter = "ALL";
 
     @Nullable
     @Override
@@ -55,11 +61,14 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         if (getActivity() instanceof MainActivity) {
             apiManager = ((MainActivity) getActivity()).getApiManager();
         }
+        
+        sessionManager = new SessionManager(requireContext());
 
         initViews(view);
         setupRecyclerView();
         setupSwipeRefresh();
-        loadOrders();
+        setupStatusFilter();
+        checkOnlineStatusAndLoadOrders();
 
         return view;
     }
@@ -69,6 +78,9 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
         progressLoading = view.findViewById(R.id.progress_loading);
         emptyView = view.findViewById(R.id.text_empty_orders);
+        offlineView = view.findViewById(R.id.layout_offline_view);
+        filterContainer = view.findViewById(R.id.layout_filter_container);
+        statusFilterSpinner = view.findViewById(R.id.spinner_status_filter);
     }
 
     private void setupRecyclerView() {
@@ -87,11 +99,73 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         );
     }
 
+    private void setupStatusFilter() {
+        // Create filter options with Vietnamese translations
+        String[] statusLabels = {
+                "Tất cả",
+                "Đã hủy",
+                "Bị từ chối", 
+                "Đang xử lý",
+                "Sẵn sàng lấy hàng",
+                "Đã hoàn thành"
+        };
+        
+        String[] statusValues = {
+                "ALL",
+                "CANCELLED",
+                "REJECTED",
+                "PROCESSING", 
+                "READY_FOR_PICKUP",
+                "COMPLETED"
+        };
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), 
+                android.R.layout.simple_spinner_item, statusLabels);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        statusFilterSpinner.setAdapter(adapter);
+
+        statusFilterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                currentStatusFilter = statusValues[position];
+                if (sessionManager.isOnline()) {
+                    refreshOrders();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
+            }
+        });
+    }
+
+    private void checkOnlineStatusAndLoadOrders() {
+        if (!sessionManager.isOnline()) {
+            showOfflineView();
+        } else {
+            hideOfflineView();
+            loadOrders();
+        }
+    }
+
     private void loadOrders() {
+        if (!sessionManager.isOnline()) {
+            showOfflineView();
+            return;
+        }
+        
         showLoading(true);
         
+        // Debug logging
+        Long shipperId = sessionManager.getShipperId();
+        android.util.Log.d(TAG, "Loading orders for shipper ID: " + shipperId + 
+                          ", status filter: " + currentStatusFilter +
+                          ", online: " + sessionManager.isOnline());
+        
         if (apiManager != null) {
-            apiManager.getOrderRepository().getAssignedOrders(currentPage, PAGE_SIZE, 
+            // Get orders filtered by status for current shipper only
+            apiManager.getOrderRepository().getAssignedOrdersByStatus(currentPage, PAGE_SIZE, currentStatusFilter,
                     new ApiRepository.NetworkCallback<OrderResponse>() {
                 @Override
                 public void onSuccess(OrderResponse result) {
@@ -99,11 +173,21 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                         getActivity().runOnUiThread(() -> {
                             showLoading(false);
                             
+                            // Debug logging
+                            int orderCount = (result != null && result.getOrders() != null) ? result.getOrders().size() : 0;
+                            android.util.Log.d(TAG, "API returned " + orderCount + " orders");
+                            
                             if (result != null && result.getOrders() != null && !result.getOrders().isEmpty()) {
                                 orderList.clear();
                                 // Filter out any null orders from the list
+                                Long currentShipperId = sessionManager.getShipperId();
                                 for (Order order : result.getOrders()) {
                                     if (order != null) {
+                                        // Set shipper ID for logging purposes (not stored in response but implied)
+                                        order.setShipperId(currentShipperId);
+                                        android.util.Log.d(TAG, "Order #" + order.getId() + 
+                                                         " - Status: " + order.getStatus() + 
+                                                         " - Shipper: " + order.getShipperId());
                                         orderList.add(order);
                                     }
                                 }
@@ -137,7 +221,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
 
     public void refreshOrders() {
         currentPage = 1;
-        loadOrders();
+        checkOnlineStatusAndLoadOrders();
     }
 
     private void showLoading(boolean isLoading) {
@@ -158,13 +242,60 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         }
     }
 
+    private void showOfflineView() {
+        if (offlineView != null) {
+            offlineView.setVisibility(View.VISIBLE);
+        }
+        if (recyclerView != null) {
+            recyclerView.setVisibility(View.GONE);
+        }
+        if (emptyView != null) {
+            emptyView.setVisibility(View.GONE);
+        }
+        if (filterContainer != null) {
+            filterContainer.setVisibility(View.GONE);
+        }
+        showLoading(false);
+    }
+
+    private void hideOfflineView() {
+        if (offlineView != null) {
+            offlineView.setVisibility(View.GONE);
+        }
+        if (filterContainer != null) {
+            filterContainer.setVisibility(View.VISIBLE);
+        }
+    }
+
     @Override
     public void onOrderClick(Order order) {
-        // Open map activity for the selected order
-        Intent intent = new Intent(getActivity(), MapActivity.class);
-        intent.putExtra("order_id", order.getId());
-        intent.putExtra("order", order);
-        startActivity(intent);
+        // Check if order can be handled (PROCESSING or READY_FOR_PICKUP)
+        if ("PROCESSING".equals(order.getStatus()) || "READY_FOR_PICKUP".equals(order.getStatus())) {
+            // Open map activity for the selected order
+            Intent intent = new Intent(getActivity(), MapActivity.class);
+            intent.putExtra("order_id", order.getId());
+            intent.putExtra("order", order);
+            startActivity(intent);
+        } else {
+            // Show message for orders that cannot be handled
+            String statusMessage = getStatusMessage(order.getStatus());
+            Toast.makeText(getContext(), "Đơn hàng này " + statusMessage + ". Không thể thực hiện hành động.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String getStatusMessage(String status) {
+        switch (status) {
+            case "CANCELLED":
+                return "đã bị hủy";
+            case "REJECTED":
+                return "đã bị từ chối";
+            case "COMPLETED":
+                return "đã hoàn thành";
+            case "SHIPPING":
+                return "đang được giao";
+            default:
+                return "không khả dụng";
+        }
     }
 
     @Override
@@ -262,6 +393,6 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
     @Override
     public void onResume() {
         super.onResume();
-        refreshOrders();
+        checkOnlineStatusAndLoadOrders();
     }
 }

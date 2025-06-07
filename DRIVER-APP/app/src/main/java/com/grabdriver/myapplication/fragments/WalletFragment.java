@@ -2,7 +2,6 @@ package com.grabdriver.myapplication.fragments;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,20 +18,18 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.grabdriver.myapplication.MainActivity;
+import com.grabdriver.myapplication.activities.MainActivity;
 import com.grabdriver.myapplication.R;
 import com.grabdriver.myapplication.adapters.TransactionAdapter;
 import com.grabdriver.myapplication.models.EarningsResponse;
 import com.grabdriver.myapplication.models.Transaction;
 import com.grabdriver.myapplication.models.Wallet;
-import com.grabdriver.myapplication.services.ApiManager;
-import com.grabdriver.myapplication.services.ApiRepository;
+import com.grabdriver.myapplication.repository.ApiManager;
+import com.grabdriver.myapplication.repository.ApiRepository;
 import com.grabdriver.myapplication.utils.Constants;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 public class WalletFragment extends Fragment {
     private TextView currentBalanceText;

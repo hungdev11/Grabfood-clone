@@ -1,8 +1,9 @@
-package com.grabdriver.myapplication.services;
+package com.grabdriver.myapplication.repository;
 
 import android.content.Context;
 
 import com.grabdriver.myapplication.models.ApiResponse;
+import com.grabdriver.myapplication.services.ApiService;
 import com.grabdriver.myapplication.utils.ApiClient;
 
 import retrofit2.Call;

@@ -1,11 +1,10 @@
-package com.grabdriver.myapplication.services;
+package com.grabdriver.myapplication.repository;
 
 import android.content.Context;
 
 import com.grabdriver.myapplication.models.ApiResponse;
 import com.grabdriver.myapplication.models.LoginRequest;
 import com.grabdriver.myapplication.models.LoginResponse;
-import com.grabdriver.myapplication.models.Shipper;
 import com.grabdriver.myapplication.utils.SessionManager;
 
 import retrofit2.Call;

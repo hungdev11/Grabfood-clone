@@ -62,6 +62,9 @@ public interface ApiService {
     @GET("api/driver/orders/assigned")
     Call<ApiResponse<List<DriverOrderResponse>>> getAssignedOrders(@Query("page") int page, @Query("size") int size);
     
+    @GET("api/driver/orders/assigned/status")
+    Call<ApiResponse<List<DriverOrderResponse>>> getAssignedOrdersByStatus(@Query("page") int page, @Query("size") int size, @QueryMap Map<String, String> filters);
+    
     @GET("api/driver/orders/history")
     Call<ApiResponse<List<DriverOrderResponse>>> getOrderHistory(@Query("page") int page, @Query("size") int size, @QueryMap Map<String, String> filters);
     

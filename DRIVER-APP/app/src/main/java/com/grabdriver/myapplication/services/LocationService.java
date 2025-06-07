@@ -23,7 +23,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
-import com.grabdriver.myapplication.MainActivity;
+import com.grabdriver.myapplication.activities.MainActivity;
 import com.grabdriver.myapplication.R;
 import com.grabdriver.myapplication.utils.SessionManager;
 

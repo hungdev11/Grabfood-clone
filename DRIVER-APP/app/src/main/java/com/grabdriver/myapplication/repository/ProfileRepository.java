@@ -1,4 +1,4 @@
-package com.grabdriver.myapplication.services;
+package com.grabdriver.myapplication.repository;
 
 import android.content.Context;
 import android.net.Uri;
@@ -65,6 +65,41 @@ public class ProfileRepository extends ApiRepository {
                 callback.onError(errorMessage);
             }
         });
+    }
+    
+    // Cập nhật chỉ email
+    public void updateEmail(String email, NetworkCallback<Shipper> callback) {
+        // Lấy thông tin hiện tại từ SessionManager
+        Shipper currentShipper = sessionManager.getShipperInfo();
+        if (currentShipper != null) {
+            // Tạo profile update với chỉ email mới, giữ nguyên các field khác
+            ShipperProfileUpdate profileUpdate = new ShipperProfileUpdate(
+                currentShipper.getName(), 
+                email, 
+                currentShipper.getVehicleType(), 
+                currentShipper.getLicensePlate()
+            );
+            
+            Call<ApiResponse<Shipper>> call = getApiService().updateProfile(profileUpdate);
+            
+            executeCall(call, new NetworkCallback<Shipper>() {
+                @Override
+                public void onSuccess(Shipper result) {
+                    // Cập nhật thông tin tài xế trong SessionManager
+                    if (result != null) {
+                        sessionManager.updateShipperInfo(result);
+                    }
+                    callback.onSuccess(result);
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+                    callback.onError(errorMessage);
+                }
+            });
+        } else {
+            callback.onError("Không tìm thấy thông tin tài xế hiện tại");
+        }
     }
     
     // Lấy thống kê tài khoản

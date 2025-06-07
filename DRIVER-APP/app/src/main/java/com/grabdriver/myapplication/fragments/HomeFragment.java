@@ -1,8 +1,6 @@
 package com.grabdriver.myapplication.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,29 +10,19 @@ import android.widget.Switch;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import com.grabdriver.myapplication.MainActivity;
-import com.grabdriver.myapplication.MapActivity;
+
+import com.grabdriver.myapplication.activities.MainActivity;
 import com.grabdriver.myapplication.R;
-import com.grabdriver.myapplication.adapters.OrderAdapter;
 import com.grabdriver.myapplication.models.EarningsResponse;
-import com.grabdriver.myapplication.models.Order;
 import com.grabdriver.myapplication.models.OrderResponse;
 import com.grabdriver.myapplication.models.ProfileStatistics;
 import com.grabdriver.myapplication.models.Shipper;
-import com.grabdriver.myapplication.services.ApiManager;
-import com.grabdriver.myapplication.services.ApiRepository;
+import com.grabdriver.myapplication.repository.ApiManager;
+import com.grabdriver.myapplication.repository.ApiRepository;
 import com.grabdriver.myapplication.utils.Constants;
 import com.grabdriver.myapplication.utils.SessionManager;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 public class HomeFragment extends Fragment {
     private Switch onlineSwitch;
@@ -43,6 +31,8 @@ public class HomeFragment extends Fragment {
     private TextView totalOrdersText;
     private TextView ratingText;
     private Button findOrdersButton;
+    private CardView cardViewOrders;
+    private CardView cardViewWallet;
 
     private SessionManager sessionManager;
     private ApiManager apiManager;
@@ -73,6 +63,8 @@ public class HomeFragment extends Fragment {
         totalOrdersText = view.findViewById(R.id.text_total_orders);
         ratingText = view.findViewById(R.id.text_rating);
         findOrdersButton = view.findViewById(R.id.btn_find_orders);
+        cardViewOrders = view.findViewById(R.id.card_view_orders);
+        cardViewWallet = view.findViewById(R.id.card_view_wallet);
     }
 
     private void setupListeners() {
@@ -89,6 +81,21 @@ public class HomeFragment extends Fragment {
             // Tìm kiếm đơn hàng
             Toast.makeText(getContext(), "Đang tìm kiếm đơn hàng...", Toast.LENGTH_SHORT).show();
             loadAvailableOrders();
+        });
+
+        // Quick Actions Click Listeners
+        cardViewOrders.setOnClickListener(v -> {
+            // Navigate to Orders Fragment
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).navigateToOrdersTab();
+            }
+        });
+
+        cardViewWallet.setOnClickListener(v -> {
+            // Navigate to Wallet Fragment
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).navigateToWalletTab();
+            }
         });
     }
 
@@ -122,15 +129,16 @@ public class HomeFragment extends Fragment {
                 }
             });
 
-            // Lấy thống kê tài khoản
-            apiManager.getProfileRepository().getProfileStats(new ApiRepository.NetworkCallback<ProfileStatistics>() {
+            // Lấy thống kê đơn hôm nay từ order API  
+            apiManager.getOrderRepository().getTodayOrdersCount(new ApiRepository.NetworkCallback<Integer>() {
                 @Override
-                public void onSuccess(ProfileStatistics result) {
+                public void onSuccess(Integer todayOrdersCount) {
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(() -> {
-                            if (result != null) {
-                                totalOrdersText.setText(result.getTotalOrders() + " đơn");
-                                // Cập nhật các thống kê khác nếu cần
+                            if (todayOrdersCount != null) {
+                                totalOrdersText.setText(todayOrdersCount + " đơn");
+                            } else {
+                                totalOrdersText.setText("0 đơn");
                             }
                         });
                     }
@@ -138,7 +146,11 @@ public class HomeFragment extends Fragment {
 
                 @Override
                 public void onError(String errorMessage) {
-                    // Error handled silently
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            totalOrdersText.setText("0 đơn");
+                        });
+                    }
                 }
             });
 

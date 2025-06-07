@@ -251,8 +251,8 @@ public class DriverServiceImp implements DriverService {
 
     @Override
     public List<DriverOrderResponse> getAssignedOrders(Long shipperId) {
-        List<OrderAssignment> assignments = orderAssignmentRepository.findByShipperIdAndStatus(
-                shipperId, OrderAssignment.AssignmentStatus.ACCEPTED);
+        // Lấy cả đơn hàng ASSIGNED và ACCEPTED để hiển thị trong OrdersFragment
+        List<OrderAssignment> assignments = orderAssignmentRepository.findActiveAssignmentsByShipperId(shipperId);
 
         return assignments.stream()
                 .map(assignment -> mapToDriverOrderResponse(assignment.getOrder()))

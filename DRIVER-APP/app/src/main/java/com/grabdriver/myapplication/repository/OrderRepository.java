@@ -1,4 +1,4 @@
-package com.grabdriver.myapplication.services;
+package com.grabdriver.myapplication.repository;
 
 import android.content.Context;
 
@@ -65,6 +65,41 @@ public class OrderRepository extends ApiRepository {
                     for (DriverOrderResponse driverOrder : driverOrders) {
                         if (driverOrder != null) {
                             orders.add(driverOrder.toOrder());
+                        }
+                    }
+                }
+                
+                OrderResponse response = new OrderResponse();
+                response.setOrders(orders);
+                response.setCurrentPage(page);
+                response.setTotalItems(orders.size());
+                callback.onSuccess(response);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                callback.onError(errorMessage);
+            }
+        });
+    }
+    
+    // Lấy danh sách đơn hàng đã được giao theo trạng thái
+    public void getAssignedOrdersByStatus(int page, int size, String status, NetworkCallback<OrderResponse> callback) {
+        // Sử dụng endpoint getAssignedOrders hiện có và lọc phía client
+        Call<ApiResponse<List<DriverOrderResponse>>> call = getApiService().getAssignedOrders(page, size);
+        executeCall(call, new NetworkCallback<List<DriverOrderResponse>>() {
+            @Override
+            public void onSuccess(List<DriverOrderResponse> driverOrders) {
+                // Convert DriverOrderResponse to Order for backward compatibility
+                List<Order> orders = new ArrayList<>();
+                if (driverOrders != null) {
+                    for (DriverOrderResponse driverOrder : driverOrders) {
+                        if (driverOrder != null) {
+                            Order order = driverOrder.toOrder();
+                            // Lọc theo trạng thái
+                            if ("ALL".equals(status) || status.equals(order.getStatus())) {
+                                orders.add(order);
+                            }
                         }
                     }
                 }
@@ -200,5 +235,43 @@ public class OrderRepository extends ApiRepository {
     public void getPendingOrdersCount(NetworkCallback<Integer> callback) {
         Call<ApiResponse<Integer>> call = getApiService().getPendingOrdersCount();
         executeCall(call, callback);
+    }
+    
+    // Lấy số đơn hàng hôm nay
+    public void getTodayOrdersCount(NetworkCallback<Integer> callback) {
+        // Sử dụng getAssignedOrders để lấy tất cả đơn và filter theo ngày hôm nay
+        Call<ApiResponse<List<DriverOrderResponse>>> call = getApiService().getAssignedOrders(1, 100);
+        executeCall(call, new NetworkCallback<List<DriverOrderResponse>>() {
+            @Override
+            public void onSuccess(List<DriverOrderResponse> driverOrders) {
+                int todayCount = 0;
+                if (driverOrders != null) {
+                    java.util.Calendar calendar = java.util.Calendar.getInstance();
+                    calendar.set(java.util.Calendar.HOUR_OF_DAY, 0);
+                    calendar.set(java.util.Calendar.MINUTE, 0);
+                    calendar.set(java.util.Calendar.SECOND, 0);
+                    calendar.set(java.util.Calendar.MILLISECOND, 0);
+                    java.util.Date startOfDay = calendar.getTime();
+                    
+                    calendar.add(java.util.Calendar.DAY_OF_MONTH, 1);
+                    java.util.Date startOfNextDay = calendar.getTime();
+                    
+                    for (DriverOrderResponse driverOrder : driverOrders) {
+                        if (driverOrder != null && driverOrder.getOrderDate() != null) {
+                            java.util.Date orderDate = driverOrder.getOrderDate();
+                            if (orderDate.after(startOfDay) && orderDate.before(startOfNextDay)) {
+                                todayCount++;
+                            }
+                        }
+                    }
+                }
+                callback.onSuccess(todayCount);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                callback.onError(errorMessage);
+            }
+        });
     }
 } 

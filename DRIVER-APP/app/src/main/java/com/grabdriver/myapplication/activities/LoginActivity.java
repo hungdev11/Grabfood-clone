@@ -1,4 +1,4 @@
-package com.grabdriver.myapplication;
+package com.grabdriver.myapplication.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,9 +12,10 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import com.grabdriver.myapplication.R;
 import com.grabdriver.myapplication.models.LoginResponse;
-import com.grabdriver.myapplication.services.ApiManager;
-import com.grabdriver.myapplication.services.ApiRepository;
+import com.grabdriver.myapplication.repository.ApiManager;
+import com.grabdriver.myapplication.repository.ApiRepository;
 import com.grabdriver.myapplication.utils.NetworkUtil;
 import com.grabdriver.myapplication.utils.SessionManager;
 
