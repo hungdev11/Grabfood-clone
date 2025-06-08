@@ -522,7 +522,7 @@ public class OrderServiceImp implements OrderService {
             Restaurant restaurant = cartDetails.getFirst().getFood().getRestaurant();
             LocationDistanceResponse locationDistanceResponse = locationService.getDistance(lat, lon, restaurant.getAddress().getLat(), restaurant.getAddress().getLon());
             return CheckDistanceResponse.builder()
-                    .check(locationDistanceResponse.getDistance() < 10000.00)
+                    .check(locationDistanceResponse.getDistance() < 40000.00)
                     .distance(locationDistanceResponse.getDistance())
                     .duration(locationDistanceResponse.getDuration())
                     .shippingFee(locationDistanceResponse.getShippingFee())
