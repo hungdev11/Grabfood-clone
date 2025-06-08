@@ -2,46 +2,110 @@ package com.grabdriver.myapplication.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import com.google.gson.annotations.SerializedName;
 
 import java.math.BigDecimal;
 import java.util.Date;
 
 public class Order implements Parcelable {
+    @SerializedName("id")
     private long id;
+    
+    @SerializedName("address")
     private String address;
+    
+    @SerializedName("note")
     private String note;
+    
+    @SerializedName("orderDate")
     private Date orderDate;
+    
+    @SerializedName("shippingFee")
     private BigDecimal shippingFee;
-    private String status; // PENDING, CANCELLED, PROCESSING, READY_FOR_PICKUP, SHIPPING, COMPLETED,
-                           // REJECTED
+    
+    @SerializedName("status")
+    private String status; // PENDING, CANCELLED, PROCESSING, READY_FOR_PICKUP, SHIPPING, COMPLETED, REJECTED
+    
+    @SerializedName("totalPrice")
     private BigDecimal totalPrice;
+    
+    @SerializedName("userId")
     private long userId;
+    
+    @SerializedName("discountOrderPrice")
     private BigDecimal discountOrderPrice;
+    
+    @SerializedName("discountShippingFee")
     private BigDecimal discountShippingFee;
+    
+    @SerializedName("acceptedAt")
     private Date acceptedAt;
+    
+    @SerializedName("assignedAt")
     private Date assignedAt;
+    
+    @SerializedName("deliveredAt")
     private Date deliveredAt;
+    
+    @SerializedName("deliveryLatitude")
     private Double deliveryLatitude;
+    
+    @SerializedName("deliveryLongitude")
     private Double deliveryLongitude;
+    
+    @SerializedName("distance")
     private Float distance;
+    
+    @SerializedName("estimatedTime")
     private Integer estimatedTime;
+    
+    @SerializedName("gemsEarned")
     private Integer gemsEarned;
+    
+    @SerializedName("pickedUpAt")
     private Date pickedUpAt;
+    
+    @SerializedName("tip")
     private Long tip;
+    
+    @SerializedName("shipperId")
     private Long shipperId;
+    
+    @SerializedName("deliveryDistance")
     private BigDecimal deliveryDistance;
+    
+    @SerializedName("paymentMethod")
     private String paymentMethod; // COD, VNPAY
+    
+    @SerializedName("shipperEarning")
     private BigDecimal shipperEarning;
 
     // Additional fields for enhanced functionality
+    @SerializedName("customerName")
     private String customerName;
+    
+    @SerializedName("customerPhone")
     private String customerPhone;
+    
+    @SerializedName("restaurantLatitude")
     private Double restaurantLatitude;
+    
+    @SerializedName("restaurantLongitude")
     private Double restaurantLongitude;
+    
+    @SerializedName("restaurantName")
     private String restaurantName;
+    
+    @SerializedName("restaurantAddress")
     private String restaurantAddress;
+    
+    @SerializedName("isUrgent")
     private boolean isUrgent;
+    
+    @SerializedName("customerAvatar")
     private String customerAvatar;
+    
+    @SerializedName("specialInstructions")
     private String specialInstructions;
 
     // Constructors

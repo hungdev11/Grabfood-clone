@@ -8,10 +8,4 @@ BE/target/
 .idea/
 FE/next-env.d.ts
 README.md
-API_TESTING_FIXES.md
-Grabfood_Driver_APIs_FIXED.postman_collection.json
-Grabfood_Driver_Environment.postman_environment.json
-FRIEND_QUESTIONS_ANALYSIS.md
-GRABFOOD_WORKFLOW_ANALYSIS.md
-IMPLEMENTATION_ROADMAP.md
 grab-food.sql

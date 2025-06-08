@@ -86,12 +86,45 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         }
 
         public void bind(Order order) {
-            orderIdText.setText("Đơn #" + order.getId());
-            addressText.setText(order.getAddress());
-            totalPriceText.setText(formatCurrency(order.getTotalPrice().longValue()));
-            shippingFeeText.setText("Phí ship: " + formatCurrency(order.getShippingFee().longValue()));
-            paymentMethodText.setText(order.getPaymentMethod().equals("COD") ? "Tiền mặt" : "Chuyển khoản");
-            orderDateText.setText(dateFormat.format(order.getOrderDate()));
+            orderIdText.setText(itemView.getContext().getString(R.string.order_id_prefix, order.getId()));
+            
+            // Address
+            addressText.setText(order.getAddress() != null ? order.getAddress() : 
+                itemView.getContext().getString(R.string.order_address_unknown));
+            
+            // Total price
+            if (order.getTotalPrice() != null) {
+                totalPriceText.setText(formatCurrency(order.getTotalPrice().longValue()));
+            } else {
+                totalPriceText.setText(itemView.getContext().getString(R.string.order_price_default));
+            }
+            
+            // Shipping fee
+            if (order.getShippingFee() != null) {
+                String formattedFee = formatCurrency(order.getShippingFee().longValue());
+                shippingFeeText.setText(itemView.getContext().getString(R.string.order_shipping_fee_prefix, formattedFee));
+            } else {
+                shippingFeeText.setText(itemView.getContext().getString(R.string.order_shipping_fee_default));
+            }
+            
+            // Payment method
+            String paymentMethod = order.getPaymentMethod();
+            if (paymentMethod != null) {
+                if (paymentMethod.equals("COD")) {
+                    paymentMethodText.setText(itemView.getContext().getString(R.string.order_payment_cod));
+                } else {
+                    paymentMethodText.setText(itemView.getContext().getString(R.string.order_payment_transfer));
+                }
+            } else {
+                paymentMethodText.setText(itemView.getContext().getString(R.string.order_payment_unknown));
+            }
+            
+            // Order date
+            if (order.getOrderDate() != null) {
+                orderDateText.setText(dateFormat.format(order.getOrderDate()));
+            } else {
+                orderDateText.setText(itemView.getContext().getString(R.string.order_date_unknown));
+            }
 
             // Status
             setStatusText(order.getStatus());
@@ -99,43 +132,51 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             // Note
             if (order.getNote() != null && !order.getNote().isEmpty()) {
                 noteText.setVisibility(View.VISIBLE);
-                noteText.setText("Ghi chú: " + order.getNote());
+                noteText.setText(itemView.getContext().getString(R.string.order_note_prefix, order.getNote()));
             } else {
                 noteText.setVisibility(View.GONE);
             }
 
             // Distance and time
             if (order.getDistance() != null) {
-                distanceText.setText(String.format("%.1f km", order.getDistance()));
+                distanceText.setText(itemView.getContext().getString(R.string.order_distance_format, order.getDistance()));
+            } else {
+                distanceText.setText(itemView.getContext().getString(R.string.order_data_unknown));
             }
 
             if (order.getEstimatedTime() != null && order.getEstimatedTime() > 0) {
-                estimatedTimeText.setText(order.getEstimatedTime() + " phút");
+                estimatedTimeText.setText(itemView.getContext().getString(R.string.order_time_format, order.getEstimatedTime()));
             } else {
-                estimatedTimeText.setText("");
+                estimatedTimeText.setText(itemView.getContext().getString(R.string.order_data_unknown));
             }
         }
 
         private void setStatusText(String status) {
+            if (status == null) {
+                statusText.setText(itemView.getContext().getString(R.string.order_status_unknown));
+                statusText.setTextColor(itemView.getContext().getColor(R.color.text_secondary));
+                return;
+            }
+            
             switch (status) {
                 case "PENDING":
-                    statusText.setText("Chờ xác nhận");
+                    statusText.setText(itemView.getContext().getString(R.string.order_status_pending));
                     statusText.setTextColor(itemView.getContext().getColor(R.color.status_pending));
                     break;
                 case "READY_FOR_PICKUP":
-                    statusText.setText("Sẵn sàng lấy hàng");
+                    statusText.setText(itemView.getContext().getString(R.string.order_status_ready_pickup));
                     statusText.setTextColor(itemView.getContext().getColor(R.color.status_pending));
                     break;
                 case "SHIPPING":
-                    statusText.setText("Đang giao");
+                    statusText.setText(itemView.getContext().getString(R.string.order_status_shipping));
                     statusText.setTextColor(itemView.getContext().getColor(R.color.status_online));
                     break;
                 case "COMPLETED":
-                    statusText.setText("Hoàn thành");
+                    statusText.setText(itemView.getContext().getString(R.string.order_status_completed));
                     statusText.setTextColor(itemView.getContext().getColor(R.color.status_completed));
                     break;
                 case "CANCELLED":
-                    statusText.setText("Đã hủy");
+                    statusText.setText(itemView.getContext().getString(R.string.order_status_cancelled));
                     statusText.setTextColor(itemView.getContext().getColor(R.color.status_offline));
                     break;
                 default:

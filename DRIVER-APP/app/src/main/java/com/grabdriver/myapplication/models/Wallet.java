@@ -110,4 +110,9 @@ public class Wallet {
     public void setShipperId(long shipperId) {
         this.shipperId = shipperId;
     }
+
+    // Additional method for compatibility
+    public long getBalance() {
+        return currentBalance;
+    }
 }

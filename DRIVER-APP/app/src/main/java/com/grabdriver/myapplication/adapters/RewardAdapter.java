@@ -1,21 +1,39 @@
 package com.grabdriver.myapplication.adapters;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.grabdriver.myapplication.R;
 import com.grabdriver.myapplication.models.Reward;
+import com.grabdriver.myapplication.utils.DateTimeUtil;
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class RewardAdapter extends RecyclerView.Adapter<RewardAdapter.RewardViewHolder> {
 
     private List<Reward> rewardList;
+    private OnRewardClickListener listener;
+
+    public interface OnRewardClickListener {
+        void onRewardClick(Reward reward);
+    }
 
     public RewardAdapter(List<Reward> rewardList) {
         this.rewardList = rewardList;
+    }
+    
+    public RewardAdapter(List<Reward> rewardList, OnRewardClickListener listener) {
+        this.rewardList = rewardList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -39,119 +57,176 @@ public class RewardAdapter extends RecyclerView.Adapter<RewardAdapter.RewardView
     class RewardViewHolder extends RecyclerView.ViewHolder {
         private TextView titleText;
         private TextView descriptionText;
-        private TextView typeText;
-        private TextView rewardValueText;
-        private TextView gemsValueText;
+        private TextView valueText;
+        private TextView gemsText;
         private TextView statusText;
-        private TextView requirementText;
+        private Button claimButton;
+        private LinearLayout progressSection;
+        private TextView progressPercentageText;
+        private ProgressBar progressBar;
+        private TextView progressDetailText;
 
-        public RewardViewHolder(@NonNull View itemView) {
+        RewardViewHolder(@NonNull View itemView) {
             super(itemView);
-            titleText = itemView.findViewById(R.id.text_title);
-            descriptionText = itemView.findViewById(R.id.text_description);
-            typeText = itemView.findViewById(R.id.text_type);
-            rewardValueText = itemView.findViewById(R.id.text_reward_value);
-            gemsValueText = itemView.findViewById(R.id.text_gems_value);
-            statusText = itemView.findViewById(R.id.text_status);
-            requirementText = itemView.findViewById(R.id.text_requirement);
+            titleText = itemView.findViewById(R.id.text_reward_title);
+            descriptionText = itemView.findViewById(R.id.text_reward_description);
+            valueText = itemView.findViewById(R.id.text_reward_value);
+            gemsText = itemView.findViewById(R.id.text_reward_gems);
+            statusText = itemView.findViewById(R.id.text_reward_status);
+            claimButton = itemView.findViewById(R.id.btn_claim_reward);
+            progressSection = itemView.findViewById(R.id.layout_progress_section);
+            progressPercentageText = itemView.findViewById(R.id.text_progress_percentage);
+            progressBar = itemView.findViewById(R.id.progress_reward);
+            progressDetailText = itemView.findViewById(R.id.text_progress_detail);
         }
 
-        public void bind(Reward reward) {
+        void bind(Reward reward) {
             titleText.setText(reward.getTitle());
             descriptionText.setText(reward.getDescription());
-
-            if (reward.getRewardValue() != null) {
-                rewardValueText.setText(formatCurrency(reward.getRewardValue().longValue()));
+            
+            // Format currency
+            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            String formattedValue = currencyFormat.format(reward.getValue());
+            valueText.setText(formattedValue);
+            
+            // Display gems if available
+            if (reward.getGemsValue() != null && reward.getGemsValue() > 0) {
+                gemsText.setText(reward.getGemsValue() + " 💎");
+                gemsText.setVisibility(View.VISIBLE);
+            } else {
+                gemsText.setVisibility(View.GONE);
             }
 
-            if (reward.getGemsValue() != null) {
-                gemsValueText.setText(reward.getGemsValue() + " 💎");
-            }
-
-            // Set type
-            setTypeText(reward.getType());
-
-            // Set status
-            setStatusText(reward.getStatus());
-
-            // Set requirement
-            setRequirementText(reward);
+            // Configure based on shipper reward status
+            configureByShipperRewardStatus(reward);
         }
 
-        private void setTypeText(String type) {
-            switch (type) {
-                case "DAILY":
-                    typeText.setText("Hàng ngày");
-                    typeText.setTextColor(itemView.getContext().getColor(R.color.grab_green));
-                    break;
-                case "PEAK_HOUR":
-                    typeText.setText("Giờ cao điểm");
-                    typeText.setTextColor(itemView.getContext().getColor(R.color.status_pending));
-                    break;
-                case "BONUS":
-                    typeText.setText("Thưởng");
-                    typeText.setTextColor(itemView.getContext().getColor(R.color.earnings_positive));
-                    break;
-                case "ACHIEVEMENT":
-                    typeText.setText("Thành tích");
-                    typeText.setTextColor(itemView.getContext().getColor(R.color.grab_green));
-                    break;
-                default:
-                    typeText.setText(type);
-                    typeText.setTextColor(itemView.getContext().getColor(R.color.text_secondary));
+        private void configureByShipperRewardStatus(Reward reward) {
+            String shipperStatus = reward.getShipperRewardStatus();
+            
+            if (shipperStatus == null) {
+                // Default to ELIGIBLE if no status
+                shipperStatus = "ELIGIBLE";
             }
-        }
 
-        private void setStatusText(String status) {
-            switch (status) {
-                case "ACTIVE":
-                    statusText.setText("Đang hoạt động");
-                    statusText.setTextColor(itemView.getContext().getColor(R.color.status_online));
+            switch (shipperStatus) {
+                case "CLAIMED":
+                    configureClaimed(reward);
                     break;
                 case "EXPIRED":
-                    statusText.setText("Đã hết hạn");
-                    statusText.setTextColor(itemView.getContext().getColor(R.color.status_offline));
+                    configureExpired(reward);
                     break;
-                case "INACTIVE":
-                    statusText.setText("Không hoạt động");
-                    statusText.setTextColor(itemView.getContext().getColor(R.color.text_hint));
-                    break;
+                case "ELIGIBLE":
                 default:
-                    statusText.setText(status);
-                    statusText.setTextColor(itemView.getContext().getColor(R.color.text_secondary));
+                    configureEligible(reward);
+                    break;
             }
         }
 
-        private void setRequirementText(Reward reward) {
-            StringBuilder requirement = new StringBuilder();
+        private void configureClaimed(Reward reward) {
+            // Status
+            statusText.setText("Đã nhận");
+            statusText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.status_completed));
+            
+            // Progress section - hidden for claimed rewards
+            progressSection.setVisibility(View.GONE);
+            
+            // Button
+            claimButton.setText("Đã nhận");
+            claimButton.setEnabled(false);
+            claimButton.setAlpha(0.6f);
+            claimButton.setBackgroundTintList(ContextCompat.getColorStateList(itemView.getContext(), R.color.text_secondary));
+            claimButton.setOnClickListener(null);
+        }
 
-            if (reward.getRequiredOrders() != null) {
-                requirement.append("Cần ").append(reward.getRequiredOrders()).append(" đơn hàng");
-            }
+        private void configureExpired(Reward reward) {
+            // Status
+            statusText.setText("Hết hạn");
+            statusText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.status_rejected));
+            
+            // Progress section - hidden for expired rewards
+            progressSection.setVisibility(View.GONE);
+            
+            // Button
+            claimButton.setText("Hết hạn");
+            claimButton.setEnabled(false);
+            claimButton.setAlpha(0.6f);
+            claimButton.setBackgroundTintList(ContextCompat.getColorStateList(itemView.getContext(), R.color.status_rejected));
+            claimButton.setOnClickListener(null);
+        }
 
-            if (reward.getRequiredRating() != null) {
-                if (requirement.length() > 0)
-                    requirement.append(" • ");
-                requirement.append("Đánh giá ").append(reward.getRequiredRating()).append(" sao");
-            }
-
-            if (reward.getPeakStartTime() != null && reward.getPeakEndTime() != null) {
-                if (requirement.length() > 0)
-                    requirement.append(" • ");
-                requirement.append("Từ ").append(reward.getPeakStartTime())
-                        .append(" đến ").append(reward.getPeakEndTime());
-            }
-
-            if (requirement.length() > 0) {
-                requirementText.setText(requirement.toString());
-                requirementText.setVisibility(View.VISIBLE);
+        private void configureEligible(Reward reward) {
+            // Status
+            statusText.setText("Khả dụng");
+            statusText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.status_online));
+            
+            // Show progress if available
+            if (reward.getCompletionPercentage() != null) {
+                progressSection.setVisibility(View.VISIBLE);
+                
+                int percentage = Math.round(reward.getCompletionPercentage());
+                progressPercentageText.setText(percentage + "%");
+                progressBar.setProgress(percentage);
+                
+                // Create progress detail text
+                String progressDetail = createProgressDetailText(reward);
+                progressDetailText.setText(progressDetail);
+                
+                // Configure button based on completion
+                if (reward.canClaim()) {
+                    configureCanClaimButton(reward);
+                } else {
+                    configureCannotClaimButton(reward);
+                }
             } else {
-                requirementText.setVisibility(View.GONE);
+                progressSection.setVisibility(View.GONE);
+                configureCanClaimButton(reward); // Assume can claim if no progress info
             }
         }
 
-        private String formatCurrency(long amount) {
-            return String.format("%,d₫", amount);
+        private void configureCanClaimButton(Reward reward) {
+            claimButton.setText("Nhận");
+            claimButton.setEnabled(true);
+            claimButton.setAlpha(1.0f);
+            claimButton.setBackgroundTintList(ContextCompat.getColorStateList(itemView.getContext(), R.color.grab_green));
+            claimButton.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onRewardClick(reward);
+                }
+            });
+        }
+
+        private void configureCannotClaimButton(Reward reward) {
+            claimButton.setText("Chưa đủ điều kiện");
+            claimButton.setEnabled(false);
+            claimButton.setAlpha(0.6f);
+            claimButton.setBackgroundTintList(ContextCompat.getColorStateList(itemView.getContext(), R.color.text_secondary));
+            claimButton.setOnClickListener(null);
+        }
+
+        private String createProgressDetailText(Reward reward) {
+            Float progressValue = reward.getProgressValue();
+            
+            if (progressValue == null) {
+                return "Tiến độ không khả dụng";
+            }
+
+            // Create appropriate progress text based on reward requirements
+            if (reward.getRequiredDeliveries() != null && reward.getRequiredDeliveries() > 0) {
+                int current = Math.round(progressValue);
+                int required = reward.getRequiredDeliveries();
+                return current + "/" + required + " đơn hàng đã hoàn thành";
+            } else if (reward.getRequiredOrders() != null && reward.getRequiredOrders() > 0) {
+                int current = Math.round(progressValue);
+                int required = reward.getRequiredOrders();
+                return current + "/" + required + " đơn hàng đã hoàn thành";
+            } else if (reward.getRequiredDistance() != null && reward.getRequiredDistance() > 0) {
+                return String.format("%.1f/%.1f km đã hoàn thành", progressValue, reward.getRequiredDistance());
+            } else if (reward.getRequiredRating() != null && reward.getRequiredRating() > 0) {
+                return String.format("Đánh giá hiện tại: %.1f/%.1f sao", progressValue, reward.getRequiredRating());
+            }
+            
+            return "Tiến độ: " + String.format("%.1f", progressValue);
         }
     }
 }

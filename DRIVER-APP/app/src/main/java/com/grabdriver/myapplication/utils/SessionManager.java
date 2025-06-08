@@ -2,6 +2,7 @@ package com.grabdriver.myapplication.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.location.Location;
 import com.grabdriver.myapplication.models.Shipper;
 
 public class SessionManager {
@@ -16,6 +17,7 @@ public class SessionManager {
     private static final String KEY_SHIPPER_STATUS = "shipperStatus";
     private static final String KEY_SHIPPER_VEHICLE_TYPE = "shipperVehicleType";
     private static final String KEY_SHIPPER_LICENSE_PLATE = "shipperLicensePlate";
+    private static final String KEY_SHIPPER_GEMS = "shipperGems";
     private static final String KEY_REMEMBER_ME = "rememberMe";
 
     // New keys for enhanced features
@@ -52,6 +54,7 @@ public class SessionManager {
         editor.putString(KEY_SHIPPER_STATUS, shipper.getStatus());
         editor.putString(KEY_SHIPPER_VEHICLE_TYPE, shipper.getVehicleType());
         editor.putString(KEY_SHIPPER_LICENSE_PLATE, shipper.getLicensePlate());
+        editor.putInt(KEY_SHIPPER_GEMS, shipper.getGems());
         editor.putBoolean(KEY_REMEMBER_ME, rememberMe);
         editor.putLong(KEY_SESSION_START_TIME, System.currentTimeMillis());
         editor.putBoolean(KEY_IS_ONLINE, shipper.isOnline());
@@ -105,6 +108,7 @@ public class SessionManager {
         shipper.setStatus(pref.getString(KEY_SHIPPER_STATUS, ""));
         shipper.setVehicleType(pref.getString(KEY_SHIPPER_VEHICLE_TYPE, ""));
         shipper.setLicensePlate(pref.getString(KEY_SHIPPER_LICENSE_PLATE, ""));
+        shipper.setGems(pref.getInt(KEY_SHIPPER_GEMS, 0));
         shipper.setOnline(pref.getBoolean(KEY_IS_ONLINE, false));
 
         return shipper;
@@ -121,6 +125,7 @@ public class SessionManager {
             editor.putString(KEY_SHIPPER_STATUS, shipper.getStatus());
             editor.putString(KEY_SHIPPER_VEHICLE_TYPE, shipper.getVehicleType());
             editor.putString(KEY_SHIPPER_LICENSE_PLATE, shipper.getLicensePlate());
+            editor.putInt(KEY_SHIPPER_GEMS, shipper.getGems());
             editor.putBoolean(KEY_IS_ONLINE, shipper.isOnline());
             editor.commit();
         }
@@ -278,5 +283,27 @@ public class SessionManager {
         long currentTime = System.currentTimeMillis();
         long twentyFourHours = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
         return (currentTime - sessionStart) > twentyFourHours;
+    }
+
+    /**
+     * Get current location as Location object
+     */
+    public Location getCurrentLocation() {
+        if (!isLoggedIn() || !isLocationTrackingEnabled()) {
+            return null;
+        }
+        
+        double lat = getCurrentLatitude();
+        double lon = getCurrentLongitude();
+        
+        // Return null if no location data available
+        if (lat == 0.0 && lon == 0.0) {
+            return null;
+        }
+        
+        Location location = new Location("session");
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        return location;
     }
 }

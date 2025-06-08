@@ -1,4 +1,4 @@
-package com.grabdriver.myapplication;
+package com.grabdriver.myapplication.activities;
 
 import android.Manifest;
 import android.content.Intent;
@@ -8,7 +8,6 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,10 +30,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.grabdriver.myapplication.R;
 import com.grabdriver.myapplication.models.Order;
+import com.grabdriver.myapplication.repository.ApiManager;
+import com.grabdriver.myapplication.repository.ApiRepository;
 import com.grabdriver.myapplication.services.LocationService;
 import com.grabdriver.myapplication.utils.SessionManager;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,12 +50,14 @@ public class MapActivity extends AppCompatActivity
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationClient;
     private SessionManager sessionManager;
+    private ApiManager apiManager;
 
     // UI Components
     private TextView tvOrderInfo;
     private Button btnNavigation;
     private Button btnCallCustomer;
     private Button btnCompleteOrder;
+    private FloatingActionButton fabMyLocation;
 
     // Map markers
     private Marker currentLocationMarker;
@@ -64,6 +70,7 @@ public class MapActivity extends AppCompatActivity
     private LatLng currentLocation;
     private LatLng restaurantLocation;
     private LatLng deliveryLocation;
+    private boolean hasAutoLoadedLocation = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,11 +89,13 @@ public class MapActivity extends AppCompatActivity
     private void initializeComponents() {
         sessionManager = new SessionManager(this);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        apiManager = ApiManager.getInstance(this);
 
         tvOrderInfo = findViewById(R.id.tv_order_info);
         btnNavigation = findViewById(R.id.btn_navigation);
         btnCallCustomer = findViewById(R.id.btn_call_customer);
         btnCompleteOrder = findViewById(R.id.btn_complete_order);
+        fabMyLocation = findViewById(R.id.fab_my_location);
     }
 
     private void setupMapFragment() {
@@ -101,6 +110,30 @@ public class MapActivity extends AppCompatActivity
         btnNavigation.setOnClickListener(v -> openGoogleMapsNavigation());
         btnCallCustomer.setOnClickListener(v -> callCustomer());
         btnCompleteOrder.setOnClickListener(v -> completeOrder());
+        fabMyLocation.setOnClickListener(v -> centerOnMyLocation());
+        
+        // Update button states based on order status
+        updateButtonStates();
+    }
+    
+    private void updateButtonStates() {
+        if (currentOrder != null) {
+            String status = currentOrder.getStatus();
+            boolean canComplete = "PROCESSING".equals(status) || "READY_FOR_PICKUP".equals(status) || "SHIPPING".equals(status);
+            boolean canCall = canComplete;
+            
+            btnCompleteOrder.setEnabled(canComplete);
+            btnCallCustomer.setEnabled(canCall);
+            
+            // Update button text based on status
+            if ("PROCESSING".equals(status) || "READY_FOR_PICKUP".equals(status)) {
+                btnCompleteOrder.setText("Hoàn thành đơn hàng");
+            } else if ("SHIPPING".equals(status)) {
+                btnCompleteOrder.setText("Xác nhận giao hàng");
+            } else {
+                btnCompleteOrder.setText("Đã hoàn thành");
+            }
+        }
     }
 
     private void loadOrderData() {
@@ -108,7 +141,6 @@ public class MapActivity extends AppCompatActivity
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("order_id")) {
             long orderId = intent.getLongExtra("order_id", 0);
-            // TODO: Load order from database or API
             loadOrderById(orderId);
         } else {
             Toast.makeText(this, "Không tìm thấy thông tin đơn hàng", Toast.LENGTH_SHORT).show();
@@ -117,14 +149,43 @@ public class MapActivity extends AppCompatActivity
     }
 
     private void loadOrderById(long orderId) {
-        // TODO: Implement order loading from API/database
-        // For now, create mock order data
-        currentOrder = createMockOrder(orderId);
-        updateOrderInfo();
-        setupMapLocations();
+        if (apiManager != null) {
+            apiManager.getOrderRepository().getOrderDetails(orderId, new ApiRepository.NetworkCallback<Order>() {
+                @Override
+                public void onSuccess(Order order) {
+                    runOnUiThread(() -> {
+                        currentOrder = order;
+                        updateOrderInfo();
+                        setupMapLocations();
+                        
+                        // Refresh map if ready
+                        if (googleMap != null) {
+                            addMapMarkers();
+                            autoLoadCurrentLocationAndRoute();
+                        }
+                    });
+                }
+                
+                @Override
+                public void onError(String errorMessage) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(MapActivity.this, "Lỗi tải thông tin đơn hàng: " + errorMessage, Toast.LENGTH_SHORT).show();
+                        // Fallback to demo data
+                        currentOrder = createDemoOrder(orderId);
+                        updateOrderInfo();
+                        setupMapLocations();
+                    });
+                }
+            });
+        } else {
+            // Fallback to demo data
+            currentOrder = createDemoOrder(orderId);
+            updateOrderInfo();
+            setupMapLocations();
+        }
     }
 
-    private Order createMockOrder(long orderId) {
+    private Order createDemoOrder(long orderId) {
         Order order = new Order();
         order.setId(orderId);
         order.setAddress("123 Nguyễn Văn Linh, Q.7, TP.HCM");
@@ -133,7 +194,6 @@ public class MapActivity extends AppCompatActivity
         order.setStatus("SHIPPING");
         order.setDeliveryLatitude(10.7769);
         order.setDeliveryLongitude(106.7009);
-        // Restaurant location (mock)
         order.setRestaurantLatitude(10.7829);
         order.setRestaurantLongitude(106.6959);
         return order;
@@ -141,13 +201,41 @@ public class MapActivity extends AppCompatActivity
 
     private void updateOrderInfo() {
         if (currentOrder != null) {
+            String statusText = getStatusText(currentOrder.getStatus());
+            String priceText = currentOrder.getTotalPrice() != null && currentOrder.getTotalPrice().compareTo(BigDecimal.ZERO) > 0 ? 
+                String.format("💰 %,d VNĐ", currentOrder.getTotalPrice().longValue()) : "";
+            
             String orderInfo = String.format(
-                    "Đơn #%d\n👤 %s\n📍 %s\n📞 %s",
+                    "Đơn #%d - %s\n👤 %s\n📍 %s\n📞 %s\n%s",
                     currentOrder.getId(),
+                    statusText,
                     currentOrder.getCustomerName(),
                     currentOrder.getAddress(),
-                    currentOrder.getCustomerPhone());
+                    currentOrder.getCustomerPhone(),
+                    priceText);
             tvOrderInfo.setText(orderInfo);
+            
+            // Update button states
+            updateButtonStates();
+        }
+    }
+    
+    private String getStatusText(String status) {
+        switch (status) {
+            case "PROCESSING":
+                return "Đang xử lý";
+            case "READY_FOR_PICKUP":
+                return "Sẵn sàng lấy hàng";
+            case "SHIPPING":
+                return "Đang giao hàng";
+            case "COMPLETED":
+                return "Đã hoàn thành";
+            case "CANCELLED":
+                return "Đã hủy";
+            case "REJECTED":
+                return "Đã từ chối";
+            default:
+                return status;
         }
     }
 
@@ -169,14 +257,16 @@ public class MapActivity extends AppCompatActivity
         // Configure map
         googleMap.getUiSettings().setZoomControlsEnabled(true);
         googleMap.getUiSettings().setCompassEnabled(true);
-        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+        googleMap.getUiSettings().setMyLocationButtonEnabled(false); // Use custom button instead
 
         // Enable location if permission granted
         enableLocationOnMap();
 
         // Add markers and route
         addMapMarkers();
-        getCurrentLocationAndRoute();
+        
+        // Auto-center on current location when map loads
+        autoLoadCurrentLocationAndRoute();
     }
 
     private void enableLocationOnMap() {
@@ -247,6 +337,57 @@ public class MapActivity extends AppCompatActivity
         });
     }
 
+    // private void autoLoadCurrentLocationAndRoute() {
+    //     if (ActivityCompat.checkSelfPermission(this,
+    //             Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+    //         requestLocationPermissions();
+    //         return;
+    //     }
+
+    //     Task<Location> locationResult = fusedLocationClient.getLastLocation();
+    //     locationResult.addOnCompleteListener(this, task -> {
+    //         if (task.isSuccessful() && task.getResult() != null) {
+    //             Location location = task.getResult();
+    //             currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+
+    //             // Add current location marker
+    //             updateCurrentLocationMarker();
+
+    //             // Draw route
+    //             drawRouteToDestination();
+
+    //             // Only auto-center on first load
+    //             if (!hasAutoLoadedLocation) {
+    //                 hasAutoLoadedLocation = true;
+                    
+    //                 // Auto-center on current location first, then show all markers
+    //                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15f), 1000, new GoogleMap.CancelableCallback() {
+    //                     @Override
+    //                     public void onFinish() {
+    //                         // After centering on current location, fit all markers in view with animation
+    //                         googleMap.postDelayed(() -> fitMarkersInView(), 1500);
+    //                     }
+
+    //                     @Override
+    //                     public void onCancel() {
+    //                         // If animation is cancelled, still fit markers
+    //                         fitMarkersInView();
+    //                     }
+    //                 });
+
+    //                 Toast.makeText(this, "Đã tải vị trí hiện tại", Toast.LENGTH_SHORT).show();
+    //             } else {
+    //                 // Just update route without changing camera position
+    //                 fitMarkersInView();
+    //             }
+    //         } else {
+    //             Log.w(TAG, "Failed to get current location on auto-load.");
+    //             // Fallback to fit all markers
+    //             fitMarkersInView();
+    //         }
+    //     });
+    // }
+
     private void updateCurrentLocationMarker() {
         if (googleMap != null && currentLocation != null) {
             if (currentLocationMarker != null) {
@@ -261,8 +402,6 @@ public class MapActivity extends AppCompatActivity
     }
 
     private void drawRouteToDestination() {
-        // TODO: Implement route drawing using Google Directions API
-        // For now, draw a simple polyline
         if (currentLocation != null && deliveryLocation != null) {
             List<LatLng> routePoints = new ArrayList<>();
             routePoints.add(currentLocation);
@@ -309,6 +448,35 @@ public class MapActivity extends AppCompatActivity
         }
     }
 
+    private void centerOnMyLocation() {
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestLocationPermissions();
+            return;
+        }
+
+        // Get current location
+        Task<Location> locationResult = fusedLocationClient.getLastLocation();
+        locationResult.addOnCompleteListener(this, task -> {
+            if (task.isSuccessful() && task.getResult() != null) {
+                Location location = task.getResult();
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                
+                // Update current location
+                currentLocation = latLng;
+                updateCurrentLocationMarker();
+                
+                // Animate camera to current location with appropriate zoom
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f));
+                
+                Toast.makeText(this, "Đã quay lại vị trí hiện tại", Toast.LENGTH_SHORT).show();
+            } else {
+                Log.w(TAG, "Failed to get current location.");
+                Toast.makeText(this, "Không thể lấy vị trí hiện tại", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void openGoogleMapsNavigation() {
         if (deliveryLocation != null) {
             String uri = String.format(
@@ -328,6 +496,13 @@ public class MapActivity extends AppCompatActivity
 
     private void callCustomer() {
         if (currentOrder != null && currentOrder.getCustomerPhone() != null) {
+            // Check if order can be handled
+            String status = currentOrder.getStatus();
+            if (!"PROCESSING".equals(status) && !"READY_FOR_PICKUP".equals(status) && !"SHIPPING".equals(status)) {
+                Toast.makeText(this, "Không thể gọi khách hàng cho đơn hàng này", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
             Intent intent = new Intent(Intent.ACTION_CALL);
             intent.setData(Uri.parse("tel:" + currentOrder.getCustomerPhone()));
 
@@ -341,9 +516,86 @@ public class MapActivity extends AppCompatActivity
     }
 
     private void completeOrder() {
-        // TODO: Implement order completion logic
-        // Show confirmation dialog, take photo, update status, etc.
-        Toast.makeText(this, "Chức năng hoàn thành đơn hàng sẽ được cập nhật", Toast.LENGTH_SHORT).show();
+        if (currentOrder == null) {
+            Toast.makeText(this, "Không tìm thấy thông tin đơn hàng", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        String status = currentOrder.getStatus();
+        
+        // Check if order can be completed
+        if (!"PROCESSING".equals(status) && !"READY_FOR_PICKUP".equals(status) && !"SHIPPING".equals(status)) {
+            String statusMessage = getStatusMessage(status);
+            Toast.makeText(this, "Đơn hàng này " + statusMessage + ". Không thể hoàn thành.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Show confirmation dialog
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Xác nhận hoàn thành đơn hàng")
+                .setMessage("Bạn có chắc chắn muốn hoàn thành đơn hàng #" + currentOrder.getId() + "?")
+                .setPositiveButton("Xác nhận", (dialog, which) -> {
+                    performCompleteOrder();
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+    
+    private void performCompleteOrder() {
+        // Show loading
+        btnCompleteOrder.setEnabled(false);
+        btnCompleteOrder.setText("Đang xử lý...");
+        
+        if (apiManager != null) {
+            apiManager.getOrderRepository().confirmDelivery(currentOrder.getId(), 
+                new ApiRepository.NetworkCallback<Order>() {
+                    @Override
+                    public void onSuccess(Order updatedOrder) {
+                        runOnUiThread(() -> {
+                            // Update current order
+                            currentOrder = updatedOrder;
+                            updateOrderInfo();
+                            
+                            // Show success message
+                            Toast.makeText(MapActivity.this, "Đã giao hàng thành công!", Toast.LENGTH_LONG).show();
+                            
+                            // Return to previous screen after delay
+                            new android.os.Handler().postDelayed(() -> {
+                                finish();
+                            }, 2000);
+                        });
+                    }
+                    
+                    @Override
+                    public void onError(String errorMessage) {
+                        runOnUiThread(() -> {
+                            // Reset button state
+                            btnCompleteOrder.setEnabled(true);
+                            updateButtonStates();
+                            
+                            Toast.makeText(MapActivity.this, "Lỗi: " + errorMessage, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                });
+        } else {
+            // Reset button state
+            btnCompleteOrder.setEnabled(true);
+            updateButtonStates();
+            Toast.makeText(this, "Lỗi kết nối", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    private String getStatusMessage(String status) {
+        switch (status) {
+            case "CANCELLED":
+                return "đã bị hủy";
+            case "REJECTED":
+                return "đã bị từ chối";
+            case "COMPLETED":
+                return "đã hoàn thành";
+            default:
+                return "không khả dụng";
+        }
     }
 
     @Override

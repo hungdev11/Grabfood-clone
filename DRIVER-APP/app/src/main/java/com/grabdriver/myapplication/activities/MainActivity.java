@@ -1,4 +1,4 @@
-package com.grabdriver.myapplication;
+package com.grabdriver.myapplication.activities;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
@@ -7,12 +7,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
@@ -26,12 +26,15 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 // Temporarily comment Firebase
 // import com.google.firebase.messaging.FirebaseMessaging;
+import com.grabdriver.myapplication.R;
 import com.grabdriver.myapplication.fragments.HomeFragment;
 import com.grabdriver.myapplication.fragments.OrdersFragment;
 import com.grabdriver.myapplication.fragments.WalletFragment;
 import com.grabdriver.myapplication.fragments.RewardsFragment;
 import com.grabdriver.myapplication.fragments.ProfileFragment;
 import com.grabdriver.myapplication.models.Order;
+import com.grabdriver.myapplication.repository.ApiManager;
+import com.grabdriver.myapplication.repository.ApiRepository;
 import com.grabdriver.myapplication.services.LocationService;
 import com.grabdriver.myapplication.services.OrderUpdateService;
 import com.grabdriver.myapplication.utils.SessionManager;
@@ -40,12 +43,12 @@ import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
 public class MainActivity extends AppCompatActivity implements OrderUpdateService.OrderUpdateListener {
-    private static final String TAG = "MainActivity";
     private static final int RC_LOCATION_PERMISSION = 123;
     private static final int RC_NOTIFICATION_PERMISSION = 124;
 
     private BottomNavigationView bottomNavigationView;
     private SessionManager sessionManager;
+    private ApiManager apiManager;
     private boolean servicesStarted = false;
 
     // Permission launcher for Android 13+ notification permission
@@ -79,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements OrderUpdateServic
 
         // Initialize SessionManager
         sessionManager = new SessionManager(this);
+        apiManager = ApiManager.getInstance(this);
 
         // Check if user is logged in
         if (!sessionManager.isLoggedIn() || !sessionManager.isSessionValid()) {
@@ -113,11 +117,7 @@ public class MainActivity extends AppCompatActivity implements OrderUpdateServic
         notificationPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
-                    if (isGranted) {
-                        Log.d(TAG, "Notification permission granted");
-                    } else {
-                        Log.d(TAG, "Notification permission denied");
-                    }
+                    // Permission result handled automatically
                 });
     }
 
@@ -174,7 +174,6 @@ public class MainActivity extends AppCompatActivity implements OrderUpdateServic
 
     @AfterPermissionGranted(RC_LOCATION_PERMISSION)
     private void onLocationPermissionGranted() {
-        Log.d(TAG, "Location permission granted, starting services");
         startLocationAndUpdateServices();
     }
 
@@ -194,7 +193,6 @@ public class MainActivity extends AppCompatActivity implements OrderUpdateServic
             OrderUpdateService.addOrderUpdateListener(this);
 
             servicesStarted = true;
-            Log.d(TAG, "Services started successfully");
         }
     }
 
@@ -218,8 +216,6 @@ public class MainActivity extends AppCompatActivity implements OrderUpdateServic
     }
 
     private void handleNewOrder(Order order) {
-        Log.d(TAG, "New order received in MainActivity: " + order.getId());
-
         // Update UI to show new order notification
         runOnUiThread(() -> {
             Toast.makeText(this, "Đơn hàng mới: #" + order.getId(), Toast.LENGTH_LONG).show();
@@ -233,8 +229,6 @@ public class MainActivity extends AppCompatActivity implements OrderUpdateServic
     }
 
     private void handleOrderUpdate(Order order) {
-        Log.d(TAG, "Order update received in MainActivity: " + order.getId());
-
         runOnUiThread(() -> {
             // Refresh fragments that might display order information
             Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
@@ -247,8 +241,6 @@ public class MainActivity extends AppCompatActivity implements OrderUpdateServic
     }
 
     private void handleOrderCancelled(long orderId) {
-        Log.d(TAG, "Order cancelled in MainActivity: " + orderId);
-
         runOnUiThread(() -> {
             Toast.makeText(this, "Đơn hàng #" + orderId + " đã bị hủy", Toast.LENGTH_LONG).show();
 
@@ -342,11 +334,7 @@ public class MainActivity extends AppCompatActivity implements OrderUpdateServic
     @Override
     public void onConnectionStatusChanged(boolean connected) {
         runOnUiThread(() -> {
-            if (connected) {
-                Log.d(TAG, "Connected to order update service");
-            } else {
-                Log.d(TAG, "Disconnected from order update service");
-            }
+            // Connection status changed
         });
     }
 
@@ -370,36 +358,107 @@ public class MainActivity extends AppCompatActivity implements OrderUpdateServic
      * This can be called from ProfileFragment or other fragments
      */
     public void logout() {
-        // Stop services
+        // Hiển thị dialog loading
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(R.layout.dialog_loading);
+        builder.setCancelable(false);
+        AlertDialog loadingDialog = builder.create();
+        loadingDialog.show();
+
+        // Dừng các dịch vụ
         if (servicesStarted) {
+            // Dừng dịch vụ cập nhật vị trí
             Intent locationIntent = new Intent(this, LocationService.class);
             locationIntent.setAction("STOP_LOCATION_UPDATES");
             startService(locationIntent);
 
+            // Dừng dịch vụ cập nhật đơn hàng
             Intent orderUpdateIntent = new Intent(this, OrderUpdateService.class);
             orderUpdateIntent.setAction("STOP_ORDER_UPDATES");
             startService(orderUpdateIntent);
 
+            // Xóa order update listener
+            OrderUpdateService.removeOrderUpdateListener(this);
             servicesStarted = false;
         }
 
-        sessionManager.logout();
-        navigateToLogin();
+        // Gọi API đăng xuất
+        apiManager.getAuthRepository().logout(new ApiRepository.NetworkCallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                runOnUiThread(() -> {
+                    // Đóng dialog loading
+                    loadingDialog.dismiss();
+                    
+                    // Xóa thông tin đăng nhập và chuyển đến màn hình đăng nhập
+                    navigateToLogin();
+                });
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                runOnUiThread(() -> {
+                    // Đóng dialog loading
+                    loadingDialog.dismiss();
+                    
+                    // Vẫn xóa thông tin đăng nhập và chuyển đến màn hình đăng nhập kể cả khi API lỗi
+                    // Hiển thị thông báo lỗi
+                    Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                    navigateToLogin();
+                });
+            }
+        });
     }
 
     /**
      * Public method to handle going online/offline
      */
     public void setOnlineStatus(boolean online) {
-        sessionManager.setOnlineStatus(online);
+        if (sessionManager.isOnline() != online) {
+            // Cập nhật trạng thái trong SessionManager
+            sessionManager.setOnlineStatus(online);
+            
+            // Gọi API cập nhật vị trí và trạng thái online
+            if (sessionManager.getCurrentLocation() != null) {
+                double latitude = sessionManager.getCurrentLocation().getLatitude();
+                double longitude = sessionManager.getCurrentLocation().getLongitude();
+                
+                apiManager.getLocationRepository().updateLocation(
+                    latitude, 
+                    longitude, 
+                    online, 
+                    new ApiRepository.NetworkCallback<Void>() {
+                        @Override
+                        public void onSuccess(Void result) {
+                            // Không cần làm gì vì đã cập nhật SessionManager ở trên
+                        }
 
-        if (online) {
-            startLocationAndUpdateServices();
-        } else {
-            // Stop location tracking when going offline
-            Intent locationIntent = new Intent(this, LocationService.class);
-            locationIntent.setAction("STOP_LOCATION_UPDATES");
-            startService(locationIntent);
+                        @Override
+                        public void onError(String errorMessage) {
+                            runOnUiThread(() -> {
+                                Toast.makeText(MainActivity.this, 
+                                    "Lỗi khi cập nhật trạng thái: " + errorMessage, 
+                                    Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                    });
+            }
+        }
+    }
+
+    public ApiManager getApiManager() {
+        return apiManager;
+    }
+
+    public void navigateToOrdersTab() {
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.nav_orders);
+        }
+    }
+
+    public void navigateToWalletTab() {
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.nav_wallet);
         }
     }
 }

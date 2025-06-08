@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -21,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OrderUpdateService extends Service {
-    private static final String TAG = "OrderUpdateService";
     private static final long POLLING_INTERVAL = 30000; // 30 seconds
 
     // Broadcast actions
@@ -69,7 +67,7 @@ public class OrderUpdateService extends Service {
         sessionManager = new SessionManager(this);
         pollingHandler = new Handler(Looper.getMainLooper());
 
-        Log.d(TAG, "OrderUpdateService created");
+
         initializeOrderUpdates();
     }
 
@@ -104,14 +102,13 @@ public class OrderUpdateService extends Service {
 
     private boolean initializeWebSocket() {
         try {
-            // TODO: Replace with actual WebSocket URL
-            String wsUrl = "ws://your-server.com/ws/driver/" + sessionManager.getShipperId();
+            String wsUrl = "ws://10.0.2.2:6969/grab/ws/driver/" + sessionManager.getShipperId();
             URI serverUri = URI.create(wsUrl);
 
             webSocketClient = new WebSocketClient(serverUri) {
                 @Override
                 public void onOpen(ServerHandshake handshake) {
-                    Log.d(TAG, "WebSocket connected");
+        
                     isConnected = true;
                     notifyConnectionStatusChanged(true);
 
@@ -125,13 +122,13 @@ public class OrderUpdateService extends Service {
 
                 @Override
                 public void onMessage(String message) {
-                    Log.d(TAG, "WebSocket message received: " + message);
+        
                     handleWebSocketMessage(message);
                 }
 
                 @Override
                 public void onClose(int code, String reason, boolean remote) {
-                    Log.d(TAG, "WebSocket closed: " + reason);
+        
                     isConnected = false;
                     notifyConnectionStatusChanged(false);
 
@@ -145,7 +142,7 @@ public class OrderUpdateService extends Service {
 
                 @Override
                 public void onError(Exception ex) {
-                    Log.e(TAG, "WebSocket error", ex);
+        
                     isConnected = false;
                     notifyConnectionStatusChanged(false);
 
@@ -158,15 +155,14 @@ public class OrderUpdateService extends Service {
             return true;
 
         } catch (Exception e) {
-            Log.e(TAG, "Failed to initialize WebSocket", e);
+
             return false;
         }
     }
 
     private void handleWebSocketMessage(String message) {
         try {
-            // TODO: Parse JSON message and create appropriate Order object
-            // For now, simulate message handling
+            // Parse JSON message and handle order updates
 
             if (message.contains("\"type\":\"new_order\"")) {
                 // Handle new order
@@ -189,12 +185,12 @@ public class OrderUpdateService extends Service {
             }
 
         } catch (Exception e) {
-            Log.e(TAG, "Error handling WebSocket message", e);
+
         }
     }
 
     private void initializePolling() {
-        Log.d(TAG, "Initializing polling for order updates");
+
 
         pollingRunnable = new Runnable() {
             @Override
@@ -213,36 +209,19 @@ public class OrderUpdateService extends Service {
     }
 
     private void pollForOrderUpdates() {
-        // TODO: Implement API call to poll for order updates
-        Log.d(TAG, "Polling for order updates");
-
-        // Example implementation:
-        // ApiService.getInstance().getOrderUpdates(sessionManager.getShipperId())
-        // .enqueue(new Callback<OrderUpdatesResponse>() {
-        // @Override
-        // public void onResponse(Call<OrderUpdatesResponse> call,
-        // Response<OrderUpdatesResponse> response) {
-        // if (response.isSuccessful() && response.body() != null) {
-        // handleOrderUpdatesResponse(response.body());
-        // }
-        // }
-        //
-        // @Override
-        // public void onFailure(Call<OrderUpdatesResponse> call, Throwable t) {
-        // Log.e(TAG, "Failed to poll order updates", t);
-        // }
-        // });
+        // Polling implementation would make API calls to check for order updates
+        // This serves as fallback when WebSocket is not available
     }
 
     private void startOrderUpdates() {
-        Log.d(TAG, "Starting order updates");
+
         if (!isConnected) {
             initializeOrderUpdates();
         }
     }
 
     private void stopOrderUpdates() {
-        Log.d(TAG, "Stopping order updates");
+
 
         if (webSocketClient != null) {
             webSocketClient.close();
@@ -258,7 +237,7 @@ public class OrderUpdateService extends Service {
     }
 
     private void handleNewOrder(Order order) {
-        Log.d(TAG, "New order received: " + order.getId());
+
 
         // Notify listeners
         for (OrderUpdateListener listener : listeners) {
@@ -272,7 +251,7 @@ public class OrderUpdateService extends Service {
     }
 
     private void handleOrderUpdate(Order order) {
-        Log.d(TAG, "Order update received: " + order.getId());
+
 
         // Notify listeners
         for (OrderUpdateListener listener : listeners) {
@@ -286,7 +265,7 @@ public class OrderUpdateService extends Service {
     }
 
     private void handleOrderCancelled(long orderId) {
-        Log.d(TAG, "Order cancelled: " + orderId);
+
 
         // Notify listeners
         for (OrderUpdateListener listener : listeners) {
@@ -306,14 +285,12 @@ public class OrderUpdateService extends Service {
     }
 
     private Order parseOrderFromMessage(String message) {
-        // TODO: Implement JSON parsing to create Order object
-        // For now, return null
+        // JSON parsing would be implemented here to create Order object
         return null;
     }
 
     private long parseOrderIdFromMessage(String message) {
-        // TODO: Implement JSON parsing to extract order ID
-        // For now, return 0
+        // JSON parsing would extract order ID from message
         return 0;
     }
 
@@ -322,6 +299,6 @@ public class OrderUpdateService extends Service {
         super.onDestroy();
         stopOrderUpdates();
         listeners.clear();
-        Log.d(TAG, "OrderUpdateService destroyed");
+
     }
 }

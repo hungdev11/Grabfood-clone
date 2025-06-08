@@ -26,6 +26,13 @@ public class Reward {
     private Date startDate;
     private String status; // ACTIVE, EXPIRED, INACTIVE
     private String title;
+    
+    // Shipper reward specific fields
+    private String shipperRewardStatus; // CLAIMED, ELIGIBLE, EXPIRED
+    private Float progressValue; // Current progress value
+    private Float completionPercentage; // Completion percentage
+    private Date claimedAt; // When the reward was claimed
+    private String notes; // Additional notes
 
     // Constructors
     public Reward() {
@@ -218,5 +225,68 @@ public class Reward {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    // Shipper reward specific getters and setters
+    public String getShipperRewardStatus() {
+        return shipperRewardStatus;
+    }
+
+    public void setShipperRewardStatus(String shipperRewardStatus) {
+        this.shipperRewardStatus = shipperRewardStatus;
+    }
+
+    public Float getProgressValue() {
+        return progressValue;
+    }
+
+    public void setProgressValue(Float progressValue) {
+        this.progressValue = progressValue;
+    }
+
+    public Float getCompletionPercentage() {
+        return completionPercentage;
+    }
+
+    public void setCompletionPercentage(Float completionPercentage) {
+        this.completionPercentage = completionPercentage;
+    }
+
+    public Date getClaimedAt() {
+        return claimedAt;
+    }
+
+    public void setClaimedAt(Date claimedAt) {
+        this.claimedAt = claimedAt;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    // Additional method for compatibility
+    public BigDecimal getValue() {
+        return rewardValue;
+    }
+    
+    // Helper methods
+    public boolean isEligible() {
+        return "ELIGIBLE".equals(shipperRewardStatus);
+    }
+    
+    public boolean isClaimed() {
+        return "CLAIMED".equals(shipperRewardStatus);
+    }
+    
+    public boolean isExpired() {
+        return "EXPIRED".equals(shipperRewardStatus);
+    }
+    
+    public boolean canClaim() {
+        return isEligible() && completionPercentage != null && completionPercentage >= 100.0f;
     }
 }

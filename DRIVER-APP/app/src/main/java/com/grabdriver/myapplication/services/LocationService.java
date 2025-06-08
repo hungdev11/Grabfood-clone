@@ -12,7 +12,6 @@ import android.location.Location;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -24,12 +23,11 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
-import com.grabdriver.myapplication.MainActivity;
+import com.grabdriver.myapplication.activities.MainActivity;
 import com.grabdriver.myapplication.R;
 import com.grabdriver.myapplication.utils.SessionManager;
 
 public class LocationService extends Service {
-    private static final String TAG = "LocationService";
     private static final String CHANNEL_ID = "LOCATION_SERVICE_CHANNEL";
     private static final int NOTIFICATION_ID = 1001;
 
@@ -62,7 +60,7 @@ public class LocationService extends Service {
         createNotificationChannel();
         createLocationCallback();
 
-        Log.d(TAG, "LocationService created");
+
     }
 
     @Override
@@ -109,7 +107,7 @@ public class LocationService extends Service {
                 }
 
                 for (Location location : locationResult.getLocations()) {
-                    Log.d(TAG, "New location: " + location.getLatitude() + ", " + location.getLongitude());
+        
 
                     // Update location in session
                     sessionManager.updateCurrentLocation(location.getLatitude(), location.getLongitude());
@@ -132,7 +130,7 @@ public class LocationService extends Service {
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this,
                         Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.e(TAG, "Location permissions not granted");
+
             return;
         }
 
@@ -149,12 +147,12 @@ public class LocationService extends Service {
         // Request location updates
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
 
-        Log.d(TAG, "Location updates started");
+
     }
 
     private void stopLocationUpdates() {
         fusedLocationClient.removeLocationUpdates(locationCallback);
-        Log.d(TAG, "Location updates stopped");
+
     }
 
     private Notification createNotification() {
@@ -173,24 +171,14 @@ public class LocationService extends Service {
     }
 
     private void sendLocationToServer(Location location) {
-        // TODO: Implement API call to send location to server
-        // This would typically use Retrofit to send location data
-        Log.d(TAG, "Sending location to server: " + location.getLatitude() + ", " + location.getLongitude());
-
-        // Example implementation:
-        // LocationUpdateRequest request = new LocationUpdateRequest(
-        // sessionManager.getShipperId(),
-        // location.getLatitude(),
-        // location.getLongitude(),
-        // System.currentTimeMillis()
-        // );
-        // apiService.updateShipperLocation(request);
+        // API call to send location would be implemented here
+        // Example: LocationUpdateRequest with lat, lng, timestamp
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         stopLocationUpdates();
-        Log.d(TAG, "LocationService destroyed");
+
     }
 }

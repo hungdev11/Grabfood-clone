@@ -5,6 +5,9 @@
     
     <!-- Primary Colors -->
     <color name="primary_color">#00B14F</color>
+    <color name="colorPrimary">#00B14F</color>
+    <color name="colorAccent">#FF9800</color>
+    <color name="colorPrimaryDark">#009639</color>
     
     <!-- Grab Brand Colors -->
     <color name="grab_green">#00B14F</color>
@@ -16,6 +19,9 @@
     <color name="status_offline">#FF6B6B</color>
     <color name="status_pending">#FFA726</color>
     <color name="status_completed">#4CAF50</color>
+    <color name="status_rejected">#F44336</color>
+    <color name="status_expired">#9E9E9E</color>
+    <color name="status_claimed">#2196F3</color>
     
     <!-- Text Colors -->
     <color name="text_primary">#212121</color>
@@ -41,4 +47,7 @@
     <!-- Bottom Navigation -->
     <color name="bottom_nav_selected">#00B14F</color>
     <color name="bottom_nav_unselected">#9E9E9E</color>
+    
+    <!-- Borders -->
+    <color name="border_light">#E0E0E0</color>
 </resources>
