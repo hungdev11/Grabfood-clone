@@ -38,4 +38,9 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     );
     List<Restaurant> findAllByStatus(RestaurantStatus status);
     Optional<Restaurant> findByAccount(Account account);
+    @Query("SELECT r FROM Restaurant r WHERE LOWER(r.name) LIKE LOWER(CONCAT('%', :query, '%'))")
+    List<Restaurant> findByNameContainingIgnoreCase(@Param("query") String query);
+
+    @Query("SELECT r FROM Restaurant r WHERE LOWER(r.name) LIKE LOWER(CONCAT('%', :query, '%')) AND r.status = :status")
+    List<Restaurant> findByNameContainingIgnoreCaseAndStatus(@Param("query") String query, @Param("status") RestaurantStatus status);
 }

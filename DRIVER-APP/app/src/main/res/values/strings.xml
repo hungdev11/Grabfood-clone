@@ -1,0 +1,48 @@
+<resources>
+    <string name="app_name">GrabDriver</string>
+    <string name="app_logo">App Logo</string>
+    
+    <!-- Login Screen -->
+    <string name="login_title">Đăng nhập</string>
+    <string name="login_subtitle">Đăng nhập để bắt đầu giao hàng</string>
+    <string name="phone_hint">Số điện thoại</string>
+    <string name="password_hint">Mật khẩu</string>
+    <string name="login_button">Đăng nhập</string>
+    <string name="remember_me">Ghi nhớ đăng nhập</string>
+    <string name="forgot_password">Quên mật khẩu?</string>
+    <string name="login_loading">Đang đăng nhập...</string>
+    
+    <!-- Error Messages -->
+    <string name="error_empty_phone">Vui lòng nhập số điện thoại</string>
+    <string name="error_empty_password">Vui lòng nhập mật khẩu</string>
+    <string name="error_invalid_phone">Số điện thoại không hợp lệ</string>
+    <string name="error_login_failed">Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin</string>
+    <string name="error_network">Lỗi kết nối mạng</string>
+    <string name="error_no_internet">Không có kết nối Internet</string>
+    
+    <!-- Success Messages -->
+    <string name="login_success">Đăng nhập thành công</string>
+    
+    <!-- Order Status -->
+    <string name="order_status_unknown">Không xác định</string>
+    <string name="order_status_pending">Chờ xác nhận</string>
+    <string name="order_status_ready_pickup">Sẵn sàng lấy hàng</string>
+    <string name="order_status_shipping">Đang giao</string>
+    <string name="order_status_completed">Hoàn thành</string>
+    <string name="order_status_cancelled">Đã hủy</string>
+    
+    <!-- Order Details -->
+    <string name="order_id_prefix">Đơn #%1$d</string>
+    <string name="order_address_unknown">Chưa có địa chỉ</string>
+    <string name="order_price_default">0₫</string>
+    <string name="order_shipping_fee_prefix">Phí ship: %1$s</string>
+    <string name="order_shipping_fee_default">Phí ship: 0₫</string>
+    <string name="order_payment_cod">Tiền mặt</string>
+    <string name="order_payment_transfer">Chuyển khoản</string>
+    <string name="order_payment_unknown">Chưa xác định</string>
+    <string name="order_date_unknown">Chưa có ngày</string>
+    <string name="order_note_prefix">Ghi chú: %1$s</string>
+    <string name="order_distance_format">%.1f km</string>
+    <string name="order_time_format">%1$d phút</string>
+    <string name="order_data_unknown">--</string>
+</resources>

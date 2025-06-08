@@ -4,10 +4,7 @@ import com.api.dto.request.AddAdditionalFoodsRequest;
 import com.api.dto.request.AddFoodRequest;
 import com.api.dto.request.AdjustFoodPriceRequest;
 import com.api.dto.request.UpdateFoodInfoRequest;
-import com.api.dto.response.ApiResponse;
-import com.api.dto.response.GetFoodGroupResponse;
-import com.api.dto.response.GetFoodResponse;
-import com.api.dto.response.PageResponse;
+import com.api.dto.response.*;
 import com.api.entity.Restaurant;
 import com.api.entity.Voucher;
 import com.api.utils.FoodStatus;
@@ -28,7 +25,9 @@ public interface FoodService {
     void addAdditionalFoodToFoodOfRestaurant(AddAdditionalFoodsRequest request);
     PageResponse<List<GetFoodResponse>> getAdditionalFoodsOfFood (long restaurantId, long foodId, boolean isForCustomer, int page, int pageSize);
     void updateFoodInfo(long restaurantId, long foodId, UpdateFoodInfoRequest request);
+    void deleteFood(long foodId);
     GetFoodGroupResponse getFoodGroupOfRestaurant(long restaurantId, boolean isForCustomer);
     List<Voucher> getValidRestaurantVouchers(Restaurant restaurant, LocalDateTime time);
     List<GetFoodResponse> searchFoods(String query, Long restaurantId, boolean isForCustomer);
+    SearchResultResponse searchFoodsAndRestaurants(String query, boolean isForCustomer);
 }

@@ -32,4 +32,5 @@ public interface RestaurantService {
     Long getRestaurantByUsername(String username);
     List<RestaurantResponse> getAllRestaurants();
     void setRestaurantStatus(long restaurantId, String status);
+    List<RestaurantResponse> searchRestaurants(String query, boolean isForCustomer);
 }

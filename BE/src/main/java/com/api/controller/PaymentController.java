@@ -33,131 +33,130 @@ public class PaymentController {
     private final NotificationService notificationService;
 
     private static final String failureHTML = """
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                        body {
-                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                            height: 100vh;
-                            margin: 0;
-                            background: linear-gradient(135deg, #fce7e7, #f3d7d7);
-                        }
-                        .container {
-                            text-align: center;
-                            padding: 30px;
-                            background: #fff;
-                            border-radius: 15px;
-                            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-                            max-width: 500px;
-                        }
-                        h1 {
-                            color: #dc3545;
-                            font-size: 24px;
-                            margin-bottom: 20px;
-                        }
-                        .spinner {
-                            border: 4px solid #f3f3f3;
-                            border-top: 4px solid #dc3545;
-                            border-radius: 50%;
-                            width: 30px;
-                            height: 30px;
-                            animation: spin 1s linear infinite;
-                            margin: 20px auto;
-                        }
-                        @keyframes spin {
-                            0% { transform: rotate(0deg); }
-                            100% { transform: rotate(360deg); }
-                        }
-                        p {
-                            color: #666;
-                            font-size: 16px;
-                        }
-                    </style>
-                    <script>
-                        setTimeout(function() {
-                            window.location.href = 'http://localhost:3000/checkout';
-                        }, 3000);
-                    </script>
-                </head>
-                <body>
-                    <div class="container">
-                        <h1>Giao dịch không thành công!</h1>
-                        <p>Vui lòng thử lại. Bạn sẽ được chuyển về trang trước trong giây lát...</p>
-                        <div class="spinner"></div>
-                    </div>
-                </body>
-                </html>
-                """;
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body {
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100vh;
+                        margin: 0;
+                        background: linear-gradient(135deg, #fce7e7, #f3d7d7);
+                    }
+                    .container {
+                        text-align: center;
+                        padding: 30px;
+                        background: #fff;
+                        border-radius: 15px;
+                        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+                        max-width: 500px;
+                    }
+                    h1 {
+                        color: #dc3545;
+                        font-size: 24px;
+                        margin-bottom: 20px;
+                    }
+                    .spinner {
+                        border: 4px solid #f3f3f3;
+                        border-top: 4px solid #dc3545;
+                        border-radius: 50%;
+                        width: 30px;
+                        height: 30px;
+                        animation: spin 1s linear infinite;
+                        margin: 20px auto;
+                    }
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                    p {
+                        color: #666;
+                        font-size: 16px;
+                    }
+                </style>
+                <script>
+                    setTimeout(function() {
+                        window.location.href = 'http://localhost:3000/checkout';
+                    }, 3000);
+                </script>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>Giao dịch không thành công!</h1>
+                    <p>Vui lòng thử lại. Bạn sẽ được chuyển về trang trước trong giây lát...</p>
+                    <div class="spinner"></div>
+                </div>
+            </body>
+            </html>
+            """;
     private static final String successHTML = """
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                        body {
-                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                            height: 100vh;
-                            margin: 0;
-                            background: linear-gradient(135deg, #e0eafc, #cfdef3);
-                        }
-                        .container {
-                            text-align: center;
-                            padding: 30px;
-                            background: #fff;
-                            border-radius: 15px;
-                            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-                            max-width: 500px;
-                        }
-                        h1 {
-                            color: #28a745;
-                            font-size: 24px;
-                            margin-bottom: 20px;
-                        }
-                        .spinner {
-                            border: 4px solid #f3f3f3;
-                            border-top: 4px solid #28a745;
-                            border-radius: 50%;
-                            width: 30px;
-                            height: 30px;
-                            animation: spin 1s linear infinite;
-                            margin: 20px auto;
-                        }
-                        @keyframes spin {
-                            0% { transform: rotate(0deg); }
-                            100% { transform: rotate(360deg); }
-                        }
-                        p {
-                            color: #666;
-                            font-size: 16px;
-                        }
-                    </style>
-                    <script>
-                        setTimeout(function() {
-                            window.location.href = 'http://localhost:3000';
-                        }, 3000);
-                    </script>
-                </head>
-                <body>
-                    <div class="container">
-                        <h1>Thanh toán thành công!</h1>
-                        <p>Bạn sẽ được chuyển về trang chính trong giây lát...</p>
-                        <div class="spinner"></div>
-                    </div>
-                </body>
-                </html>
-                """;
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body {
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100vh;
+                        margin: 0;
+                        background: linear-gradient(135deg, #e0eafc, #cfdef3);
+                    }
+                    .container {
+                        text-align: center;
+                        padding: 30px;
+                        background: #fff;
+                        border-radius: 15px;
+                        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+                        max-width: 500px;
+                    }
+                    h1 {
+                        color: #28a745;
+                        font-size: 24px;
+                        margin-bottom: 20px;
+                    }
+                    .spinner {
+                        border: 4px solid #f3f3f3;
+                        border-top: 4px solid #28a745;
+                        border-radius: 50%;
+                        width: 30px;
+                        height: 30px;
+                        animation: spin 1s linear infinite;
+                        margin: 20px auto;
+                    }
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                    p {
+                        color: #666;
+                        font-size: 16px;
+                    }
+                </style>
+                <script>
+                    setTimeout(function() {
+                        window.location.href = 'http://localhost:3000';
+                    }, 3000);
+                </script>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>Thanh toán thành công!</h1>
+                    <p>Bạn sẽ được chuyển về trang chính trong giây lát...</p>
+                    <div class="spinner"></div>
+                </div>
+            </body>
+            </html>
+            """;
 
     @PostMapping("/momo")
-    public ResponseEntity<String> createMomoPayment(@RequestBody  CreateOrderRequest request)
-    {
+    public ResponseEntity<String> createMomoPayment(@RequestBody CreateOrderRequest request) {
         try {
             String payUrl = paymentService.createOrderPaymentMomo(request);
             return ResponseEntity.ok(payUrl);
@@ -167,8 +166,7 @@ public class PaymentController {
     }
 
     @PostMapping("/cod")
-    public ApiResponse<OrderResponse> createCodPayment(@RequestBody CreateOrderRequest request)
-    {
+    public ApiResponse<OrderResponse> createCodPayment(@RequestBody CreateOrderRequest request) {
         var response = paymentService.createOrderPaymentCod(request);
         Order order = orderService.getOrderById(response.getId());
         sendOrderNotifyToRestaurant(order);
@@ -189,7 +187,7 @@ public class PaymentController {
         System.out.println("vo ham");
         if (resultCode == 0) {
             System.out.println("ok");
-            paymentService.createPayment(new BigDecimal(amount),orderId,requestId);
+            paymentService.createPayment(new BigDecimal(amount), orderId, requestId);
             Order order = orderService.getOrderById(orderId);
             sendOrderNotifyToRestaurant(order);
             return ResponseEntity.ok().build();
@@ -204,8 +202,7 @@ public class PaymentController {
     public ResponseEntity<String> momoCallback(
             @RequestParam String orderId,
             @RequestParam int resultCode,
-            @RequestParam String message
-    ) {
+            @RequestParam String message) {
         String redirectHtml;
         if (resultCode == 0) {
             redirectHtml = successHTML;
@@ -216,8 +213,8 @@ public class PaymentController {
     }
 
     @PostMapping("/vnpay")
-    public ResponseEntity<String> createVNPayPayment(@RequestBody CreateOrderRequest orderRequest, HttpServletRequest request)
-    {
+    public ResponseEntity<String> createVNPayPayment(@RequestBody CreateOrderRequest orderRequest,
+            HttpServletRequest request) {
         try {
             String payUrl = paymentService.createOrderPaymentVNPay(orderRequest, request);
             return ResponseEntity.ok(payUrl);
@@ -233,15 +230,16 @@ public class PaymentController {
         String amount = request.getParameter("vnp_Amount");
         String orderId = request.getParameter("vnp_TxnRef");
         String requestId = request.getParameter("vnp_TransactionNo");
-//        Enumeration<String> paramNames = request.getParameterNames();
-//        while (paramNames.hasMoreElements()) {
-//            String paramName = paramNames.nextElement();
-//            String paramValue = request.getParameter(paramName);
-//            log.info("Param: {} = {}", paramName, paramValue);
-//        }
+        // Enumeration<String> paramNames = request.getParameterNames();
+        // while (paramNames.hasMoreElements()) {
+        // String paramName = paramNames.nextElement();
+        // String paramValue = request.getParameter(paramName);
+        // log.info("Param: {} = {}", paramName, paramValue);
+        // }
         String redirectHtml;
         if (status.equals("00")) {
-            paymentService.createPaymentVNPay(new BigDecimal(amount).divide(BigDecimal.valueOf(100)), Long.parseLong(orderId), requestId);
+            paymentService.createPaymentVNPay(new BigDecimal(amount).divide(BigDecimal.valueOf(100)),
+                    Long.parseLong(orderId), requestId);
             Order order = orderService.getOrderById(Long.parseLong(orderId));
             sendOrderNotifyToRestaurant(order);
             redirectHtml = successHTML;

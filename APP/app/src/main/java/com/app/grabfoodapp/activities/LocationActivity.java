@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -222,6 +223,51 @@ public class LocationActivity extends AppCompatActivity {
     }
 
     private void getCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    LOCATION_PERMISSION_REQUEST_CODE);
+            return;
+        }
+
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        double latitude = location.getLatitude();
+                        double longitude = location.getLongitude();
+                        Log.e("abc", "Last location: " + latitude + ", " + longitude);
+                        saveLocationAndGoToMain(latitude, longitude);
+                    } else {
+                        Log.e("abc", "Last location is null → request new location");
+                        requestNewLocation(); // fallback nếu null
+                    }
+                });
+    }
+
+    private void requestNewLocation() {
+        com.google.android.gms.location.LocationRequest locationRequest =
+                com.google.android.gms.location.LocationRequest.create()
+                        .setPriority(com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY)
+                        .setInterval(5000)
+                        .setFastestInterval(2000)
+                        .setNumUpdates(1); // chỉ cần lấy 1 vị trí
+
+        com.google.android.gms.location.LocationCallback locationCallback = new com.google.android.gms.location.LocationCallback() {
+            @Override
+            public void onLocationResult(com.google.android.gms.location.LocationResult locationResult) {
+                if (locationResult == null) return;
+
+                android.location.Location location = locationResult.getLastLocation();
+                if (location != null) {
+                    double latitude = location.getLatitude();
+                    double longitude = location.getLongitude();
+                    Log.e("abc", "New location from request: " + latitude + ", " + longitude);
+                    saveLocationAndGoToMain(latitude, longitude);
+                }
+            }
+        };
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -232,16 +278,10 @@ public class LocationActivity extends AppCompatActivity {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, location -> {
-                    if (location != null) {
-                        double latitude = location.getLatitude();
-                        double longitude = location.getLongitude();
-                        saveLocationAndGoToMain(latitude, longitude);
-                        //updateMapLocation(latitude, longitude);
-                    }
-                });
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, getMainLooper());
     }
+
+
 
     private void saveLocationAndGoToMain(double lat, double lon) {
         LocationStorage.saveLocation(this, lat, lon);

@@ -8,6 +8,7 @@ public enum ErrorCode {
     // Add to ErrorCode.java
     // Add this to your ErrorCode enum
     // Add this line to your ErrorCode enum
+    INVALID_INPUT(0000, "Invalid input", HttpStatus.BAD_REQUEST),
     INVALID_STATUS(0101, "Invalid restaurant status", HttpStatus.BAD_REQUEST),
     ACCOUNT_NOT_FOUND(0003, "Account not found", HttpStatus.BAD_REQUEST),
     RESTAURANT_ALREADY_ACTIVE(0150, "Restaurant is already active and cannot be rejected", HttpStatus.BAD_REQUEST),
@@ -37,6 +38,7 @@ public enum ErrorCode {
     FOOD_NOT_PUBLIC_FOR_CUSTOMER(0055, "Food not found", HttpStatus.BAD_REQUEST),
     FOOD_ADDITIONAL(0056, "Food is additional", HttpStatus.BAD_REQUEST),
     ADDITIONAL_FOOD_NOT_FOUND(0057, "Additional food not found or belong to food", HttpStatus.BAD_REQUEST),
+    CAN_NOT_DELETE_ORDERED_FOOD(0057, "Can not delete food already ordered", HttpStatus.BAD_REQUEST),
     //RESTAURANT
     RESTAURANT_NOT_FOUND(0100, "Restaurant not found", HttpStatus.BAD_REQUEST),
     //VOUCHER
@@ -60,7 +62,19 @@ public enum ErrorCode {
     ORDER_NOT_ELIGIBLE_FOR_REORDER(0402, "Can not reorder with order not completed", HttpStatus.BAD_REQUEST),
     REVIEW_NOT_FOUND(0450, "Review not found", HttpStatus.BAD_REQUEST),
     CANNOT_WRITE_REVIEW_DUE_DATE(0451, "Can't write review due date", HttpStatus.BAD_REQUEST),
-    HANDLE_NOT_PENDING_ORDER(0452, "Can not handle order not pending", HttpStatus.BAD_REQUEST);
+    HANDLE_NOT_PENDING_ORDER(0452, "Can not handle order not pending", HttpStatus.BAD_REQUEST),
+    
+    // DRIVER/SHIPPER ERRORS
+    ACCOUNT_LOCKED(0500, "Account is locked or suspended", HttpStatus.FORBIDDEN),
+    INVALID_KEY(0501, "Invalid key or parameter", HttpStatus.BAD_REQUEST),
+    
+    // WALLET & FINANCIAL ERRORS
+    WALLET_NOT_FOUND(0600, "Wallet not found", HttpStatus.BAD_REQUEST),
+    INSUFFICIENT_BALANCE(0601, "Insufficient wallet balance", HttpStatus.BAD_REQUEST),
+    WITHDRAW_LIMIT_EXCEEDED(0602, "Withdrawal limit exceeded", HttpStatus.BAD_REQUEST),
+    TRANSACTION_NOT_FOUND(0603, "Transaction not found", HttpStatus.BAD_REQUEST),
+    TRANSACTION_FAILED(0604, "Transaction failed", HttpStatus.BAD_REQUEST),
+    INVALID_BANK_INFO(0605, "Invalid bank information", HttpStatus.BAD_REQUEST);
     private final int code;
     private final String message;
     private final HttpStatus statusCode;

@@ -41,33 +41,37 @@ public class SecurityConfig {
 
     // Constructor injection for required dependencies
     public SecurityConfig(@Lazy JwtAuthFilter jwtAuthFilter,
-                          UserDetailsService userDetailsService, OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
+            UserDetailsService userDetailsService,
+            OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
         this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
     }
 
+    // @Bean
+    // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws
+    // Exception {
+    // http
+    // .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅
+    // Corrected method usage
+    // .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
+    // .authorizeHttpRequests(auth -> auth
+    // .requestMatchers(new AntPathRequestMatcher("/restaurants")).permitAll() //
+    // Allow API access
+    // .anyRequest().authenticated()) // Secure other endpoints
+    // .formLogin(form -> form.disable()) // Disable form login
+    // .httpBasic(httpBasic -> httpBasic.disable()); // Disable basic auth
+    //
+    // return http.build();
+    // }
 
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http
-//                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Corrected method usage
-//                .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers(new AntPathRequestMatcher("/restaurants")).permitAll() // Allow API access
-//                        .anyRequest().authenticated()) // Secure other endpoints
-//                .formLogin(form -> form.disable()) // Disable form login
-//                .httpBasic(httpBasic -> httpBasic.disable()); // Disable basic auth
-//
-//        return http.build();
-//    }
-
-    // ✅ Corrected: Add the missing CORS Configuration Source method
+    // ✅ CORS Configuration Source method
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:3000")); // Frontend URL
+        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:6969")); // Frontend và WebSocket
+                                                                                             // URLs
         config.setAllowedHeaders(List.of("Origin", "Content-Type", "Accept", "Authorization"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 
@@ -76,61 +80,82 @@ public class SecurityConfig {
         return source;
     }
 
-    // Optional: Global CORS filter (if needed)
+    // Global CORS filter
     @Bean
     public CorsFilter corsFilter() {
         return new CorsFilter(corsConfigurationSource());
     }
 
-    /*
+    /**
      * Main security configuration
-     * Defines endpoint access rules and JWT filter setup
+     * Cấu hình phân quyền truy cập endpoint và JWT filter
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Disable CSRF (not needed for stateless JWT)
+                // Disable CSRF (không cần thiết cho JWT stateless)
                 .csrf(csrf -> csrf.disable())
 
-                // Configure endpoint authorization
-                .authorizeHttpRequests(auth -> auth
-                                // Public endpoints
-                                .requestMatchers("/auth/welcome", "/auth/addNewAccount", "/auth/addNewAccount2", "/auth/generateToken", "/auth/generateToken2").permitAll()
-                                //
-                                .requestMatchers("/reviews/**").permitAll()
-                                .requestMatchers("/ws/**").permitAll()
-                                .requestMatchers("/push-noti/**").permitAll()
-                                .requestMatchers("/cart/test").permitAll()
-                                .requestMatchers("/report/**").permitAll()
-                                .requestMatchers("/notifications/**").permitAll()
-                                //
-                                // Role-based endpoints
-                                .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
-                                .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
-                                .requestMatchers("/cart/**").permitAll()
-                                .requestMatchers("/order/**").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/restaurants").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/restaurants/**", "/restaurants").permitAll()
-                                .requestMatchers("/cart/**").hasAuthority("ROLE_USER")
-                                .requestMatchers("/order/**").permitAll()//hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                                //.requestMatchers({HttpMethod.POST, HttpMethod.PUT}, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
-                                .requestMatchers(/*HttpMethod.GET,*/ "/restaurants/**", "/restaurants").permitAll()
-                                .requestMatchers("/login/oauth2/**", "/oauth2/**","/oauth2/authorization/google").permitAll()
-                                .requestMatchers("/foods/**").permitAll()
-                                .requestMatchers("/food-types/**").permitAll()
-                                .requestMatchers("/vouchers/**", "/voucherDetails/**").permitAll()
-                                .requestMatchers("/payments/**").permitAll()
-                                .requestMatchers("/location/**").permitAll()
-//                        .requestMatchers("/cart/**", "/order/**", "/restaurants/**").permitAll()
-//                        .requestMatchers("/foods/**","food-types").permitAll()
-//                        .requestMatchers("/vouchers/**", "/voucherDetails/**").permitAll()
-                                // All other endpoints require authentication
-                                .anyRequest().authenticated()
-                )
+                // Disable form login và default login page
+                .formLogin(form -> form.disable())
+                .httpBasic(httpBasic -> httpBasic.disable())
 
-                // Stateless session (required for JWT)
+                // Configure endpoint authorization - Cấu hình phân quyền truy cập
+                .authorizeHttpRequests(auth -> auth
+                        // Public endpoints - Các endpoint công khai
+                        .requestMatchers("/auth/welcome", "/auth/addNewAccount", "/auth/addNewAccount2",
+                                "/auth/generateToken", "/auth/generateToken2")
+                        .permitAll()
+                        .requestMatchers("/login/oauth2/**", "/oauth2/**", "/oauth2/authorization/google").permitAll()
+
+                        // WebSocket và Real-time endpoints
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/push-noti/**").permitAll()
+
+                        // Public review, notification, report endpoints
+                        .requestMatchers("/reviews/**").permitAll()
+                        .requestMatchers("/notifications/**").permitAll()
+                        .requestMatchers("/report/**").permitAll()
+                        .requestMatchers("/reminders/**", "/reminders").permitAll()
+
+                        // Admin endpoints - Chỉ ADMIN
+                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+
+                        // 🚛 DRIVER/SHIPPER APIs - Cấu hình đặc biệt cho Driver App
+                        .requestMatchers("/api/driver/login", "/api/driver/system/**").permitAll()
+                        .requestMatchers("/api/driver/**").hasAuthority("ROLE_SHIPPER")
+
+                        // Restaurant endpoints - Nhà hàng và Admin
+                        .requestMatchers(HttpMethod.GET, "/restaurants/**", "/restaurants").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/restaurants").permitAll() // Đăng ký nhà hàng
+                        .requestMatchers(HttpMethod.POST, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
+                        //.requestMatchers(HttpMethod.PUT, "/restaurants/**").hasAnyAuthority("ROLE_RES", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/restaurants/**").permitAll()
+
+                        // Food và Food Type endpoints
+                        .requestMatchers("/foods/**").permitAll()
+                        .requestMatchers("/food-types/**").permitAll()
+
+                        // Cart endpoints - Người dùng
+                        .requestMatchers("/cart/test").permitAll()
+                        .requestMatchers("/cart/**").hasAuthority("ROLE_USER")
+
+                        // Order endpoints - Linh hoạt cho các role khác nhau
+                        .requestMatchers("/order/**").permitAll() // Tạm thời permit all, có thể điều chỉnh sau
+
+                        // Payment, Voucher, Location endpoints
+                        .requestMatchers("/payments/**").permitAll()
+                        .requestMatchers("/vouchers/**", "/voucherDetails/**").permitAll()
+                        .requestMatchers("/location/**").permitAll()
+
+                        // Auth protected endpoints
+                        .requestMatchers("/auth/**")
+                        .hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_RES", "ROLE_SHIPPER")
+
+                        // All other endpoints require authentication
+                        .anyRequest().authenticated())
+
+                // Stateless session (bắt buộc cho JWT)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // Set custom authentication provider
@@ -138,13 +163,30 @@ public class SecurityConfig {
 
                 // Add JWT filter before Spring Security's default filter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
+                // Exception handling để trả về JSON thay vì HTML
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(401);
+                            response.getWriter().write(
+                                    "{\"code\":401,\"message\":\"Unauthorized - Token required\",\"data\":null}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(403);
+                            response.getWriter().write(
+                                    "{\"code\":403,\"message\":\"Access Denied - Insufficient permissions\",\"data\":null}");
+                        }))
+
+                // OAuth2 Login configuration
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2AuthenticationSuccessHandler)
-                        .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService()))
-        );
+                        .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService())));
 
         return http.build();
     }
+
     @Bean
     public OAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService() {
         DefaultOAuth2UserService delegate = new DefaultOAuth2UserService();
@@ -167,9 +209,9 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    /*
+    /**
      * Authentication manager bean
-     * Required for programmatic authentication (e.g., in /generateToken)
+     * Cần thiết cho programmatic authentication (ví dụ: trong /generateToken)
      */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

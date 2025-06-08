@@ -4,11 +4,12 @@ import { useState, useRef } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { fetchWithAuth } from "@/utils/api";
-import { Food } from "./types/Types";
+import { Food, Restaurant } from "./types/Types";
 
 interface FoodSearchProps {
   restaurantId?: string;
   onResults?: (foods: Food[]) => void;
+  onRestaurantResults?: (restaurants: Restaurant[]) => void;
   placeholder?: string;
   className?: string;
 }
@@ -16,6 +17,7 @@ interface FoodSearchProps {
 export default function FoodSearch({
   restaurantId,
   onResults,
+  onRestaurantResults,
   placeholder = "Search for dishes...",
   className = "",
 }: FoodSearchProps) {
@@ -32,14 +34,15 @@ export default function FoodSearch({
         searchFoods(value);
       } else {
         if (onResults) onResults([]);
+        if (onRestaurantResults) onRestaurantResults([]);
       }
     }, 400);
   };
-
-  // Sửa searchFoods để nhận query truyền vào
+  // Search for foods and restaurants based on the query
   const searchFoods = async (query: string) => {
     if (!query.trim()) {
       if (onResults) onResults([]);
+      if (onRestaurantResults) onRestaurantResults([]);
       return;
     }
     setIsLoading(true);
@@ -47,16 +50,69 @@ export default function FoodSearch({
       let url = `http://localhost:6969/grab/foods/search?query=${encodeURIComponent(
         query.trim()
       )}&isForCustomer=true`;
+
+      // If searching within a restaurant, add restaurantId parameter
       if (restaurantId) {
         url += `&restaurantId=${restaurantId}`;
       }
+
       const response = await fetchWithAuth(url);
+      if (!response.ok) {
+        throw new Error(`API returned status ${response.status}`);
+      }
+
       const result = await response.json();
-      if (result.data && Array.isArray(result.data)) {
-        if (onResults) onResults(result.data);
+      console.log("Search API Response:", result);
+
+      // Different response handling based on context
+      if (restaurantId) {
+        // Inside a restaurant - we only get foods array
+        if (result.data && Array.isArray(result.data)) {
+          if (onResults) onResults(result.data);
+        } else {
+          if (onResults) onResults([]);
+        }
+        // No restaurant results when searching inside a restaurant
+        if (onRestaurantResults) onRestaurantResults([]);
+      } else {
+        // Global search - handle both foods and restaurants
+        if (result.data && typeof result.data === "object") {
+          // Handle foods
+          if (Array.isArray(result.data.foods)) {
+            if (onResults) onResults(result.data.foods);
+          } else {
+            if (onResults) onResults([]);
+          }
+
+          // Handle restaurants
+          if (Array.isArray(result.data.restaurants)) {
+            if (onRestaurantResults) {
+              // Convert restaurant data to match the expected Restaurant type if needed
+              const formattedRestaurants = result.data.restaurants.map(
+                (restaurant: any) => ({
+                  ...restaurant,
+                  // Ensure all required properties exist
+                  image: restaurant.image || "/placeholder.svg",
+                  rating: restaurant.rating || 0,
+                  timeDistance: restaurant.timeDistance || "N/A",
+                  distance: restaurant.distance || "N/A",
+                })
+              );
+              onRestaurantResults(formattedRestaurants);
+            }
+          } else {
+            if (onRestaurantResults) onRestaurantResults([]);
+          }
+        } else {
+          // If data is not in expected format, return empty arrays
+          if (onResults) onResults([]);
+          if (onRestaurantResults) onRestaurantResults([]);
+        }
       }
     } catch (error) {
-      console.error("Error searching for foods:", error);
+      console.error("Error searching for foods/restaurants:", error);
+      if (onResults) onResults([]);
+      if (onRestaurantResults) onRestaurantResults([]);
     } finally {
       setIsLoading(false);
     }
@@ -82,6 +138,7 @@ export default function FoodSearch({
             onClick={() => {
               setSearchQuery("");
               if (onResults) onResults([]);
+              if (onRestaurantResults) onRestaurantResults([]);
             }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
           >

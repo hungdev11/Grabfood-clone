@@ -4,10 +4,7 @@ import com.api.dto.request.AddAdditionalFoodsRequest;
 import com.api.dto.request.AddFoodRequest;
 import com.api.dto.request.AdjustFoodPriceRequest;
 import com.api.dto.request.UpdateFoodInfoRequest;
-import com.api.dto.response.ApiResponse;
-import com.api.dto.response.GetFoodGroupResponse;
-import com.api.dto.response.GetFoodResponse;
-import com.api.dto.response.PageResponse;
+import com.api.dto.response.*;
 import com.api.entity.*;
 import com.api.exception.AppException;
 import com.api.exception.ErrorCode;
@@ -409,6 +406,20 @@ public class FoodServiceImp implements FoodService {
     }
 
     @Override
+    public void deleteFood(long foodId) {
+        log.info("Delete food {}", foodId);
+        Food food = getFoodById(foodId);
+        var opt = food.getCartDetails().stream()
+                .filter(cd -> cd.getOrder() != null)
+                .findAny();
+        if (opt.isPresent()) {
+            log.error("Can not deleting food with id {}", foodId);
+            throw new AppException(ErrorCode.CAN_NOT_DELETE_ORDERED_FOOD);
+        }
+        foodRepository.delete(food);
+    }
+
+    @Override
     public GetFoodGroupResponse getFoodGroupOfRestaurant(long restaurantId, boolean isForCustomer) {
         log.info("Get food group of restaurant {}", restaurantId);
         Restaurant restaurant = restaurantService.getRestaurant(restaurantId);
@@ -595,16 +606,34 @@ public class FoodServiceImp implements FoodService {
         if (restaurantId != null) {
             // Search within a specific restaurant
             results = foodRepository.findByNameContainingIgnoreCaseAndRestaurantId(
-                    query, restaurantId, isForCustomer ? FoodStatus.ACTIVE : null);
+                    query, restaurantId, isForCustomer ? FoodStatus.ACTIVE : null, FoodKind.MAIN);
         } else {
             // Search across all restaurants
             results = foodRepository.findByNameContainingIgnoreCase(
-                    query, isForCustomer ? FoodStatus.ACTIVE : null);
+                    query, isForCustomer ? FoodStatus.ACTIVE : null, FoodKind.MAIN);
         }
 
         return results.stream()
                 .map(food -> mapFoodToResponse(food, isForCustomer))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public SearchResultResponse searchFoodsAndRestaurants(String query, boolean isForCustomer) {
+        if (query == null || query.trim().isEmpty()) {
+            return new SearchResultResponse(Collections.emptyList(), Collections.emptyList());
+        }
+
+        // Get food results
+        List<GetFoodResponse> foodResults = searchFoods(query, null, isForCustomer);
+
+        // Get restaurant results
+        List<RestaurantResponse> restaurantResults = restaurantService.searchRestaurants(query, isForCustomer);
+
+        return SearchResultResponse.builder()
+                .foods(foodResults)
+                .restaurants(restaurantResults)
+                .build();
     }
 
     private GetFoodResponse mapFoodToResponse(Food food, boolean isForCustomer) {
@@ -618,7 +647,8 @@ public class FoodServiceImp implements FoodService {
                 .description(food.getDescription())
                 .price(originalPrice)
                 .discountPrice(discountPrice)
-                .rating(BigDecimal.ZERO);
+                .rating(BigDecimal.ZERO)
+                .restaurantId(food.getRestaurant().getId());
 
         if (!isForCustomer) {
             builder.kind(food.getKind().name());

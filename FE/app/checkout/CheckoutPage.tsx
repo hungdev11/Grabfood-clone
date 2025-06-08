@@ -122,10 +122,16 @@ export default function Checkout() {
             setDistance(0);
             setDuration(0);
             setDeliveryFee(0);
+            alert("Khoảng cách quá xa( > 40 km), không thể giao hàng.");
           } else {
             setDistance(response.data.data.distance);
             setDuration(response.data.data.duration);
             setDeliveryFee(response.data.data.shippingFee);
+            console.log("Khoảng cách:", response.data.data.distance);
+            console.log("Thời gian:", response.data.data.duration);
+            if (response.data.data.duration > 1400) {
+              alert(`Thời gian giao hàng lâu (${duration > 0 ? formatDuration(response.data.data.duration) : '0'}) phut, bạn có muốn đặt hàng?`);
+            }
           }
           setIsDistanceOk(response.data.data.check);
           //console.log("Khoảng cách:", response.data.data);
@@ -422,6 +428,8 @@ export default function Checkout() {
       )?.value || "";
     const voucherCodes = voucherCodeApply;
     const cartId = cartIdRequest;
+    const lat = selectedAddress.lat;
+    const lon = selectedAddress.lon;
 
     const orderData = {
       cartId,
@@ -429,6 +437,8 @@ export default function Checkout() {
       note,
       shippingFee: deliveryFee,
       voucherCode: voucherCodes || [],
+      lat,
+      lon
     };
     try {
       console.log(orderData);

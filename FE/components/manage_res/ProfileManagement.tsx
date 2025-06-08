@@ -2,13 +2,17 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
+import axiosInstance from "@/utils/axiosInstance";
+import { toast, Toaster } from "react-hot-toast";
 import { Restaurant, UpdateRestaurant, AddressRequest } from "../types/Types";
+import { logout } from "@/utils/authService";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import LocationSearch from "../locationSearch";
 import { Label } from "../ui/label";
@@ -24,9 +28,49 @@ export default function ProfileManagement() {
   const [loading, setLoading] = useState(true);
   const [verifyingAddress, setVerifyingAddress] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [passwordDialog, setPasswordDialog] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
+  // Thêm hàm xử lý thay đổi mật khẩu
+  const handlePasswordChange = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error("Mật khẩu mới không khớp!");
+      return;
+    }
+
+    try {
+      const response = await axiosInstance.put(
+        "/grab/auth/user/change-password",
+        {
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+          confirmPassword: passwordData.confirmPassword,
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success("Đổi mật khẩu thành công!");
+        setPasswordDialog(false);
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Đổi mật khẩu thất bại!");
+    }
+  };
   // Địa chỉ chi tiết để phục vụ cho UpdateRestaurant (không lưu vào Restaurant)
-  const [addressDetail, setAddressDetail] = useState<Partial<AddressRequest>>({});
+  const [addressDetail, setAddressDetail] = useState<Partial<AddressRequest>>(
+    {}
+  );
 
   useEffect(() => {
     const fetchRestaurant = async () => {
@@ -49,11 +93,16 @@ export default function ProfileManagement() {
     if (!profile) return {};
     const changes: Partial<UpdateRestaurant> = {};
 
-    if (editData.name && editData.name !== profile.name) changes.name = editData.name;
-    if (editData.description && editData.description !== profile.description) changes.description = editData.description;
-    if (editData.phone && editData.phone !== profile.phone) changes.phone = editData.phone;
-    if (editData.openingHour && editData.openingHour !== profile.openingHour) changes.openingHour = editData.openingHour;
-    if (editData.closingHour && editData.closingHour !== profile.closingHour) changes.closingHour = editData.closingHour;
+    if (editData.name && editData.name !== profile.name)
+      changes.name = editData.name;
+    if (editData.description && editData.description !== profile.description)
+      changes.description = editData.description;
+    if (editData.phone && editData.phone !== profile.phone)
+      changes.phone = editData.phone;
+    if (editData.openingHour && editData.openingHour !== profile.openingHour)
+      changes.openingHour = editData.openingHour;
+    if (editData.closingHour && editData.closingHour !== profile.closingHour)
+      changes.closingHour = editData.closingHour;
     if (
       editData.latitude !== profile.latitude ||
       editData.longitude !== profile.longitude ||
@@ -83,7 +132,9 @@ export default function ProfileManagement() {
     try {
       setVerifyingAddress(true);
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(editData.address)}&addressdetails=1&limit=1`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          editData.address
+        )}&addressdetails=1&limit=1`
       );
       const data = await res.json();
       if (data.length === 0) {
@@ -104,10 +155,13 @@ export default function ProfileManagement() {
       setAddressDetail({
         latitude: place.lat,
         longitude: place.lon,
-        detail: [addr.house_number, addr.road].filter(Boolean).join(" "),
-        ward: addr.suburb || "",
-        district: addr.city || addr.town || addr.county || "",
-        province: addr.state || "",
+        detail: addr.house_number
+          ? `${addr.house_number} ${addr.road || ""}`
+          : addr.road || "",
+        province:
+          (addr["ISO3166-2-lvl4"] === "VN-SG" ? "TP. Hồ Chí Minh" : "") || "",
+        district: addr.city || "", // Partido de Malvinas Argentinas
+        ward: addr.suburb || "", // El Triángulo
       });
 
       alert("Xác thực thành công!");
@@ -140,10 +194,13 @@ export default function ProfileManagement() {
       setAddressDetail({
         latitude: lat.toString(),
         longitude: lon.toString(),
-        detail,
-        ward: addr.suburb || "",
-        district: addr.city || addr.town || addr.county || "",
-        province: addr.state || "",
+        detail: addr.house_number
+          ? `${addr.house_number} ${addr.road || ""}`
+          : addr.road || "",
+        province:
+          (addr["ISO3166-2-lvl4"] === "VN-SG" ? "TP. Hồ Chí Minh" : "") || "",
+        district: addr.city || "", // Partido de Malvinas Argentinas
+        ward: addr.suburb || "", // El Triángulo
       });
 
       alert("Lấy địa chỉ thành công");
@@ -163,10 +220,7 @@ export default function ProfileManagement() {
     }
 
     try {
-      await axios.put(
-        `http://localhost:6969/grab/restaurants/${restaurantId}`,
-        changes
-      );
+      await axiosInstance.put(`/grab/restaurants/${restaurantId}`, changes);
       alert("Cập nhật thành công!");
       setProfile((prev) => (prev ? { ...prev, ...editData } : null));
       setIsEditing(false);
@@ -195,31 +249,47 @@ export default function ProfileManagement() {
                 className="border p-2 w-full"
                 value={editData.name || ""}
                 placeholder="Tên nhà hàng"
-                onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                onChange={(e) =>
+                  setEditData({ ...editData, name: e.target.value })
+                }
+              />
+              <Input
+                className="border p-2 w-full"
+                value={editData.email || ""}
+                placeholder="Email"
+                disabled
               />
               <Input
                 className="border p-2 w-full"
                 value={editData.image || ""}
                 placeholder="Link ảnh"
-                onChange={(e) => setEditData({ ...editData, image: e.target.value })}
+                onChange={(e) =>
+                  setEditData({ ...editData, image: e.target.value })
+                }
               />
               <Input
                 className="border p-2 w-full"
                 value={editData.phone || ""}
                 placeholder="Số điện thoại"
-                onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                onChange={(e) =>
+                  setEditData({ ...editData, phone: e.target.value })
+                }
               />
               <Input
                 className="border p-2 w-full"
                 value={editData.openingHour || ""}
                 placeholder="Giờ mở cửa"
-                onChange={(e) => setEditData({ ...editData, openingHour: e.target.value })}
+                onChange={(e) =>
+                  setEditData({ ...editData, openingHour: e.target.value })
+                }
               />
               <Input
                 className="border p-2 w-full"
                 value={editData.closingHour || ""}
                 placeholder="Giờ đóng cửa"
-                onChange={(e) => setEditData({ ...editData, closingHour: e.target.value })}
+                onChange={(e) =>
+                  setEditData({ ...editData, closingHour: e.target.value })
+                }
               />
 
               <Label className="block font-semibold mt-4">Địa chỉ</Label>
@@ -242,26 +312,36 @@ export default function ProfileManagement() {
                 className="mt-2"
                 value={editData.address || ""}
                 placeholder="Nhập địa chỉ"
-                onChange={(e) => setEditData({ ...editData, address: e.target.value })}
+                onChange={(e) =>
+                  setEditData({ ...editData, address: e.target.value })
+                }
               />
               <Button onClick={handleVerifyAddress} disabled={verifyingAddress}>
                 {verifyingAddress ? "Đang xác thực..." : "Xác nhận địa chỉ"}
               </Button>
 
               <div className="text-sm text-gray-500 mt-2">
-                <p><strong>Latitude:</strong> {editData.latitude || "N/A"}</p>
-                <p><strong>Longitude:</strong> {editData.longitude || "N/A"}</p>
+                <p>
+                  <strong>Latitude:</strong> {editData.latitude || "N/A"}
+                </p>
+                <p>
+                  <strong>Longitude:</strong> {editData.longitude || "N/A"}
+                </p>
               </div>
 
               <textarea
                 className="border p-2 w-full"
                 value={editData.description || ""}
                 placeholder="Mô tả"
-                onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                onChange={(e) =>
+                  setEditData({ ...editData, description: e.target.value })
+                }
               />
 
               <div className="space-x-2 mt-4">
-                <Button onClick={handleSave} className="bg-green-500">Lưu</Button>
+                <Button onClick={handleSave} className="bg-green-500">
+                  Lưu
+                </Button>
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -276,17 +356,129 @@ export default function ProfileManagement() {
             </>
           ) : (
             <>
-              <p><strong>Tên:</strong> {profile.name}</p>
-              <p><strong>Điện thoại:</strong> {profile.phone}</p>
-              <p><strong>Giờ hoạt động:</strong> {profile.openingHour} - {profile.closingHour}</p>
-              <p><strong>Địa chỉ:</strong> {profile.address}</p>
-              <p><strong>Đánh giá:</strong> {profile.rating} ⭐</p>
-              <p><strong>Mô tả:</strong> {profile.description}</p>
-              <Button onClick={() => setIsEditing(true)} className="bg-blue-500 text-white">Cập nhật thông tin</Button>
+              <p>
+                <strong>Tên:</strong> {profile.name}
+              </p>
+              <p>
+                <strong>Email:</strong> {profile.email || "N/A"}
+              </p>
+              <p>
+                <strong>Mật khẩu:</strong> ********{" "}
+                <Button
+                  onClick={() => setPasswordDialog(true)}
+                  className="text-blue-500 text-sm underline"
+                  variant="link"
+                >
+                  Thay đổi
+                </Button>
+              </p>
+              <p>
+                <strong>Điện thoại:</strong> {profile.phone}
+              </p>
+              <p>
+                <strong>Giờ hoạt động:</strong> {profile.openingHour} -{" "}
+                {profile.closingHour}
+              </p>
+              <p>
+                <strong>Địa chỉ:</strong> {profile.address}
+              </p>
+              <p>
+                <strong>Đánh giá:</strong> {profile.rating} ⭐
+              </p>
+              <p>
+                <strong>Mô tả:</strong> {profile.description}
+              </p>
+              <div className="flex space-x-2 mt-4">
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  className="bg-blue-500 text-white"
+                >
+                  Cập nhật thông tin
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+                      logout();
+                    }
+                  }}
+                  className="bg-red-500 text-white"
+                >
+                  Đăng xuất
+                </Button>
+              </div>
             </>
           )}
         </div>
       </div>
+
+      {/* Password Change Dialog */}
+      <Dialog open={passwordDialog} onOpenChange={setPasswordDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Thay đổi mật khẩu</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handlePasswordChange}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="currentPassword">Mật khẩu hiện tại</Label>
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  value={passwordData.currentPassword}
+                  onChange={(e) =>
+                    setPasswordData({
+                      ...passwordData,
+                      currentPassword: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">Mật khẩu mới</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={(e) =>
+                    setPasswordData({
+                      ...passwordData,
+                      newPassword: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) =>
+                    setPasswordData({
+                      ...passwordData,
+                      confirmPassword: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setPasswordDialog(false)}
+              >
+                Hủy
+              </Button>
+              <Button type="submit">Lưu thay đổi</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <Toaster position="top-center" />
     </div>
   );
 }

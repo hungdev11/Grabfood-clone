@@ -54,10 +54,70 @@ public class Order extends BaseEntity{
     @Column(nullable = false, precision = 9, scale = 2)
     private BigDecimal discountOrderPrice;
 
+    // ===============================
+    // SHIPPER & DELIVERY FIELDS
+    // ===============================
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shipper_id")
+    private Shipper shipper;
+
+    @Column(name = "picked_up_at")
+    private LocalDateTime pickedUpAt;
+
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
+
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
+    @Column(name = "distance_km", precision = 5, scale = 2)
+    private BigDecimal distanceKm;
+
+    @Column(name = "tip_amount", precision = 9, scale = 2)
+    private BigDecimal tipAmount;
+
+    @Column(name = "shipper_earning", precision = 9, scale = 2)
+    private BigDecimal shipperEarning;
+
+    @Column(name = "payment_method")
+    private String paymentMethod;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     @JsonIgnore
     private List<CartDetail> cartDetails = new ArrayList<>();
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private List<OrderVoucher> orderVoucherList = new ArrayList<>();
+    
+    // ===============================
+    // UTILITY METHODS
+    // ===============================
+    
+    /**
+     * Tính thời gian giao hàng (phút)
+     */
+    public Integer getDeliveryTimeInMinutes() {
+        if (pickedUpAt != null && deliveredAt != null) {
+            return (int) java.time.Duration.between(pickedUpAt, deliveredAt).toMinutes();
+        }
+        return null;
+    }
+    
+    /**
+     * Kiểm tra xem có shipper hay không
+     */
+    public boolean hasShipper() {
+        return shipper != null;
+    }
+    
+    /**
+     * Lấy shipper ID
+     */
+    public Long getShipperId() {
+        return shipper != null ? shipper.getId() : null;
+    }
 }

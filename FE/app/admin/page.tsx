@@ -3,7 +3,11 @@
 import AdminVoucher from "@/components/admin/AdminVoucher";
 import { useState } from "react";
 import RestaurantManagement from "@/components/admin/RestaurantManagement";
+import DriverManagement from "@/components/admin/DriverManagement";
 import OrderList from "@/components/admin/OrderAdmin";
+import RevenueTracking from "@/components/admin/RevenueTracking";
+import { LogOut } from "lucide-react";
+import { logout } from "@/utils/authService";
 
 const Dashboard = () => {
   const [activeButton, setActiveButton] = useState<string | null>(null);
@@ -40,7 +44,7 @@ const Dashboard = () => {
               onClick={() => handleButtonClick("Voucher")}
             >
               Voucher
-            </button>
+            </button>{" "}
             <button
               className={`w-full p-4 text-left text-gray-600 ${
                 activeButton === "Restaurant"
@@ -53,23 +57,41 @@ const Dashboard = () => {
             </button>
             <button
               className={`w-full p-4 text-left text-gray-600 ${
-                activeButton === "Shadow"
+                activeButton === "Driver"
                   ? "bg-green-500 text-white rounded-lg"
                   : ""
               }`}
-              onClick={() => handleButtonClick("Shadow")}
+              onClick={() => handleButtonClick("Driver")}
             >
-              Shadow
+              Tài xế
+            </button>
+            <button
+              className={`w-full p-4 text-left text-gray-600 ${
+                activeButton === "Revenue"
+                  ? "bg-green-500 text-white rounded-lg"
+                  : ""
+              }`}
+              onClick={() => handleButtonClick("Revenue")}
+            >
+              Doanh thu
+            </button>
+            <button
+              className="w-full p-4 text-left text-red-600 flex items-center gap-2 hover:bg-red-100 rounded-lg mt-4"
+              onClick={logout}
+            >
+              <LogOut size={18} />
+              Đăng xuất
             </button>
           </div>
         </nav>
-      </div>
-
+      </div>{" "}
       {/* Main Content */}
       <div className="flex-1 p-6">
         {activeButton === "Voucher" && <AdminVoucher />}
         {activeButton === "Restaurant" && <RestaurantManagement />}
+        {activeButton === "Driver" && <DriverManagement />}
         {activeButton === "Order" && <OrderList />}
+        {activeButton === "Revenue" && <RevenueTracking />}
       </div>
     </div>
   );
