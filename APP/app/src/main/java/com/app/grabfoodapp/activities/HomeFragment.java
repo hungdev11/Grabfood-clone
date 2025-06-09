@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -82,6 +83,15 @@ public class HomeFragment extends Fragment {
                         Log.w("API", "Response body data is null");
                     }
                     adapter.notifyDataSetChanged();
+                    if (!restaurantList.isEmpty()) {
+                        var firstResDistance = restaurantList.get(0).getDistance();
+                        var doubleDistance = Double.valueOf(firstResDistance
+                                .substring(0, firstResDistance.indexOf(" "))
+                                .replace(",", "."));
+                        if (doubleDistance > 5) {
+                            Toast.makeText(requireContext(), "Xung quanh bạn 5km không tìm thấy nhà hàng nào cả", Toast.LENGTH_LONG).show();
+                        }
+                    }
                     Log.e("INFO", "Data loaded successfully");
                 } else {
                     Log.e("API", "Server error: " + response.code());

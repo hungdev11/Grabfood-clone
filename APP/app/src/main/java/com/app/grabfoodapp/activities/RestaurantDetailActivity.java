@@ -38,6 +38,7 @@ public class RestaurantDetailActivity extends AppCompatActivity {
     private ImageView ivResImg;
     private TextView tvResName;
     private TextView tvResRating;
+    private TextView tvShippingFee;
     private TextView tvTimeDistance;
     private ListView listViewCategory;
     private RecyclerView resRecyclerViewFoodTypes;
@@ -150,10 +151,12 @@ public class RestaurantDetailActivity extends AppCompatActivity {
         tvResName = findViewById(R.id.res_name);
         tvResRating = findViewById(R.id.res_rating);
         tvTimeDistance = findViewById(R.id.res_time_distance);
+        tvShippingFee = findViewById(R.id.res_ship_fee);
 
         Glide.with(this).load(resInfo.getImage()).into(ivResImg);
         tvResName.setText(resInfo.getName());
         tvResRating.setText(resInfo.getRating().toString());
+        tvShippingFee.setText(resInfo.getShippingFee() + "đ");
         tvTimeDistance.setText("Cách " + resInfo.getTimeDistance());
     }
 

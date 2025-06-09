@@ -326,7 +326,9 @@ public class RestaurantServiceImp implements RestaurantService {
                         double distance = GeoUtils.haversine(userLat, userLon,
                                 r.getAddress().getLat(), r.getAddress().getLon());
                         log.info("distance: {}", distance);
-                        return r.getStatus().equals(RestaurantStatus.ACTIVE) && distance <= 8;
+                        return r.getStatus().equals(RestaurantStatus.ACTIVE)
+//                                && distance <= 8
+                                ;
                     }
                     return r.getStatus().equals(RestaurantStatus.ACTIVE);
                 })
@@ -362,7 +364,7 @@ public class RestaurantServiceImp implements RestaurantService {
                 double distanceInKm = distanceInMeters / 1000;
                 formattedDistance = String.format("%.1f km", distanceInKm);
             }
-
+            response.setShippingFee(ShippingFeeUtil.calculateShippingFee(distanceInMeters));
             response.setDistance(formattedDistance);
             response.setTimeDistance(
                     TimeUtil.formatDurationFromSeconds(GeoUtils.estimateTravelTime(distance, MOVING_SPEED_PER_HOUR) * 3600)
@@ -407,7 +409,7 @@ public class RestaurantServiceImp implements RestaurantService {
         double minLon = lon - lonDiff;
         double maxLon = lon + lonDiff;
 
-        return restaurantRepository
+         List<RestaurantResponse> nearByRestaurants = restaurantRepository
                 .findNearbyRestaurants(lat, lon, radiusKm, minLat, maxLat, minLon, maxLon)
                 .stream().filter(r -> r.getStatus().equals(RestaurantStatus.ACTIVE))
                 .map(restaurant -> {
@@ -423,11 +425,15 @@ public class RestaurantServiceImp implements RestaurantService {
                             .name(restaurant.getName())
                             .description(restaurant.getDescription())
                             .image(restaurant.getImage())
+                            .shippingFee(ShippingFeeUtil.calculateShippingFee(distanceInMeters))
                             .rating(reviewService.calculateAvgRating(restaurant.getId()))
                             .distance(formattedDistance)
                             .build();
                 })
                 .toList();
+         return !nearByRestaurants.isEmpty()
+                 ? nearByRestaurants
+                 : getAllRestaurants();
     }
 
 

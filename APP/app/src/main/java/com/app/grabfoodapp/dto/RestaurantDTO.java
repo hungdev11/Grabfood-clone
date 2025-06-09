@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 public class RestaurantDTO {
 
@@ -15,6 +16,7 @@ public class RestaurantDTO {
     @AllArgsConstructor
     @Getter
     @Setter
+    @ToString
     public static class RestaurantResponse implements Serializable {
         private long id;
         private String name;
@@ -28,5 +30,6 @@ public class RestaurantDTO {
         private String distance;
         private String timeDistance;
         private List<String> restaurantVouchersInfo;
+        private BigDecimal shippingFee;
     }
 }

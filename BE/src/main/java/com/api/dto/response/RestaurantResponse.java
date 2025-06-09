@@ -29,4 +29,5 @@ public class RestaurantResponse {
     private String distance;
     private String timeDistance;
     private List<String> restaurantVouchersInfo;
+    private BigDecimal shippingFee;
 }
