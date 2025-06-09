@@ -198,19 +198,19 @@ public class PaymentController {
         }
     }
 
-    @GetMapping("/momo/callback")
-    public ResponseEntity<String> momoCallback(
-            @RequestParam String orderId,
-            @RequestParam int resultCode,
-            @RequestParam String message) {
-        String redirectHtml;
-        if (resultCode == 0) {
-            redirectHtml = successHTML;
-        } else {
-            redirectHtml = failureHTML;
-        }
-        return ResponseEntity.ok(redirectHtml);
-    }
+//    @GetMapping("/momo/callback")
+//    public ResponseEntity<String> momoCallback(
+//            @RequestParam String orderId,
+//            @RequestParam int resultCode,
+//            @RequestParam String message) {
+//        String redirectHtml;
+//        if (resultCode == 0) {
+//            redirectHtml = successHTML;
+//        } else {
+//            redirectHtml = failureHTML;
+//        }
+//        return ResponseEntity.ok(redirectHtml);
+//    }
 
     @PostMapping("/vnpay")
     public ResponseEntity<String> createVNPayPayment(@RequestBody CreateOrderRequest orderRequest,

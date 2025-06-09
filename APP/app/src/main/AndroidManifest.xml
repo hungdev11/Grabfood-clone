@@ -17,6 +17,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GrabfoodApp"
         tools:targetApi="31">
+
+        <activity android:name=".activities.MomoReturnActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="grabfoodapp"
+                    android:host="momo-return" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activities.ReviewsPage"
             android:exported="false" />
