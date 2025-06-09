@@ -9,7 +9,7 @@
         android:id="@+id/btnUseCurrentLocation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/quantum_googgreen"
+        android:backgroundTint="@color/green"
         android:text="Sử dụng vị trí hiện tại" />
 
     <EditText
@@ -34,7 +34,7 @@
         android:id="@+id/btnConfirmLocation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/quantum_googgreen"
+        android:backgroundTint="@color/green"
         android:text="Confirm" />
 
 </LinearLayout>

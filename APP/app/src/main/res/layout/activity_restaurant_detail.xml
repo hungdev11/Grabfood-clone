@@ -10,6 +10,7 @@ android:layout_height="match_parent">
     android:id="@+id/res_toolbar"
     android:background="?attr/colorPrimary"
     android:layout_width="match_parent"
+    android:backgroundTint="@color/green"
     android:layout_height="?attr/actionBarSize" />
 <!--    Restaurant info, click to see more-->
 <LinearLayout

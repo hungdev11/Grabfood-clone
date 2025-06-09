@@ -25,9 +25,11 @@ import com.app.grabfoodapp.dto.FoodDTO;
 import com.app.grabfoodapp.dto.RestaurantDTO;
 import com.bumptech.glide.Glide;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import retrofit2.Call;
@@ -156,7 +158,9 @@ public class RestaurantDetailActivity extends AppCompatActivity {
         Glide.with(this).load(resInfo.getImage()).into(ivResImg);
         tvResName.setText(resInfo.getName());
         tvResRating.setText(resInfo.getRating().toString());
-        tvShippingFee.setText(resInfo.getShippingFee() + "đ");
+        NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+
+        tvShippingFee.setText(formatter.format(resInfo.getShippingFee()) + "đ");
         tvTimeDistance.setText("Cách " + resInfo.getTimeDistance());
     }
 

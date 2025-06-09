@@ -19,7 +19,9 @@ import com.app.grabfoodapp.activities.RestaurantDetailActivity;
 import com.app.grabfoodapp.dto.RestaurantDTO;
 import com.bumptech.glide.Glide;
 
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class RestaurantAdapter extends ArrayAdapter<RestaurantDTO.RestaurantResponse> {
 
@@ -45,7 +47,9 @@ public class RestaurantAdapter extends ArrayAdapter<RestaurantDTO.RestaurantResp
 
         resName.setText(restaurant.getName());
         resRating.setText(restaurant.getRating().toString());
-        resShippingFee.setText(restaurant.getShippingFee() + "đ");
+        NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+
+        resShippingFee.setText(formatter.format(restaurant.getShippingFee()) + "đ");
         resTimeDistance.setText("Cách " + restaurant.getTimeDistance());
 
         Glide.with(getContext())

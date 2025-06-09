@@ -157,6 +157,7 @@
         android:layout_marginBottom="36dp"
         android:text="Add to cart - {price}"
         android:textSize="20sp"
+        android:backgroundTint="@color/green"
         android:textColor="@android:color/white"
         android:enabled="true"/>
 </RelativeLayout>
