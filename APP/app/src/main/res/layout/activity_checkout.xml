@@ -143,16 +143,17 @@
                 android:textColor="#000000" />
         </LinearLayout>
         <!-- Place Order Button -->
-        <Button
-            android:layout_marginBottom="20dp"
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_payment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Đặt đơn"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="20dp"
+            app:cornerRadius="8dp"
+            app:backgroundTint="@color/green"
+            android:text="Đặt hàng"
             android:textSize="16sp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#008000"
-            android:layout_marginTop="16dp" />
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
     <!-- ScrollView: Phần giữa cuộn được -->

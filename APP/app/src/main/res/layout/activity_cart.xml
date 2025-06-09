@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fitsSystemWindows="true">
 
     <!-- Thanh trên cùng: nút back + tên nhà hàng -->
@@ -75,14 +75,14 @@
             <!-- Ghi chú: paintFlags không set được trong XML -->
         </LinearLayout>
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnOrder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Thanh toán"
             android:textAllCaps="false"
+            android:background="@drawable/green_rounded_button"
             android:textSize="16sp"
-            android:backgroundTint="#4CAF50"
             android:textColor="#FFFFFF"
             android:layout_marginTop="8dp" />
     </LinearLayout>
