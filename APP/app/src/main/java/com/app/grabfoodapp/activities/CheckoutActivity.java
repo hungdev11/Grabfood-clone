@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -74,6 +75,7 @@ public class CheckoutActivity extends AppCompatActivity {
     LinearLayout voucherLayout;
     TextView txtDistance;
     TextView txtDuration;
+    ImageButton btnBack;
     BigDecimal totalPrice = BigDecimal.ZERO;
 
     BigDecimal shippingFee = BigDecimal.ZERO;
@@ -108,6 +110,7 @@ public class CheckoutActivity extends AppCompatActivity {
         txtDistance = findViewById(R.id.checkoutDistance);
         txtDuration = findViewById(R.id.checkoutDuration);
         paymentRadioGroup = findViewById(R.id.paymentRadioGroup);
+        btnBack = findViewById(R.id.btnCheckoutBack);
         cartItems = (ArrayList<CartDetailDTO>) getIntent().getSerializableExtra("cartItems");
         cartId = getIntent().getLongExtra("cartId", 0);
         updateTotalPrice();
@@ -149,6 +152,13 @@ public class CheckoutActivity extends AppCompatActivity {
         getShippingAddress();
         handleBtnPaymentClick();
         handlePaymentMethod();
+
+        btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     @Override
