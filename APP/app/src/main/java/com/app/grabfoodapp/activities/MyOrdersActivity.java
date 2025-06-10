@@ -3,7 +3,9 @@ package com.app.grabfoodapp.activities;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,6 +31,8 @@ public class MyOrdersActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     OrderAdapter adapter;
 
+    ProgressBar progressBar;
+
     List<OrderResponse> orders = new ArrayList<>();
 
     @Override
@@ -40,6 +44,7 @@ public class MyOrdersActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         Toolbar toolbar = findViewById(R.id.toolbar);
+        progressBar = findViewById(R.id.progressBar);
         setSupportActionBar(toolbar);
 
         if (getSupportActionBar() != null) {
@@ -59,12 +64,14 @@ public class MyOrdersActivity extends AppCompatActivity {
             return;
         }
         String token = tokenManager.getToken();
+        progressBar.setVisibility(View.VISIBLE);
 
         Call<List<OrderResponse>> call = orderService.getAllOrders("Bearer " + token);
 
         call.enqueue(new Callback<List<OrderResponse>>() {
             @Override
             public void onResponse(Call<List<OrderResponse>> call, Response<List<OrderResponse>> response) {
+                progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
                     orders = response.body();
                     adapter = new OrderAdapter(MyOrdersActivity.this, orders);
@@ -76,6 +83,7 @@ public class MyOrdersActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<OrderResponse>> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
                 Log.e("APIOrder", "Lỗi mạng hoặc URL: " + t.getMessage());
             }
         });
