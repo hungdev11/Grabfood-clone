@@ -25,6 +25,8 @@ import com.app.grabfoodapp.dto.FoodDTO;
 import com.app.grabfoodapp.dto.RestaurantDTO;
 import com.bumptech.glide.Glide;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -160,7 +162,14 @@ public class RestaurantDetailActivity extends AppCompatActivity {
         tvResRating.setText(resInfo.getRating().toString());
         NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
-        tvShippingFee.setText(formatter.format(resInfo.getShippingFee()) + "đ");
+        BigDecimal fee = resInfo.getShippingFee();
+        if (fee != null) {
+            DecimalFormat formatterFee = new DecimalFormat("#,###");
+            String feeText = formatterFee.format(fee.longValue()) + "đ";
+            tvShippingFee.setText(feeText);
+        } else {
+            tvShippingFee.setText("0đ");
+        }
         tvTimeDistance.setText("Cách " + resInfo.getTimeDistance());
     }
 

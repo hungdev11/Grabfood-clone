@@ -9,9 +9,10 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Profile"
+        android:text="Thông tin tài khoản"
         android:textSize="24sp"
         android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
         android:layout_marginBottom="24dp"/>
 
     <androidx.cardview.widget.CardView
@@ -38,7 +39,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Personal information"
+                android:text="Tài khoản cá nhân"
                 android:textSize="16sp"
                 android:layout_marginStart="16dp"/>
 
@@ -73,7 +74,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Shipping address"
+                android:text="Địa chỉ giao hàng"
                 android:textSize="16sp"
                 android:layout_marginStart="16dp"/>
 
@@ -108,7 +109,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="My orders"
+                android:text="Lịch sử đơn hàng"
                 android:textSize="16sp"
                 android:layout_marginStart="16dp"/>
 
@@ -118,9 +119,10 @@
                 android:src="@android:drawable/ic_media_play"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
     <View
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="250dp"
         android:layout_weight="1" />
 
     <Button
@@ -128,9 +130,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        android:background="@android:color/holo_red_light"
+        android:layout_marginBottom="50dp"
+        android:backgroundTint="@color/green"
         android:padding="12dp"
-        android:text="Logout"
+        android:text="Đăng xuất"
         android:textColor="@android:color/white" />
 </LinearLayout>
