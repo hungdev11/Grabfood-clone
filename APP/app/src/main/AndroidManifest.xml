@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:name=".GrabFoodApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -17,16 +18,24 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GrabfoodApp"
         tools:targetApi="31">
-
-        <activity android:name=".activities.MomoReturnActivity"
+        <activity
+            android:name=".activities.RemindersListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.ReminderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.MomoReturnActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data
-                    android:scheme="grabfoodapp"
-                    android:host="momo-return" />
+                    android:host="momo-return"
+                    android:scheme="grabfoodapp" />
             </intent-filter>
         </activity>
         <activity

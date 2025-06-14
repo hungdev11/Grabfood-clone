@@ -3,6 +3,7 @@ package com.app.grabfoodapp.apiservice.food;
 import com.app.grabfoodapp.dto.ApiResponse;
 import com.app.grabfoodapp.dto.FoodDTO;
 import com.app.grabfoodapp.dto.PageResponse;
+import com.app.grabfoodapp.dto.response.SearchResultResponse;
 
 import java.util.List;
 
@@ -25,5 +26,11 @@ public interface FoodService {
             @Query("page") int page,
             @Query("pageSize") int pageSize,
             @Query("isForCustomers") boolean isForCustomer
+    );
+    @GET("foods/search")
+    Call<ApiResponse<SearchResultResponse>> searchFoodsAndRestaurants(
+            @Query("query") String query,
+            @Query("restaurantId") Long restaurantId,
+            @Query("isForCustomer") boolean isForCustomer
     );
 }

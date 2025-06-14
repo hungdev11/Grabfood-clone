@@ -72,7 +72,7 @@ public class ShippingAddressActivity extends AppCompatActivity implements Addres
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Shipping Addresses");
+            getSupportActionBar().setTitle("Địa chỉ giao hàng");
         }
 
         // Initialize views

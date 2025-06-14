@@ -49,7 +49,7 @@ public class MyOrdersActivity extends AppCompatActivity {
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("My Orders");
+            getSupportActionBar().setTitle("Đơn hàng của tôi");
         }
         init();
     }
