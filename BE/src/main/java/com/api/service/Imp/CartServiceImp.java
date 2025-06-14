@@ -51,7 +51,7 @@ public class CartServiceImp implements CartService {
         cartRepository.save(cart);
     }
 
-    private boolean compareTwoList(List<Long> list1, List<Long> list2) {
+    public boolean compareTwoList(List<Long> list1, List<Long> list2) {
         log.debug("🔎 Comparing lists -> list1: {}, list2: {}", list1, list2);
         if (list1 == null || list2 == null) return false;
         if (list1.size() != list2.size()) return false;

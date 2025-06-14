@@ -11,7 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class ApiClient {
-    private static final String BASE_URL = "http://192.168.1.20:6969/grab/";
+    private static final String BASE_URL = "http://192.168.1.3:6969/grab/";
     private static Retrofit retrofit = null;
     private static OkHttpClient client = null;
 

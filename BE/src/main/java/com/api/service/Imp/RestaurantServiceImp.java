@@ -44,16 +44,16 @@ public class RestaurantServiceImp implements RestaurantService {
     private final RestaurantRepository restaurantRepository;
     private final AccountService accountService;
     private final AddressService addressService;
-    private final LocationService locationService;
     private final ReviewService reviewService;
     private final OrderRepository orderRepository;
     private final NotificationService notificationService;
     private final EmailService emailService;
     private final RoleRepository roleRepository;
     private final OrderAssignmentService orderAssignmentService;
-    private static final double MOVING_SPEED_PER_HOUR = 50;
     private final AddressRepository addressRepository;
     private final PasswordEncoder passwordEncoder;
+
+    private static final double MOVING_SPEED_PER_HOUR = 50;
 
     @Override
     @Transactional
@@ -136,7 +136,6 @@ public class RestaurantServiceImp implements RestaurantService {
     }
 
     @Override
-//    @Transactional
     public void handleOrder(long restaurantId, long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
@@ -158,7 +157,9 @@ public class RestaurantServiceImp implements RestaurantService {
         }
         orderRepository.save(order);
         // tạo thông báo push tại đây đến /topic/client/{userId}
-        sendNotifyToUserWhenResChangeOrderStatus(order);
+        if (!OrderStatus.READY_FOR_PICKUP.equals(order.getStatus())) {
+            sendNotifyToUserWhenResChangeOrderStatus(order);
+        }
     }
 
     @Override
