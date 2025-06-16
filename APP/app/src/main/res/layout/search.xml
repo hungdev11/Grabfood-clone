@@ -5,17 +5,33 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <EditText
-        android:id="@+id/search_edit_text"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:background="@drawable/search_background"
-        android:drawableStart="@drawable/ic_search"
-        android:drawablePadding="8dp"
-        android:hint="Tìm kiếm món ăn, nhà hàng..."
-        android:inputType="text"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/search_edit_text"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:background="@drawable/search_background"
+            android:drawableStart="@drawable/ic_search"
+            android:drawablePadding="8dp"
+            android:hint="Tìm kiếm món ăn, nhà hàng..."
+            android:inputType="text"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp" />
+
+        <ImageButton
+            android:id="@+id/btn_camera_search"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/search_background"
+            android:src="@drawable/ic_camera"
+            android:contentDescription="Search by image" />
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/search_progress_bar"
@@ -45,6 +61,39 @@
             android:text="Không tìm thấy kết quả"
             android:textSize="16sp"
             android:layout_marginTop="16dp" />
+    </LinearLayout>
+
+    <!-- Preview for image recognition (initially hidden) -->
+    <LinearLayout
+        android:id="@+id/image_preview_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:layout_marginTop="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Kết quả nhận diện"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+
+        <ImageView
+            android:id="@+id/img_food_preview"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginTop="8dp"
+            android:scaleType="centerCrop"
+            android:background="#EEEEEE"/>
+
+        <TextView
+            android:id="@+id/tv_recognition_result"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text=""
+            android:textSize="14sp"/>
     </LinearLayout>
 
     <ScrollView
