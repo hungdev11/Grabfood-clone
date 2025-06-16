@@ -21,6 +21,7 @@ import com.app.grabfoodapp.config.ApiClient;
 import com.app.grabfoodapp.dto.ApiResponse;
 import com.app.grabfoodapp.dto.RestaurantDTO;
 import com.app.grabfoodapp.utils.LocationStorage;
+import com.app.grabfoodapp.utils.TokenManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +47,17 @@ public class HomeFragment extends Fragment {
         adapter = new RestaurantAdapter(getContext(), restaurantList);
         listView.setAdapter(adapter);
         btnCart = view.findViewById(R.id.btn_cart);
+        ImageButton btnReminder = view.findViewById(R.id.btn_reminder);
+        btnReminder.setOnClickListener(v -> {
+            TokenManager tokenManager = new TokenManager(requireContext());
+
+            if (!tokenManager.hasToken()) {
+                Toast.makeText(requireContext(), "Vui lòng đăng nhập để sử dụng tính năng này", Toast.LENGTH_SHORT).show();
+            } else {
+                Intent intent = new Intent(requireContext(), RemindersListActivity.class);
+                startActivity(intent);
+            }
+        });
 
         Log.e("INFO", "Fragment Started");
 
@@ -88,8 +100,8 @@ public class HomeFragment extends Fragment {
                         var doubleDistance = Double.valueOf(firstResDistance
                                 .substring(0, firstResDistance.indexOf(" "))
                                 .replace(",", "."));
-                        if (doubleDistance > 5) {
-                            Toast.makeText(requireContext(), "Xung quanh bạn 5km không tìm thấy nhà hàng nào cả", Toast.LENGTH_LONG).show();
+                        if (doubleDistance > 10) {
+                            Toast.makeText(requireContext(), "Xung quanh bạn 10km không tìm thấy nhà hàng nào cả", Toast.LENGTH_LONG).show();
                         }
                     }
                     Log.e("INFO", "Data loaded successfully");

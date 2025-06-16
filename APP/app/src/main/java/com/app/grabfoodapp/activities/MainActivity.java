@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         // Check if trying to access profile page without authentication
         if (pageIndex == 2 && !tokenManager.hasToken()) {
             // Show message that login is required
-            Toast.makeText(this, "You need to log in to access your profile", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Bạn cần phải đăng nhập tài khoản", Toast.LENGTH_SHORT).show();
 
             // Navigate to login screen
             Intent intent = new Intent(this, LoginActivity.class);

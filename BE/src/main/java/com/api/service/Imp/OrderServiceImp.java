@@ -390,7 +390,7 @@ public class OrderServiceImp implements OrderService {
                 .build();
     }
 
-    private BigDecimal getTotalPrice(List<CartDetail> cartDetails) {
+    public BigDecimal getTotalPrice(List<CartDetail> cartDetails) {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (CartDetail cartDetail : cartDetails) {
 
