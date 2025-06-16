@@ -12,7 +12,15 @@ import com.api.jwt.JwtService;
 import com.api.jwt.UserInfoService;
 import com.api.service.UserService;
 import com.api.utils.RestaurantStatus;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.gson.GsonFactory;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,7 +30,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+
+import java.util.Collections;
+import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/auth", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -242,4 +253,53 @@ public class UserController {
             );
         }
     }
+    @PostMapping("/google")
+    public ResponseEntity<?> googleLogin(@RequestBody GoogleTokenRequest request) {
+        try {
+            // Verify the ID token with Google
+            HttpTransport transport = new NetHttpTransport();
+            JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+                    .setAudience(Collections.singletonList("474635444717-2b144chovgf1qes8pvdj86qcquqdassn.apps.googleusercontent.com"))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(request.getIdToken());
+            if (idToken == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("code", 401, "message", "Invalid Google token", "data", null));
+            }
+
+            // Extract user info from the token
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+
+            // Check if user exists
+            Account account = accountService.getAccountByUsername(email);
+            Boolean isUserExist = userService.checkUserExistByEmail(email);
+
+            if (account == null && isUserExist) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(Map.of("code", 409, "message", "Email already used with different auth method", "data", null));
+            }
+
+            // Create account if it doesn't exist
+            if (account == null) {
+                account = userInfoService.registerOAuth2User(email, name, "ROLE_USER");
+            }
+
+            // Generate JWT token
+            String token = jwtService.generateToken(account.getUsername());
+
+            // Return token response
+            Map<String, Object> responseData = Map.of("token", token, "username", email);
+            return ResponseEntity.ok(Map.of("code", 200, "message", "Login successful", "data", responseData));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("code", 500, "message", "Authentication failed: " + e.getMessage(), "data", null));
+        }
+    }
+
 }

@@ -103,7 +103,7 @@ public class SecurityConfig {
                 // Configure endpoint authorization - Cấu hình phân quyền truy cập
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints - Các endpoint công khai
-                        .requestMatchers("/auth/welcome", "/auth/addNewAccount", "/auth/addNewAccount2",
+                        .requestMatchers("/auth/google", "/auth/addNewAccount", "/auth/addNewAccount2",
                                 "/auth/generateToken", "/auth/generateToken2")
                         .permitAll()
                         .requestMatchers("/login/oauth2/**", "/oauth2/**", "/oauth2/authorization/google").permitAll()
