@@ -9,9 +9,9 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
+        android:background="@color/green"
         android:elevation="4dp"
-        app:titleTextColor="@android:color/white" />
+        app:titleTextColor="@android:color/black" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -23,7 +23,7 @@
             android:id="@+id/editTextSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Search for an address"
+            android:hint="Tìm kiếm địa chỉ"
             android:padding="12dp"
             android:background="@android:drawable/editbox_background" />
 
@@ -39,7 +39,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Saved Addresses"
+            android:text="Địa chỉ đã lưu"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginTop="16dp"

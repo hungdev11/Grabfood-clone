@@ -3,8 +3,10 @@ package com.app.grabfoodapp.apiservice.auth;
 import com.app.grabfoodapp.dto.LoginResponse;
 import com.app.grabfoodapp.dto.UserInfoResponse;
 import com.app.grabfoodapp.dto.request.ChangePasswordRequest;
+import com.app.grabfoodapp.dto.request.GoogleTokenRequest;
 import com.app.grabfoodapp.dto.request.LoginRequest;
 import com.app.grabfoodapp.dto.request.RegisterRequest;
+import com.app.grabfoodapp.dto.response.GoogleLoginResponse;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -24,4 +26,6 @@ public interface AuthService {
     Call<UserInfoResponse> getUserInfo(@Header("Authorization") String token);
     @PUT("auth/user/change-password")
     Call<Void> changePassword(@Header("Authorization") String token, @Body ChangePasswordRequest request);
+    @POST("auth/google")
+    Call<GoogleLoginResponse> googleLogin(@Body GoogleTokenRequest request);
 }

@@ -54,7 +54,7 @@
         android:padding="12dp"
         android:backgroundTint="@color/green"
         android:text="Đăng nhập"
-        app:layout_constraintBottom_toTopOf="@+id/tv_register"
+        app:layout_constraintBottom_toTopOf="@+id/custom_google_sign_in"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/et_password" />
@@ -71,6 +71,22 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_login" />
+        app:layout_constraintTop_toBottomOf="@+id/custom_google_sign_in" />
 
+    <!-- Replace the SignInButton in your layout with this -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/custom_google_sign_in"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Đăng nhập bằng Google"
+        android:textColor="#757575"
+        android:backgroundTint="#FFFFFF"
+        android:drawableStart="@drawable/ic_google_logo"
+        android:drawablePadding="8dp"
+        android:padding="12dp"
+        app:layout_constraintBottom_toTopOf="@+id/tv_register"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_login" />
 </androidx.constraintlayout.widget.ConstraintLayout>

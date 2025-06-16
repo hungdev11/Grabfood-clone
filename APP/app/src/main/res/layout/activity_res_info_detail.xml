@@ -6,15 +6,35 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".activities.ResInfoDetail">
+    <!-- Toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/res_toolbar"
+        android:background="?attr/colorPrimary"
+        android:layout_width="match_parent"
+        android:backgroundTint="@color/green"
+        android:layout_height="?attr/actionBarSize">
 
-    <ImageButton
-        android:onClick="backToRestaurant"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="10dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/arrow_left" />
+        <ImageButton
+            android:id="@+id/back_button"
+            android:onClick="backToRestaurant"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="start"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_back" />
+
+        <TextView
+            android:id="@+id/toolbar_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chi tiết nhà hàng"
+            android:textColor="@android:color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_gravity="center" />
+
+    </androidx.appcompat.widget.Toolbar>
+
 
     <ImageView
         android:id="@+id/res_detail_image"

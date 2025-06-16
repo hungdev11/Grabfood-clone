@@ -9,14 +9,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:background="@color/green">
 
         <ImageButton
             android:id="@+id/back_button"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="@android:color/transparent"
-            android:src="@drawable/arrow_left" />
+            android:src="@drawable/ic_back" />
 
         <TextView
             android:layout_width="0dp"
@@ -25,6 +26,7 @@
             android:layout_marginStart="16dp"
             android:layout_weight="1"
             android:text="Nhắc hẹn của bạn"
+            android:textColor="@android:color/black"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -34,7 +36,8 @@
             android:layout_height="40dp"
             android:layout_gravity="center_vertical|end"
             android:background="@android:color/transparent"
-            android:src="@android:drawable/ic_input_add" />
+            android:src="@android:drawable/ic_menu_add"
+            android:backgroundTint="@color/white"/>
     </LinearLayout>
 
     <!-- Content -->

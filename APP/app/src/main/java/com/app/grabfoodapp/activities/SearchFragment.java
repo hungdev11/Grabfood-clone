@@ -145,7 +145,7 @@ public class SearchFragment extends Fragment {
                             getActivity().runOnUiThread(() -> performSearch(query));
                         }
                     }
-                }, 300); // 300ms delay
+                }, 500); // 500ms delay
             }
         });
     }
