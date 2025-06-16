@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "474635444717",
+    "project_id": "oauth2-with-android",
+    "storage_bucket": "oauth2-with-android.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:474635444717:android:d41dc4561f85d7dad287e4",
+        "android_client_info": {
+          "package_name": "com.app.grabfoodapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "474635444717-2gv302cbrceg9nnns4ejhcr8i0ie2l4a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.grabfoodapp",
+            "certificate_hash": "55319233eb9b5872a56f435896cf5664d0850823"
+          }
+        },
+        {
+          "client_id": "474635444717-ip59qoj6m0l0611pqhisg60bhp5f5auc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCodfuMXwPH4Si33afKvlCOBrl2USmUTEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "474635444717-ip59qoj6m0l0611pqhisg60bhp5f5auc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
