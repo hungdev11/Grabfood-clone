@@ -520,7 +520,7 @@ public class FoodServiceImp implements FoodService {
         });
     }
 
-    private Food getFoodByIdAndRestaurantId (long foodId, long restaurantId) {
+    public Food getFoodByIdAndRestaurantId (long foodId, long restaurantId) {
         log.info("Get food id {} and restaurant id {}", foodId, restaurantId);
         Restaurant restaurant = restaurantService.getRestaurant(restaurantId);
 
