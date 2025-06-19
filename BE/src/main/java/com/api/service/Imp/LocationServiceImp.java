@@ -14,6 +14,10 @@ import java.util.Map;
 
 @Service
 public class LocationServiceImp implements LocationService {
+    protected RestTemplate getRestTemplate() {
+        return new RestTemplate();
+    }
+
     @Override
     public String getLocationDisplayName(Double lat, Double lon) {
         RestTemplate restTemplate = new RestTemplate();

@@ -25,6 +25,7 @@ public class UserServiceImp implements UserService {
 
     @Override
     public Long getUserIdByPhoneOrEmail(String username) {
+        log.info("Getting user ID by phone or email: {}", username);
         Optional<User> userByPhone = userRepository.findByPhone(username);
         if (userByPhone.isPresent()) {
             return userByPhone.get().getId();
@@ -44,6 +45,7 @@ public class UserServiceImp implements UserService {
 
     @Override
     public User getUserByAccountId(Long accountId) {
+        log.info("Getting user by account ID: {}", accountId);
         return userRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND,
                         "User not found with account ID: " + accountId));

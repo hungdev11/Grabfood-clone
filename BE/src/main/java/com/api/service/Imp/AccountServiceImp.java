@@ -87,7 +87,7 @@ public class AccountServiceImp implements AccountService {
     @Override
     public Account getAccountByUsername(String username) {
         return accountRepository.findByUsername(username)
-                .orElse(null);
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_USERNAME_NOT_EXISTED));
     }
 
     @Override

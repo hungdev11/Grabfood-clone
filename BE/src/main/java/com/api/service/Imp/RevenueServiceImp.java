@@ -35,6 +35,8 @@ public class RevenueServiceImp implements RevenueService {
             LocalDateTime monthEnd = currentMonth.atEndOfMonth().atTime(23, 59, 59, 999999999);
 
             BigDecimal monthRevenue = orderRepository.calculateRevenueForPeriod(monthStart, monthEnd);
+// Add null check
+            monthRevenue = monthRevenue == null ? BigDecimal.ZERO : monthRevenue;
 
             RevenueResponse.MonthlyRevenue monthData = RevenueResponse.MonthlyRevenue.builder()
                     .monthYear(currentMonth.format(MONTH_YEAR_FORMATTER))
