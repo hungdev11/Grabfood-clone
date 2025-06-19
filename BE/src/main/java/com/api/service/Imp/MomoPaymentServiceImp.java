@@ -24,11 +24,14 @@ import java.util.UUID;
 @Service
 @Slf4j
 public class MomoPaymentServiceImp implements MomoPaymentService {
+    protected RestTemplate createRestTemplate() {
+        return new RestTemplate();
+    }
 
     @Override
     public String createPaymentUrl(Long orderId, BigDecimal amount) {
         try {
-            RestTemplate restTemplate = new RestTemplate();
+            RestTemplate restTemplate = createRestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
