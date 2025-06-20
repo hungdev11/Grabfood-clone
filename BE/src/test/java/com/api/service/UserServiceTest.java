@@ -57,7 +57,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should get user ID by phone number")
     void getUserIdByPhone_Success() {
         // Arrange
         String phone = "0123456789";
@@ -72,7 +71,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should get user ID by phone when username is phone number")
     void getUserIdByPhoneOrEmail_WithPhone_Success() {
         // Arrange
         String username = "0123456789";
@@ -88,7 +86,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should get user ID by email when username is email")
     void getUserIdByPhoneOrEmail_WithEmail_Success() {
         // Arrange
         String username = "test@example.com";
@@ -105,7 +102,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw exception when user not found by phone or email")
     void getUserIdByPhoneOrEmail_UserNotFound() {
         // Arrange
         String username = "nonexistent";
@@ -124,7 +120,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should check if user exists by email")
     void checkUserExistByEmail_Success() {
         // Arrange
         String email = "test@example.com";
@@ -139,7 +134,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should check if user does not exist by email")
     void checkUserExistByEmail_NotExists() {
         // Arrange
         String email = "nonexistent@example.com";
@@ -154,7 +148,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should get user by account ID")
     void getUserByAccountId_Success() {
         // Arrange
         Long accountId = 100L;
@@ -171,7 +164,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw exception when user not found by account ID")
     void getUserByAccountId_UserNotFound() {
         // Arrange
         Long accountId = 999L;
@@ -188,7 +180,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should get user by ID")
     void getUserById_Success() {
         // Arrange
         Long userId = 1L;
@@ -205,7 +196,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw exception when user not found by ID")
     void getUserById_UserNotFound() {
         // Arrange
         Long userId = 999L;

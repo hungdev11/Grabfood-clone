@@ -42,7 +42,6 @@ public class MomoPaymentServiceTest {
     }
 
     @Test
-    @DisplayName("Should create payment URL successfully")
     void createPaymentUrl_Success() throws Exception {
         // Arrange
         Long orderId = 1234L;
@@ -74,7 +73,6 @@ public class MomoPaymentServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw exception when MoMo response is null")
     void createPaymentUrl_NullResponse() {
         // Arrange
         Long orderId = 1234L;
@@ -96,7 +94,6 @@ public class MomoPaymentServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw exception when MoMo payUrl is null")
     void createPaymentUrl_NullPayUrl() throws Exception {
         // Arrange
         Long orderId = 1234L;
@@ -124,7 +121,6 @@ public class MomoPaymentServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw exception when RestTemplate throws exception")
     void createPaymentUrl_ApiException() {
         // Arrange
         Long orderId = 1234L;
